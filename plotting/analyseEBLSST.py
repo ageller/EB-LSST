@@ -111,12 +111,15 @@ if __name__ == "__main__":
 	Dec = []
 	recFrac = []
 	recN = []
-
 	rawN = []
 	obsN = []
 	fileN = []
 	fileObsN = []
 	fileRecN = []
+
+	allNPrsa = []
+	obsNPrsa = []
+	recNPrsa = []
 
 	#Read in all the data and make the histograms
 	d = "../output_files/"
@@ -148,7 +151,12 @@ if __name__ == "__main__":
 		fiN = 0.
 		fioN = 0.
 		firN = 0.
+		NallPrsa = 0.
+		NobsPrsa = 0.
+		NrecPrsa = 0.
 		Nall = len(data.index)
+		prsa = data.loc[(data['appMagMean'] <= 19.5) & (data['p'] < 1000)]
+		NallPrsa = len(prsa.index)
 		if (Nall >= Nlim):
 			#create histograms
 			#All
@@ -163,7 +171,8 @@ if __name__ == "__main__":
 			#account for the binary fraction, as a function of mass
 			dm1 = np.diff(m1b)
 			m1val = m1b[:-1] + dm1/2.
-			fb = np.sum(m1hAll0*dm1*fbFit(m1val))
+			fb = np.sum(m1hAll0/Nall*fbFit(m1val))
+			#print("fb = ", fb)
 			Nmult *= fb
 
 						
@@ -178,6 +187,8 @@ if __name__ == "__main__":
 			#Obs
 			obs = data.loc[data['LSM_PERIOD'] != -999]
 			Nobs = len(obs.index)
+			prsaObs = data.loc[(data['appMagMean'] <= 19.5) & (data['p'] < 1000) & (data['LSM_PERIOD'] != -999)]
+			NobsPrsa = len(prsaObs.index)
 			if (Nobs >= Nlim):
 				m1hObs0, m1b = np.histogram(obs["m1"], bins=mbins)
 				qhObs0, qb = np.histogram(obs["m2"]/obs["m1"], bins=qbins)
@@ -195,11 +206,13 @@ if __name__ == "__main__":
 				rhObs += rhObs0/Nall*Nmult
 
 				#Rec
-				fullP = abs(data['LSM_PERIOD'] - data['p'])/data['LSM_PERIOD']
-				halfP = abs(0.5*data['LSM_PERIOD'] - data['p'])/(0.5*data['LSM_PERIOD'])
-				twiceP = abs(2.*data['LSM_PERIOD'] - data['p'])/(2.*data['LSM_PERIOD'])
+				fullP = abs(data['LSM_PERIOD'] - data['p'])/data['p']
+				halfP = abs(data['LSM_PERIOD'] - 0.5*data['p'])/(0.5*data['p'])
+				twiceP = abs(data['LSM_PERIOD'] - 2.*data['p'])/(2.*data['p'])
 				rec = data.loc[(data['LSM_PERIOD'] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
 				Nrec = len(rec.index)
+				prsaRec = data.loc[(data['appMagMean'] <= 19.5) & (data['p'] < 1000) & (data['LSM_PERIOD'] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
+				NrecPrsa = len(prsaRec.index)
 				if (Nrec >= Nlim):
 					m1hRec0, m1b = np.histogram(rec["m1"], bins=mbins)
 					qhRec0, qb = np.histogram(rec["m2"]/rec["m1"], bins=qbins)
@@ -224,6 +237,9 @@ if __name__ == "__main__":
 					fiN = Nall
 					fioN = Nobs
 					firN = Nrec
+					NrecPrsa = NrecPrsa/Nall*Nmult
+					NobsPrsa = NobsPrsa/Nall*Nmult
+					NallPrsa = NallPrsa/Nall*Nmult		
 
 
 
@@ -234,6 +250,9 @@ if __name__ == "__main__":
 		fileN.append(fiN)
 		fileObsN.append(fioN)
 		fileRecN.append(firN)
+		allNPrsa.append(NallPrsa)
+		obsNPrsa.append(NobsPrsa)
+		recNPrsa.append(NrecPrsa)
 		#print(np.sum(lphRec), np.sum(recN), np.sum(lphRec)/np.sum(recN), np.sum(lphRec0), Nrec, np.sum(lphRec0)/Nrec, np.sum(lphObs), np.sum(obsN), np.sum(lphObs)/np.sum(obsN))
 
 
@@ -286,3 +305,7 @@ if __name__ == "__main__":
 	print("total in sample (raw, log):",np.sum(rawN), np.log10(np.sum(rawN)))
 	print("total observable (raw, log):",np.sum(obsN), np.log10(np.sum(obsN)))
 	print("total recovered (raw, log):",np.sum(recN), np.log10(np.sum(recN)))
+	print("###################")
+	print("total in Prsa r<19.5 P<1000d sample (raw, log):",np.sum(allNPrsa), np.log10(np.sum(allNPrsa)))
+	print("total observable in Prsa r<19.5 P<1000d sample (raw, log):",np.sum(obsNPrsa), np.log10(np.sum(obsNPrsa)))
+	print("total recovered in Prsa r<19.5 P<1000d sample (raw, log):",np.sum(recNPrsa), np.log10(np.sum(recNPrsa)))
