@@ -141,6 +141,13 @@ if __name__ == "__main__":
 		data = pd.read_csv(d+f, header = 2).dropna()
 		rF = 0.
 		rN = 0.
+		Nrec = 0.
+		Nobs = 0.
+		raN = 0.
+		obN = 0.
+		fiN = 0.
+		fioN = 0.
+		firN = 0.
 		Nall = len(data.index)
 		if (Nall >= Nlim):
 			#create histograms
@@ -218,6 +225,8 @@ if __name__ == "__main__":
 					fioN = Nobs
 					firN = Nrec
 
+
+
 		recFrac.append(rF)
 		recN.append(rN)
 		rawN.append(raN)
@@ -225,6 +234,8 @@ if __name__ == "__main__":
 		fileN.append(fiN)
 		fileObsN.append(fioN)
 		fileRecN.append(firN)
+		#print(np.sum(lphRec), np.sum(recN), np.sum(lphRec)/np.sum(recN), np.sum(lphRec0), Nrec, np.sum(lphRec0)/Nrec, np.sum(lphObs), np.sum(obsN), np.sum(lphObs)/np.sum(obsN))
+
 
 	#plot and save the histograms
 	saveHist(np.insert(m1hAll,0,0), np.insert(m1hObs,0,0), np.insert(m1hRec,0,0), m1b, 'm1 (Msolar)', 'EBLSST_m1hist')
