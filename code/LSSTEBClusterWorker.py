@@ -300,17 +300,17 @@ class LSSTEBworker(object):
 		"""
 		get the output from Andrew's cluster code
 		should output as follows
-		EB.m1 = line[0]
-		EB.m2 = line[1]
+		EB.m1 = line[0] #Msun
+		EB.m2 = line[1] #Msun
 		EB.period = 10.**line[2] #days
-		EB.eccentricity = line[3]
-		EB.r1 = line[4]
-		EB.r2 = line[5]
-		EB.L1 = line[6]
-		EB.L2 = line[7]
-		EB.xGx = line[8] #unused
-		EB.yGx = line[9] #unused
-		EB.zGx = line[10] #unutsed
+		EB.eccentricity = line[3] 
+		EB.r1 = line[4] #Rsun
+		EB.r2 = line[5] #Rsun
+		EB.L1 = line[6] #Lsun
+		EB.L2 = line[7] #Lsun
+		EB.xGx = line[8] #unused kpc
+		EB.yGx = line[9] #unused kpc
+		EB.zGx = line[10] #unutsed kpc
 		EB.dist = line[11] #kpc
 		EB.inclination = line[12] *180./np.pi #degrees
 		EB.OMEGA = line[13] *180./np.pi #degrees
@@ -320,5 +320,5 @@ class LSSTEBworker(object):
 		"""
 		print("sampling cluster", self.clusterName[i])
 
-		return getClusterBinaries(self.clusterMass[i], self.clusterRhm[i], self.clusterAge[i], self.clusterVdisp[i], self.n_bin)
+		return getClusterBinaries(self.clusterMass[i], self.clusterRhm[i], self.clusterAge[i], self.clusterMetallicity[i], self.clusterVdisp[i], self.n_bin)
 
