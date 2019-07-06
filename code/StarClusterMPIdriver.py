@@ -1,27 +1,27 @@
 #!/software/anaconda3.6/bin/python
 
-from EBLSST import LSSTEBworker, OpSim
 import csv
 import argparse
 import numpy as np
+import pandas as pd
 from mpi4py import MPI
 import os
-import time
 
-import pickle
-
+######################
+#my code
+from LSSTEBClusterWorker import LSSTEBClusterWorker
+from OpSim import OpSim
 
 
 def define_args():
 	parser = argparse.ArgumentParser()
 
-	parser.add_argument("-c", "--n_bin", 		type=int, help="Number of binaries per process [100000]")
+	parser.add_argument("-n", "--n_bin", 		type=int, help="Number of binaries per process [100000]")
 	parser.add_argument("-o", "--output_file", 	type=str, help="output file name")
-	parser.add_argument("-a", "--n_band", 		type=int, help="Nterms_band input for gatspy [2]")
-	parser.add_argument("-b", "--n_base", 		type=int, help="Nterms_base input for gatspy [2]")
 	parser.add_argument("-s", "--seed", 		type=int, help="random seed []")
-	parser.add_argument("-v", "--verbose", 		action='store_true', help="Set to show verbose output")
-	parser.add_argument("-l", "--opsim", 		action='store_false', help="set to run LSST OpSim, else run nobs =")
+	parser.add_argument("-v", "--verbose", 		action='store_true', help="Set to show verbose output [true]")
+	parser.add_argument("-g", "--globular", 	action='store_true', help="Run the globular clusters? [true]")
+	parser.add_argument("-c", "--open", 		action='store_true', help="Run the open clusters? [true]")
 
 	#https://docs.python.org/2/howto/argparse.html
 	args = parser.parse_args()
@@ -41,13 +41,8 @@ def apply_args(worker, args):
 	if (args.output_file is not None):
 		worker.ofile = args.output_file
 
-	if (args.n_band is not None):
-		worker.n_band = args.n_band
-	if (args.n_base is not None):
-		worker.n_base = args.n_base
 
 	worker.verbose = args.verbose
-	worker.doOpSim = args.opsim
 
 	#set the random seed
 	if (args.seed is not None):
@@ -59,9 +54,7 @@ def file_len(fname):
 			pass
 	return i + 1
 
-
 def getFinishedIDs(d='output_files', Nbins = 40000):
-	#these are not all finished, but this is OK for now
 	if (not os.path.exists(d)):
 		return []
 	files = os.listdir(d)
@@ -84,7 +77,8 @@ def getFinishedIDs(d='output_files', Nbins = 40000):
 					done = True
 
 		if done:
-			IDs.append(int(f[0:4]))
+			p1 = f.find('_')
+			IDs.append(int(f[0:p1]))
 
 	return IDs
 
@@ -103,19 +97,25 @@ if __name__ == "__main__":
 	if (args.n_bin == None):
 		args.n_bin = 4
 
-	nfields = 5292 #total number of fields from OpSim
+	OCdf = pd.DataFrame()
+	GCdf = pd.DataFrame()
+	#these tables should contain (at least) the cluster Name, Mass, Distance, Metallicity, Rhm, Age, and OpSim ID, RA, Dec
+	if (args.open):
+		OCdf = pd.read_csv("OCcompiled.csv") 
+	if (args.globular):
+		GCdf = pd.read_csv("GCcompiled.csv") 
+
+	nClusters = len(GCdf.index) + len(OCdf.index) #total number of clusters
+
 	finishedIDs = getFinishedIDs()
-	nfields -= len(finishedIDs)
-	nfieldsPerCore = int(np.floor(nfields/size))
-	print(f"nfields={nfields}, nfieldsPerCore={nfieldsPerCore}")
+	nClusters -= len(finishedIDs)
+	nClustersPerCore = int(np.floor(nClusters/size))
+	print(f"nClusters={nClusters}, nClustersPerCore={nClustersPerCore}")
 
-	sendbuf = np.empty((size, 3*nfieldsPerCore), dtype='float64')
-	recvbuf = np.empty(3*nfieldsPerCore, dtype='float64')
+	sendbuf = np.empty((size, 3*nClustersPerCore), dtype='float64')
+	recvbuf = np.empty(3*nClustersPerCore, dtype='float64')
 
-	galModelDir = 'TRILEGALmodels'
 	if (rank == root):
-		if not os.path.exists(galModelDir):
-			os.makedirs(galModelDir)
 		if not os.path.exists('output_files'):
 			os.makedirs('output_files')
 
@@ -123,28 +123,54 @@ if __name__ == "__main__":
 		OpS.dbFile = '/projects/p30137/ageller/EBLSST/input/db/minion_1016_sqlite.db' #for the OpSim database	
 		OpS.getAllOpSimFields()
 
-		unfin = []
-		for i, ID in enumerate(OpS.fieldID):
-			if ID not in finishedIDs: 
-				unfin.append(i)
-		OpS.fieldID = OpS.fieldID[unfin]
-		OpS.RA = OpS.RA[unfin] 
-		OpS.Dec = OpS.Dec[unfin]
+		clusterName = []
+		clusterMass = []
+		clusterDistance = []
+		clusterMetallicity = []
+		clusterAge = []
+		clusterRhm = []
+		clusterVdisp = []
+		clusterOpSimID = []
+		clusterOpSimRA = []
+		clusterOpSimDec = []
+		for df in [OCdf, GCdf]:
+			if (len(df.index) > 0):
+				for i, ID in enumerate(df['name']):
+					if ID not in finishedIDs: 
+						clusterOpSimID.append(df['OpSimID'][i])
+						clusterOpSimRA.append(df['OpSimRA'][i])
+						clusterOpSimDec.append(df['OpSimDec'][i])
+						clusterName.append(df['name'][i])
+						clusterMass.append(df['mass'][i])
+						clusterDistance.append(df['distance'][i])
+						clusterMetallicity.append(df['Z'][i])
+						clusterAge.append(df['age'][i])
+						clusterRhm.append(df['Rhm'][i])
+						clusterVdisp.append(df['Vdisp'][i])
 
-		nfields = len(OpS.fieldID)
+
+		nfields = len(clusterName)
 		print(f"rank 0 nfields={nfields}")
-		print(unfin)
-		print(OpS.fieldID)
-		print(OpS.RA)
-		print(OpS.Dec)
+		print(clusterName)
 
 		#scatter the fieldID, RA, Dec 
 		#get as close as we can to having everything scattered
-		maxIndex = min(nfieldsPerCore*size, nfields-1)
-		output = np.vstack((OpS.fieldID[:maxIndex], OpS.RA[:maxIndex], OpS.Dec[:maxIndex])).T
+		maxIndex = min(nClustersPerCore*size, nfields-1)
+		output = np.vstack((
+			np.array(clusterOpSimID)[:maxIndex],
+			np.array(clusterOpSimRA)[:maxIndex],
+			np.array(clusterOpSimDec)[:maxIndex],
+			np.array(clusterName)[:maxIndex], 
+			np.array(clusterMass)[:maxIndex], 
+			np.array(clusterDistance)[:maxIndex], 
+			np.array(clusterMetallicity)[:maxIndex], 
+			np.array(clusterAge)[:maxIndex], 
+			np.array(clusterRhm)[:maxIndex], 
+			np.array(clusterVdisp)[:maxIndex], 
+		)).T
 
 		print("reshaping to send to other processes")
-		sendbuf = np.reshape(output, (size, 3*nfieldsPerCore))
+		sendbuf = np.reshape(output, (size, 10*nClustersPerCore))
 
 
 
@@ -152,64 +178,74 @@ if __name__ == "__main__":
 	#scatter to the all of the processes
 	comm.Scatter(sendbuf, recvbuf, root=root) 
 	#now reshape again to get back to the right format
-	fieldData = np.reshape(recvbuf, (nfieldsPerCore, 3))	
+	fieldData = np.reshape(recvbuf, (nClustersPerCore, 10))	
 
 	#print("rank", rank, fieldData)
 
 	#add on any extra fields to rank =0
 	if (rank == 0):
-		if (nfieldsPerCore*size < nfields):
+		if (nClustersPerCore*size < nClusters):
 			print("adding to rank 0")
-			extra = np.vstack((OpS.fieldID[maxIndex:], OpS.RA[maxIndex:], OpS.Dec[maxIndex:])).T
+			extra = np.vstack((
+				np.array(clusterOpSimID)[maxIndex:],
+				np.array(clusterOpSimRA)[maxIndex:],
+				np.array(clusterOpSimDec)[maxIndex:],
+				np.array(clusterName)[maxIndex:], 
+				np.array(clusterMass)[maxIndex:], 
+				np.array(clusterDistance)[maxIndex:], 
+				np.array(clusterMetallicity)[maxIndex:], 
+				np.array(clusterAge)[maxIndex:], 
+				np.array(clusterRhm)[:maxIndex], 
+				np.array(clusterVdisp)[maxIndex:], 
+			)).T
 			fieldData = np.vstack((fieldData, extra))
 
+
+	#put this back in the right orientation
+	fields = fieldData.T
+
 	#define the worker
-	worker = LSSTEBworker()
-	worker.filterFilesRoot = '/projects/p30137/ageller/EBLSST/input/filters/'
-	worker.GalaxyFile = '/projects/p30137/ageller/EBLSST/input/Breivik/dat_ThinDisk_12_0_12_0.h5' #for Katie's model
-	worker.GalaxyFileLogPrefix ='/projects/p30137/ageller/EBLSST/input/Breivik/fixedPopLogCm_'
-	worker.filterFilesRoot = '/projects/p30137/ageller/EBLSST/input/filters/'
-	worker.filters = filters
-	#os.environ['PYSYN_CDBS'] = '/projects/p30137/ageller/PySynphotData'
-	print(f"PYSYN_CDBS environ = {os.environ['PYSYN_CDBS']}")
+	worker = LSSTEBClusterWorker()
+	
 	#check for command-line arguments
 	apply_args(worker, args)	
 	if (worker.seed == None):
 		worker.seed = 1234
 	worker.seed += rank
 
+	worker.filterFilesRoot = '/projects/p30137/ageller/EBLSST/input/filters/'
+	worker.filters = filters
+	worker.clusterName = fields[3]
+	worker.clusterMass = fields[4]
+	worker.clusterDistance = fields[5]
+	worker.clusterMetallicity = fields[6]
+	worker.clusterAge = fields[7]
+	worker.clusterRhm = fields[8]
+	worker.clusterVdisp = fields[9]
+
+	#os.environ['PYSYN_CDBS'] = '/projects/p30137/ageller/PySynphotData'
+	print(f"PYSYN_CDBS environ = {os.environ['PYSYN_CDBS']}")
+
 	#redefine the OpSim fieldID, RA, Dec and the run through the rest of the code
-	fields = fieldData.T
 	OpS = OpSim()
 	OpS.dbFile = '/projects/p30137/ageller/EBLSST/input/db/minion_1016_sqlite.db' #for the OpSim database	
 	OpS.getCursors()
 	OpS.fieldID = fields[0]
 	OpS.RA = fields[1]
 	OpS.Dec = fields[2]
-	OpS.obsDates = np.full_like(OpS.RA, dict(), dtype=dict)
-	OpS.NobsDates = np.full_like(OpS.RA, dict(), dtype=dict)
-	OpS.m_5 = np.full_like(OpS.RA, dict(), dtype=dict)
-	OpS.totalNobs = np.full_like(OpS.RA, 0)
+	OpS.obsDates = np.full_like(OpS.fieldID, dict(), dtype=dict)
+	OpS.NobsDates = np.full_like(OpS.fieldID, dict(), dtype=dict)
+	OpS.m_5 = np.full_like(OpS.fieldID, dict(), dtype=dict)
+	OpS.totalNobs = np.full_like(OpS.fieldID, 0)
 	#this will contain the distribution of dt times, which can be used instead of OpSim defaults
 	#OpS.obsDist = pickle.load(open("OpSim_observed_dtDist.pickle", 'rb'))
 
 	worker.OpSim = OpS
 	#worker.OpSim.verbose = True
 
-
-
-	galDir = os.path.join(galModelDir, str(rank))
-	if not os.path.exists(galDir):
-		os.makedirs(galDir)
-	worker.galDir = galDir
-
-	#add a delay here to help with the get_trilegal pileup?
-	time.sleep(5*rank)
-
-
 	ofile = worker.ofile
 	k = 0
-	for i in range(len(fields[0])):
+	for i in range(len(worker.clusterName)):
 		if (worker.OpSim.fieldID[i] not in finishedIDs and worker.OpSim.fieldID[i] != -1):
 			#initialize
 			print(f"RANK={rank}, OpSimi={i}, ID={worker.OpSim.fieldID[i]}")
@@ -243,16 +279,34 @@ if __name__ == "__main__":
 				csvfile.flush()
 
 			if (passed):
-
-
 				#run through ellc and gatspy
-				gxDat = worker.sampleBreivikGal()
 
-				print(f'Nlines in gxDate={len(gxDat)} for ID={worker.OpSim.fieldID[i]}')
+				#get the output from Andrew's cluster code
+				#should output as follows
+				# EB.m1 = line[0]
+				# EB.m2 = line[1]
+				# EB.period = 10.**line[2] #days
+				# EB.eccentricity = line[3]
+				# EB.r1 = line[4]
+				# EB.r2 = line[5]
+				# EB.L1 = line[6]
+				# EB.L2 = line[7]
+				# EB.xGx = line[8] #unused
+				# EB.yGx = line[9] #unused
+				# EB.zGx = line[10] #unutsed
+				# EB.dist = line[11] #kpc
+				# EB.inclination = line[12] *180./np.pi #degrees
+				# EB.OMEGA = line[13] *180./np.pi #degrees
+				# EB.omega = line[14] *180./np.pi #degrees
+				# EB.AV = line[15] #optional, if not available, make it None
+				# EB.M_H = line[16]
 
-				for j, line in enumerate(gxDat):
-					line = gxDat[j]
-	
+				clusterDat = worker.sampleCluster(i)
+
+				print(f'Nlines in clusterDat={len(clusterDat)} for ID={worker.OpSim.fieldID[i]}')
+
+				for j, line in enumerate(clusterDat):
+
 					#define the binary parameters
 					EB = worker.getEB(line, OpSimi=i)
 					print(f"RANK={rank}, OpSimi={i}, linej={j}, ID={worker.OpSim.fieldID[i]}, pb={EB.period}")
@@ -271,9 +325,6 @@ if __name__ == "__main__":
 	
 			csvfile.close()
 
-		#get ready for the next field
-		worker.Galaxy = None
-		worker.BreivikGal = None
 		
 
 
