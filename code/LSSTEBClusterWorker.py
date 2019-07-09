@@ -83,6 +83,7 @@ class LSSTEBworker(object):
 		self.clusterAge = None
 		self.clusterRhm = None
 		self.clusterVdisp = None
+		self.clusterType = None
 
 	def make_gatspy_plots(self, j):
 		EB = self.return_dict[j]
@@ -320,5 +321,5 @@ class LSSTEBworker(object):
 		"""
 		print("sampling cluster", self.clusterName[i])
 
-		return getClusterBinaries(self.clusterMass[i], self.clusterRhm[i], self.clusterAge[i], self.clusterMetallicity[i], self.clusterVdisp[i], self.n_bin)
+		return getClusterBinaries(self.clusterMass[i], self.clusterRhm[i], self.clusterAge[i], self.clusterMetallicity[i], self.clusterVdisp[i], self.clusterType[i], self.n_bin)
 

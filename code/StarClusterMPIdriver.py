@@ -130,6 +130,7 @@ if __name__ == "__main__":
 		clusterAge = []
 		clusterRhm = []
 		clusterVdisp = []
+		clusterType = []
 		clusterOpSimID = []
 		clusterOpSimRA = []
 		clusterOpSimDec = []
@@ -147,6 +148,7 @@ if __name__ == "__main__":
 						clusterAge.append(df['age'][i])
 						clusterRhm.append(df['Rhm'][i])
 						clusterVdisp.append(df['Vdisp'][i])
+						clusterType.append("foo")
 
 
 		nfields = len(clusterName)
@@ -167,10 +169,11 @@ if __name__ == "__main__":
 			np.array(clusterAge)[:maxIndex], 
 			np.array(clusterRhm)[:maxIndex], 
 			np.array(clusterVdisp)[:maxIndex], 
+			np.array(clusterType)[:maxIndex], 
 		)).T
 
 		print("reshaping to send to other processes")
-		sendbuf = np.reshape(output, (size, 10*nClustersPerCore))
+		sendbuf = np.reshape(output, (size, 11*nClustersPerCore))
 
 
 
@@ -178,7 +181,7 @@ if __name__ == "__main__":
 	#scatter to the all of the processes
 	comm.Scatter(sendbuf, recvbuf, root=root) 
 	#now reshape again to get back to the right format
-	fieldData = np.reshape(recvbuf, (nClustersPerCore, 10))	
+	fieldData = np.reshape(recvbuf, (nClustersPerCore, 11))	
 
 	#print("rank", rank, fieldData)
 
@@ -222,6 +225,7 @@ if __name__ == "__main__":
 	worker.clusterAge = fields[7]
 	worker.clusterRhm = fields[8]
 	worker.clusterVdisp = fields[9]
+	worker.clusterType = fields[10]
 
 	#os.environ['PYSYN_CDBS'] = '/projects/p30137/ageller/PySynphotData'
 	print(f"PYSYN_CDBS environ = {os.environ['PYSYN_CDBS']}")
