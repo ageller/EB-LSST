@@ -77,9 +77,10 @@ def getFinishedIDs(d='output_files', Nbins = 40000):
 					done = True
 
 		if done:
-			p1 = f.find('_')
-			IDs.append(int(f[0:p1]))
+			p1 = f.rfind('__')
+			IDs.append(f[0:p1])
 
+	print("finished IDs:", IDs)
 	return IDs
 
 if __name__ == "__main__":
@@ -131,7 +132,7 @@ if __name__ == "__main__":
 		clusterOpSimRA = []
 		clusterOpSimDec = []
 		for i, ID in enumerate(clusterDF['Name']):
-			if ID not in finishedIDs: 
+			if ID.replace(" ","_") not in finishedIDs: 
 				tp = clusterDF['Cluster Type'][i]
 				if ((tp == 'O' and (args.open)) or (tp == 'G' and (args.globular))):
 					clusterOpSimID.append(clusterDF['OpSim ID'][i])
@@ -170,7 +171,7 @@ if __name__ == "__main__":
 
 		print("reshaping to send to other processes")
 		sendbuf = np.reshape(output, (size, 11*nClustersPerCore))
-
+		print("sendbuf = ", sendbuf)
 
 
 
@@ -252,7 +253,7 @@ if __name__ == "__main__":
 			passed = worker.initialize(OpSimi=i) #Note: this will not redo the OpSim class, because we've set it above
 	
 			#set up the output file
-			worker.ofile = 'output_files/'+str(worker.clusterName[i]).replace(" ", "_") + ofile
+			worker.ofile = 'output_files/'+str(worker.clusterName[i]).replace(" ", "_") + '__' + ofile
 
 			#check if this is a new file or if we are appending
 			append = False
