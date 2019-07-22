@@ -20,8 +20,8 @@ def define_args():
 	parser.add_argument("-o", "--output_file", 	type=str, help="output file name")
 	parser.add_argument("-s", "--seed", 		type=int, help="random seed []")
 	parser.add_argument("-v", "--verbose", 		action='store_true', help="Set to show verbose output [true]")
-	parser.add_argument("-g", "--globular", 	action='store_true', help="Run the globular clusters? [true]")
-	parser.add_argument("-c", "--open", 		action='store_true', help="Run the open clusters? [true]")
+	parser.add_argument("-g", "--globular", 	action='store_false', help="Run the globular clusters? [true]")
+	parser.add_argument("-c", "--open", 		action='store_false', help="Run the open clusters? [true]")
 
 	#https://docs.python.org/2/howto/argparse.html
 	args = parser.parse_args()
