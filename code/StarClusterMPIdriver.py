@@ -99,10 +99,7 @@ if __name__ == "__main__":
 
 	#these tables should contain (at least) the cluster Name, Mass, Distance, Metallicity, Rhm, Age, and OpSim ID, RA, Dec
 	#Andrew needs to fix this
-	names_clusters = ['Name', 'RA', 'Dec', 'dist[kpc]', 'rh[pc]', 'r_c', 'mass[Msun]', 'Age',\
-       'Age[Myr]', 'Z', 'sigma[km/s]', 'OpSim ID', 'OpSim RA', 'OpSim Dec',\
-       'Source Flag', 'Cluster Type']	
-    clusterDF = pd.read_csv("all_clusters.csv", sep = ' ', header = 0, names = names_clusters)
+	clusterDF = pd.read_csv("all_clusters.csv")
 
 	nClusters = len(clusterDF.index) #total number of clusters
 
@@ -133,20 +130,20 @@ if __name__ == "__main__":
 		clusterOpSimID = []
 		clusterOpSimRA = []
 		clusterOpSimDec = []
-		for i, ID in enumerate(clusterDF['name']):
+		for i, ID in enumerate(clusterDF['Name']):
 			if ID not in finishedIDs: 
 				tp = clusterDF['Cluster Type'][i]
 				if ((tp == 'O' and (args.open) or (tp == 'G' and (args.globular))):
-					clusterOpSimID.append(clusterDF['OpSimID'][i])
-					clusterOpSimRA.append(clusterDF['OpSimRA'][i])
-					clusterOpSimDec.append(clusterDF['OpSimDec'][i])
-					clusterName.append(clusterDF['name'][i])
-					clusterMass.append(clusterDF['mass'][i])
-					clusterDistance.append(clusterDF['distance'][i])
+					clusterOpSimID.append(clusterDF['OpSim ID'][i])
+					clusterOpSimRA.append(clusterDF['OpSim RA'][i])
+					clusterOpSimDec.append(clusterDF['OpSim Dec'][i])
+					clusterName.append(clusterDF['Name'][i])
+					clusterMass.append(clusterDF['mass[Msun]'][i])
+					clusterDistance.append(clusterDF['dist[kpc]'][i])
 					clusterMetallicity.append(clusterDF['Z'][i])
-					clusterAge.append(clusterDF['age'][i])
-					clusterRhm.append(clusterDF['Rhm'][i])
-					clusterVdisp.append(clusterDF['Vdisp'][i])
+					clusterAge.append(clusterDF['Age'][i])
+					clusterRhm.append(clusterDF['rh[pc]'][i])
+					clusterVdisp.append(clusterDF['sigma[km/s]'][i])
 					clusterType.append(tp)
 
 
