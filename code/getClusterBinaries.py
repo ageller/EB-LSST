@@ -86,7 +86,7 @@ class getClusterBinaries(object):
 		Phs = const * (((m1 * m2)/m3)**(3/2)) * np.sqrt(m1 + m2) * (np.sqrt(3) * sigma) ** -3
 		Phs = Phs / (24 *3600)#Converting hard-soft period from seconds to days
 
-		print("hard-soft boundary", Phs, np.log10(Phs))
+		#print("hard-soft boundary", Phs, np.log10(Phs))
 		self.period_hardsoft = np.round(np.log10(Phs),decimals=1)#rounding to 2 decimal places for cosmic
 
 
@@ -138,7 +138,7 @@ class getClusterBinaries(object):
 		self.bpp = bpp
 		self.bcm = bcm
 		self.bcmEvolved = self.bcm.loc[self.bcm['tphys'] == self.age]
-		print(self.bcmEvolved)
+		#print(self.bcmEvolved)
 
 
 	# Method to generate final output array of arrays from Aaron
@@ -161,13 +161,13 @@ class getClusterBinaries(object):
 			 np.ones(Nvals), np.ones(Nvals), np.ones(Nvals), np.ones(Nvals), \
 			 self.inc, self.OMEGA, self.omega, np.ones(Nvals)*self.Z])
 
-		print('original output array: ',output)
+		#print('original output array: ',output)
 
 
 		#transposes the above array to make it look like original pandas dataframe - turns rows into columns and vice versa
 		self.output = output.T
 
-		print('\'Transposed\' output matrix',self.output)
+		#print('\'Transposed\' output matrix',self.output)
 
 		# self.EB = np.empty(17)
 		# self.EB[0] = self.bcm['mass_1'].values#Evolved mass 1, in units of Msun
