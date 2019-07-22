@@ -248,11 +248,11 @@ if __name__ == "__main__":
 	for i in range(len(worker.clusterName)):
 		if (worker.OpSim.fieldID[i] not in finishedIDs and worker.OpSim.fieldID[i] != -1):
 			#initialize
-			print(f"RANK={rank}, OpSimi={i}, ID={worker.OpSim.fieldID[i]}")
+			print(f"RANK={rank}, OpSimi={i}, ID={worker.OpSim.fieldID[i]}, cluster={worker.clusterName[i]}")
 			passed = worker.initialize(OpSimi=i) #Note: this will not redo the OpSim class, because we've set it above
 	
 			#set up the output file
-			worker.ofile = 'output_files/'+str(int(worker.OpSim.fieldID[i])).zfill(4) + ofile
+			worker.ofile = 'output_files/'+str(worker.clusterName[i]).replace(" ", "_") + ofile
 
 			#check if this is a new file or if we are appending
 			append = False
