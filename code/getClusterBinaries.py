@@ -189,40 +189,41 @@ class getClusterBinaries(object):
 
 # ########################################## Test Instances #########################################################################
 
+if __name__ == "__main__":
 
-# Test instances, creating instance of class to make sure eveything's working right
-path = '/Users/andrewbowen/ceb_project/data/'#path that directs to our cluster datafile
+	# Test instances, creating instance of class to make sure eveything's working right
+	path = '/Users/andrewbowen/ceb_project/data/'#path that directs to our cluster datafile
 
-test_binary = getClusterBinaries(1000., 0.1, 1., 10)
-#test_binary.period_hardsoft = 5.1
-#MyBinaries = test_binary.Initial_Binary_Sample(13000, 10, 0.01, np.random.randint(1,200))
+	test_binary = getClusterBinaries(1000., 0.1, 1., 10)
+	#test_binary.period_hardsoft = 5.1
+	#MyBinaries = test_binary.Initial_Binary_Sample(13000, 10, 0.01, np.random.randint(1,200))
 
-# # Evolving the initial binaries from out test class instance
-#e_binary = test_binary.EvolveBinaries()
-#binary = test_binary.EB_output()
-# print(e_binary)
-# print(binary)
+	# # Evolving the initial binaries from out test class instance
+	#e_binary = test_binary.EvolveBinaries()
+	#binary = test_binary.EB_output()
+	# print(e_binary)
+	# print(binary)
 
-test_binary.runAll()
+	test_binary.runAll()
 
 
-# EB.m1 = line[0] #Msun
-# EB.m2 = line[1] #Msun
-# EB.period = 10.**line[2] #days
-# EB.eccentricity = line[3]
-# EB.r1 = line[4] #Rsun
-# EB.r2 = line[5] #Rsun
-# EB.L1 = line[6] #Lsun
-# EB.L2 = line[7] #Lsun
-# EB.xGx = line[8] #unused kpc
-# EB.yGx = line[9] #unused kpc
-# EB.zGx = line[10] #unutsed kpc
-# EB.dist = line[11] #kpc
-# EB.inclination = line[12] #degrees
-# EB.OMEGA = line[13] #degrees
-# EB.omega = line[14] * #degrees
-# EB.AV = line[15]  #optional, if not available, make it None
-# EB.M_H = line[16]
+	# EB.m1 = line[0] #Msun
+	# EB.m2 = line[1] #Msun
+	# EB.period = 10.**line[2] #days
+	# EB.eccentricity = line[3]
+	# EB.r1 = line[4] #Rsun
+	# EB.r2 = line[5] #Rsun
+	# EB.L1 = line[6] #Lsun
+	# EB.L2 = line[7] #Lsun
+	# EB.xGx = line[8] #unused kpc
+	# EB.yGx = line[9] #unused kpc
+	# EB.zGx = line[10] #unutsed kpc
+	# EB.dist = line[11] #kpc
+	# EB.inclination = line[12] #degrees
+	# EB.OMEGA = line[13] #degrees
+	# EB.omega = line[14] * #degrees
+	# EB.AV = line[15]  #optional, if not available, make it None
+	# EB.M_H = line[16]
 
 
 
