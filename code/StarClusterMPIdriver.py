@@ -109,7 +109,7 @@ if __name__ == "__main__":
 	nClustersPerCore = int(np.floor(nClusters/size))
 	print(f"nClusters={nClusters}, nClustersPerCore={nClustersPerCore}")
 
-	nVals = 11
+	nVals = 10 #I thouch this should be 11??
 	sendbuf = np.empty((size, nVals*nClustersPerCore), dtype='float64')
 	recvbuf = np.empty(nVals*nClustersPerCore, dtype='float64')
 
@@ -172,18 +172,18 @@ if __name__ == "__main__":
 
 		print("reshaping to send to other processes")
 		sendbuf = np.reshape(output, (size, nVals*nClustersPerCore))
-		print("sendbuf = ", sendbuf, sendbuf.shape)
-		print("OpSimID",clusterOpSimID)
-		print("OpSimRA",clusterOpSimRA)
-		print("OpSimDec",clusterOpSimDec)
-		print("Name",clusterName)
-		print("Mass",clusterMass)
-		print("Distance",clusterDistance)
-		print("Z",clusterMetallicity)
-		print("Age",clusterAge)
-		print("Rhm",clusterRhm)
-		print("Vdisp",clusterVdisp)
-		print("Type",clusterType)
+		print("sendbuf shape = ", sendbuf.shape)
+		# print("OpSimID",clusterOpSimID)
+		# print("OpSimRA",clusterOpSimRA)
+		# print("OpSimDec",clusterOpSimDec)
+		# print("Name",clusterName)
+		# print("Mass",clusterMass)
+		# print("Distance",clusterDistance)
+		# print("Z",clusterMetallicity)
+		# print("Age",clusterAge)
+		# print("Rhm",clusterRhm)
+		# print("Vdisp",clusterVdisp)
+		# print("Type",clusterType)
 
 
 	#scatter to the all of the processes
