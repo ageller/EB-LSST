@@ -109,8 +109,9 @@ if __name__ == "__main__":
 	nClustersPerCore = int(np.floor(nClusters/size))
 	print(f"nClusters={nClusters}, nClustersPerCore={nClustersPerCore}")
 
-	sendbuf = np.empty((size, 3*nClustersPerCore), dtype='float64')
-	recvbuf = np.empty(3*nClustersPerCore, dtype='float64')
+	nVals = 11
+	sendbuf = np.empty((size, nVals*nClustersPerCore), dtype='float64')
+	recvbuf = np.empty(nVals*nClustersPerCore, dtype='float64')
 
 	if (rank == root):
 		if not os.path.exists('output_files'):
@@ -170,15 +171,15 @@ if __name__ == "__main__":
 		)).T
 
 		print("reshaping to send to other processes")
-		sendbuf = np.reshape(output, (size, 11*nClustersPerCore))
-		print("sendbuf = ", sendbuf)
+		sendbuf = np.reshape(output, (size, nVals*nClustersPerCore))
+		print("sendbuf = ", sendbuf, sendbuf.shape)
 
 
 
 	#scatter to the all of the processes
 	comm.Scatter(sendbuf, recvbuf, root=root) 
 	#now reshape again to get back to the right format
-	fieldData = np.reshape(recvbuf, (nClustersPerCore, 11))	
+	fieldData = np.reshape(recvbuf, (nClustersPerCore, nVals))	
 
 	#print("rank", rank, fieldData)
 
