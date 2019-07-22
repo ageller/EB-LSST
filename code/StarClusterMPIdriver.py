@@ -173,7 +173,17 @@ if __name__ == "__main__":
 		print("reshaping to send to other processes")
 		sendbuf = np.reshape(output, (size, nVals*nClustersPerCore))
 		print("sendbuf = ", sendbuf, sendbuf.shape)
-
+		print("OpSimID",clusterOpSimID)
+		print("OpSimRA",clusterOpSimRA)
+		print("OpSimDec",clusterOpSimDec)
+		print("Name",clusterName)
+		print("Mass",clusterMass)
+		print("Distance",clusterDistance)
+		print("Z",clusterMetallicity)
+		print("Age",clusterAge)
+		print("Rhm",clusterRhm)
+		print("Vdisp",clusterVdisp)
+		print("Type",clusterType)
 
 
 	#scatter to the all of the processes
