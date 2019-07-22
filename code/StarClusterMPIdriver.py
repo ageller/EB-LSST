@@ -97,15 +97,14 @@ if __name__ == "__main__":
 	if (args.n_bin == None):
 		args.n_bin = 4
 
-	OCdf = pd.DataFrame()
-	GCdf = pd.DataFrame()
 	#these tables should contain (at least) the cluster Name, Mass, Distance, Metallicity, Rhm, Age, and OpSim ID, RA, Dec
-	if (args.open):
-		OCdf = pd.read_csv("OCcompiled.csv") 
-	if (args.globular):
-		GCdf = pd.read_csv("GCcompiled.csv") 
+	#Andrew needs to fix this
+	names_clusters = ['Name', 'RA', 'Dec', 'dist[kpc]', 'rh[pc]', 'r_c', 'mass[Msun]', 'Age',\
+       'Age[Myr]', 'Z', 'sigma[km/s]', 'OpSim ID', 'OpSim RA', 'OpSim Dec',\
+       'Source Flag', 'Cluster Type']	
+    clusterDF = pd.read_csv("all_clusters.csv", sep = ' ', header = 0, names = names_clusters)
 
-	nClusters = len(GCdf.index) + len(OCdf.index) #total number of clusters
+	nClusters = len(clusterDF.index) #total number of clusters
 
 	finishedIDs = getFinishedIDs()
 	nClusters -= len(finishedIDs)
@@ -134,21 +133,21 @@ if __name__ == "__main__":
 		clusterOpSimID = []
 		clusterOpSimRA = []
 		clusterOpSimDec = []
-		for df in [OCdf, GCdf]:
-			if (len(df.index) > 0):
-				for i, ID in enumerate(df['name']):
-					if ID not in finishedIDs: 
-						clusterOpSimID.append(df['OpSimID'][i])
-						clusterOpSimRA.append(df['OpSimRA'][i])
-						clusterOpSimDec.append(df['OpSimDec'][i])
-						clusterName.append(df['name'][i])
-						clusterMass.append(df['mass'][i])
-						clusterDistance.append(df['distance'][i])
-						clusterMetallicity.append(df['Z'][i])
-						clusterAge.append(df['age'][i])
-						clusterRhm.append(df['Rhm'][i])
-						clusterVdisp.append(df['Vdisp'][i])
-						clusterType.append("foo")
+		for i, ID in enumerate(clusterDF['name']):
+			if ID not in finishedIDs: 
+				tp = clusterDF['Cluster Type'][i]
+				if ((tp == 'O' and (args.open) or (tp == 'G' and (args.globular))):
+					clusterOpSimID.append(clusterDF['OpSimID'][i])
+					clusterOpSimRA.append(clusterDF['OpSimRA'][i])
+					clusterOpSimDec.append(clusterDF['OpSimDec'][i])
+					clusterName.append(clusterDF['name'][i])
+					clusterMass.append(clusterDF['mass'][i])
+					clusterDistance.append(clusterDF['distance'][i])
+					clusterMetallicity.append(clusterDF['Z'][i])
+					clusterAge.append(clusterDF['age'][i])
+					clusterRhm.append(clusterDF['Rhm'][i])
+					clusterVdisp.append(clusterDF['Vdisp'][i])
+					clusterType.append(tp)
 
 
 		nfields = len(clusterName)

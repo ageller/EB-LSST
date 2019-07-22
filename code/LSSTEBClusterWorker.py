@@ -320,6 +320,8 @@ class LSSTEBworker(object):
 		EB.M_H = line[16]
 		"""
 		print("sampling cluster", self.clusterName[i])
+		sampler = getClusterBinaries(self.clusterAge[i], self.clusterMetallicity[i], self.clusterVdisp[i], self.n_bin)
+		sampler.runAll()
 
-		return getClusterBinaries(self.clusterMass[i], self.clusterRhm[i], self.clusterAge[i], self.clusterMetallicity[i], self.clusterVdisp[i], self.clusterType[i], self.n_bin)
+		return sampler.output
 
