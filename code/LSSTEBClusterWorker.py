@@ -21,7 +21,7 @@ from OpSim import OpSim
 #Andrew's code
 from getClusterBinaries import getClusterBinaries
 
-class LSSTEBworker(object):
+class LSSTEBClusterWorker(object):
 
 	def __init__(self, *args,**kwargs):
 
