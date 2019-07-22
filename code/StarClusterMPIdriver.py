@@ -133,7 +133,7 @@ if __name__ == "__main__":
 		for i, ID in enumerate(clusterDF['Name']):
 			if ID not in finishedIDs: 
 				tp = clusterDF['Cluster Type'][i]
-				if ((tp == 'O' and (args.open) or (tp == 'G' and (args.globular))):
+				if ((tp == 'O' and (args.open)) or (tp == 'G' and (args.globular))):
 					clusterOpSimID.append(clusterDF['OpSim ID'][i])
 					clusterOpSimRA.append(clusterDF['OpSim RA'][i])
 					clusterOpSimDec.append(clusterDF['OpSim Dec'][i])
