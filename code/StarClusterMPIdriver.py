@@ -109,7 +109,7 @@ if __name__ == "__main__":
 	nClustersPerCore = int(np.floor(nClusters/size))
 	print(f"nClusters={nClusters}, nClustersPerCore={nClustersPerCore}")
 
-	nVals = 10 #I thouch this should be 11??
+	nVals = 11
 	sendbuf = np.empty((size, nVals*nClustersPerCore), dtype='float64')
 	recvbuf = np.empty(nVals*nClustersPerCore, dtype='float64')
 
