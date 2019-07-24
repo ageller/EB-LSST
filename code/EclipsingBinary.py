@@ -350,7 +350,7 @@ class EclipsingBinary(object):
 				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2)
 
 		lc = lc/np.max(lc) #maybe there's a better normalization?
-
+		print("lc", lc)
 		if (min(lc) > 0):
 			#this is mathematically the same as below
 			# #let's redefine these here, but with the lc accounted for
@@ -428,8 +428,8 @@ class EclipsingBinary(object):
 		#self.initializeSeed()
 
 		self.q = self.m2/self.m1
-		self.T1 = self.getTeff(self.L1, self.r1)
-		self.T2 = self.getTeff(self.L2, self.r2)
+		if (self.T1 == None): self.T1 = self.getTeff(self.L1, self.r1)
+		if (self.T2 == None): self.T2 = self.getTeff(self.L2, self.r2)
 		self.g1 = self.getlogg(self.m1, self.L1, self.T1)
 		self.g2 = self.getlogg(self.m2, self.L2, self.T2)
 		self.a = self.getafromP(self.m1*units.solMass, self.m2*units.solMass, self.period*units.day).to(units.solRad).value

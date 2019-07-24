@@ -227,6 +227,8 @@ class LSSTEBClusterWorker(object):
 		EB.r2 = line[5]
 		EB.L1 = line[6]
 		EB.L2 = line[7]
+		EB.T1 = line[16]
+		EB.T2 = line[17]
 		EB.period = 10.**line[2] #days
 		EB.eccentricity = line[3]
 		EB.inclination = line[12] *180./np.pi #degrees
@@ -234,15 +236,9 @@ class LSSTEBClusterWorker(object):
 		EB.omega = line[14] *180./np.pi #degrees
 
 		EB.dist = line[11] #kpc
-		if (self.Galaxy == None):
-			#pc
-			EB.xGx = line[8] 
-			EB.yGx = line[9] 
-			EB.zGx = line[10] 
-		else:
-			EB.OpSimi = OpSimi
-			EB.RA = self.OpSim.RA[OpSimi]
-			EB.Dec = self.OpSim.Dec[OpSimi]
+		EB.OpSimi = OpSimi
+		EB.RA = self.OpSim.RA[OpSimi]
+		EB.Dec = self.OpSim.Dec[OpSimi]
 
 		if (len(line) >= 16):
 			EB.AV = line[15]
@@ -288,6 +284,8 @@ class LSSTEBClusterWorker(object):
 			output = [-1 for x in range(len(cols))]
 
 		else:
+			print("deltaMag", EB.deltaMag)
+			print("appMagMean", EB.appMagMean)
 			output = [EB.period, EB.m1, EB.m2, EB.r1, EB.r2, EB.eccentricity, EB.inclination, EB.dist, EB.nobs, EB.AV, EB.M_H, EB.appMagMean['r_'], EB.maxDeltaMag, EB.deltaMag['r_'],EB.appmag_failed, EB.incl_failed, EB.period_failed, EB.radius_failed]
 
 			#this is for gatspt

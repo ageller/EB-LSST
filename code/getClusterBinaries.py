@@ -59,6 +59,14 @@ class getClusterBinaries(object):
 		self.OMEGA = None
 		self.random_seed = 0
 
+		# BSE dictionary copied from cosmic's documentation (unchanged): https://cosmic-popsynth.github.io
+		self.BSEDict = {'xi': 0.5, 'bhflag': 1, 'neta': 0.5, 'windflag': 3, 'wdflag': 0, 'alpha1': 1.0, \
+		'pts1': 0.001, 'pts3': 0.02, 'pts2': 0.01, 'epsnov': 0.001, 'hewind': 1.0, 'ck': -1000, 'bwind': 0.0, 'lambdaf': 1.0, \
+		'mxns': 3.0, 'beta': -1.0, 'tflag': 1, 'acc2': 1.5, 'nsflag': 3, 'ceflag': 0, 'eddfac': 1.0, 'merger': 0, 'ifflag': 0, \
+		'bconst': -3000, 'sigma': 265.0, 'gamma': -2.0, 'ppsn': 1,\
+		 'natal_kick_array' : [-100.0,-100.0,-100.0,-100.0,-100.0,-100.0], 'bhsigmafrac' : 1.0, 'polar_kick_angle' : 90,\
+		  'qcrit_array' : [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0], 'cekickflag' : 0, \
+		  'cehestarflag' : 0, 'cemergeflag' : 0, 'ecsnp' : 2.5, 'ecsn_mlow' : 1.6, 'aic' : 1, 'sigmadiv' :-20.0}
 # # Method to read in globular and open cluster files - same as before
 # 	def cluster_readin(self, cluster_file_path):
 # 		Clusters = pd.read_csv(self.cluster_file_path, sep = ' ', header = 0, names = names_clusters)
@@ -123,17 +131,7 @@ class getClusterBinaries(object):
 	def EvolveBinaries(self):
 
 		"""Takes Initial (hard) binaries from above and evolves them"""
-
-		# BSE dictionary copied from cosmic's documentation (unchanged): https://cosmic-popsynth.github.io
-		BSEDict = {'xi': 0.5, 'bhflag': 1, 'neta': 0.5, 'windflag': 3, 'wdflag': 0, 'alpha1': 1.0, \
-		'pts1': 0.001, 'pts3': 0.02, 'pts2': 0.01, 'epsnov': 0.001, 'hewind': 1.0, 'ck': -1000, 'bwind': 0.0, 'lambdaf': 1.0, \
-		'mxns': 3.0, 'beta': -1.0, 'tflag': 1, 'acc2': 1.5, 'nsflag': 3, 'ceflag': 0, 'eddfac': 1.0, 'merger': 0, 'ifflag': 0, \
-		'bconst': -3000, 'sigma': 265.0, 'gamma': -2.0, 'ppsn': 1,\
-		 'natal_kick_array' : [-100.0,-100.0,-100.0,-100.0,-100.0,-100.0], 'bhsigmafrac' : 1.0, 'polar_kick_angle' : 90,\
-		  'qcrit_array' : [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0], 'cekickflag' : 0, \
-		  'cehestarflag' : 0, 'cemergeflag' : 0, 'ecsnp' : 2.5, 'ecsn_mlow' : 1.6, 'aic' : 1, 'sigmadiv' :-20.0}
-
-		bpp, bcm, initC  = Evolve.evolve(initialbinarytable = self.InitialBinaries, BSEDict = BSEDict)
+		bpp, bcm, initC  = Evolve.evolve(initialbinarytable = self.InitialBinaries, BSEDict = self.BSEDict)
 
 		self.bpp = bpp
 		self.bcm = bcm
@@ -156,10 +154,10 @@ class getClusterBinaries(object):
 		self.OMEGA = np.random.uniform(0,2*np.pi,Nvals)
 
 		output = np.array([self.bcmEvolved['mass_1'].values, self.bcmEvolved['mass_2'].values, \
-			self.bcmEvolved['porb'].values, self.bcmEvolved['ecc'].values, self.bcmEvolved['rad_1'].values, self.bcmEvolved['rad_2'].values,\
-			 self.bcmEvolved['lumin_1'].values, self.bcmEvolved['lumin_2'].values, \
+			self.bcmEvolved['porb'].values, self.bcmEvolved['ecc'].values, 10.**self.bcmEvolved['rad_1'].values, 10.**self.bcmEvolved['rad_2'].values,\
+			 10.**self.bcmEvolved['lumin_1'].values, 10.**self.bcmEvolved['lumin_2'].values, \
 			 np.ones(Nvals), np.ones(Nvals), np.ones(Nvals), np.ones(Nvals), \
-			 self.inc, self.OMEGA, self.omega, np.ones(Nvals)*self.Z])
+			 self.inc, self.OMEGA, self.omega, np.ones(Nvals)*self.Z, 10.**self.bcmEvolved['teff_1'], 10.**self.bcmEvolved['teff_2']])
 
 		#print('original output array: ',output)
 
@@ -204,7 +202,7 @@ if __name__ == "__main__":
 	# print(binary)
 
 	test_binary.runAll()
-
+	print(test_binary.bcmEvolved)
 
 	# EB.m1 = line[0] #Msun
 	# EB.m2 = line[1] #Msun
