@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 from mpi4py import MPI
 import os
+from astropy.coordinates import SkyCoord
+
 
 ######################
 #my code
@@ -80,7 +82,6 @@ def getFinishedIDs(d='output_files', Nbins = 40000):
 			p1 = f.rfind('__')
 			IDs.append(f[0:p1])
 
-	print("finished IDs:", IDs)
 	return IDs
 
 if __name__ == "__main__":
@@ -100,9 +101,13 @@ if __name__ == "__main__":
 
 	#these tables should contain (at least) the cluster Name, Mass, Distance, Metallicity, Rhm, Age, and OpSim ID, RA, Dec
 	#Andrew needs to fix this
-	clusterDF = pd.read_csv("all_clusters.csv")
+	clusterDF = pd.read_csv("all_clusters.csv").fillna(0.)
+	#print("df", clusterDF)
 
-	nClusters = len(clusterDF.index) #total number of clusters
+#########################################
+#########################################
+## remove this loc statement, when table is fixed (replace with index)
+	nClusters = len(clusterDF.loc[ (clusterDF['OpSim RA'] != 0) & (clusterDF['sigma[km/s]'] > 0)]) #total number of clusters
 
 	finishedIDs = getFinishedIDs()
 	nClusters -= len(finishedIDs)
@@ -136,22 +141,28 @@ if __name__ == "__main__":
 			if ID.replace(" ","_") not in finishedIDs: 
 				tp = clusterDF['Cluster Type'][i]
 				if ((tp == 'O' and (args.open)) or (tp == 'G' and (args.globular))):
-					clusterOpSimID.append(clusterDF['OpSim ID'][i])
-					clusterOpSimRA.append(clusterDF['OpSim RA'][i])
-					clusterOpSimDec.append(clusterDF['OpSim Dec'][i])
-					clusterName.append(clusterDF['Name'][i])
-					clusterMass.append(clusterDF['mass[Msun]'][i])
-					clusterDistance.append(clusterDF['dist[kpc]'][i])
-					clusterMetallicity.append(clusterDF['Z'][i])
-					clusterAge.append(clusterDF['Age'][i])
-					clusterRhm.append(clusterDF['rh[pc]'][i])
-					clusterVdisp.append(clusterDF['sigma[km/s]'][i])
-					clusterType.append(tp)
+					if (tp == 'O'):
+						tp = 0
+					if (tp == 'G'):
+						tp = 1
+					if (clusterDF['OpSim RA'].values[i] != 0 and clusterDF['OpSim Dec'].values[i] != 0 and clusterDF['sigma[km/s]'].values[i] > 0):
+						c = SkyCoord(clusterDF['OpSim RA'].values[i], clusterDF['OpSim Dec'].values[i])
+						clusterOpSimID.append(clusterDF['OpSim ID'][i])
+						clusterOpSimRA.append(c.ra.degree)
+						clusterOpSimDec.append(c.dec.degree)
+						clusterName.append(clusterDF.index[i])
+						clusterMass.append(clusterDF['mass[Msun]'][i])
+						clusterDistance.append(clusterDF['dist[kpc]'][i])
+						clusterMetallicity.append(clusterDF['Z'][i])
+						clusterAge.append(clusterDF['Age'][i])
+						clusterRhm.append(clusterDF['rh[pc]'][i])
+						clusterVdisp.append(clusterDF['sigma[km/s]'][i])
+						clusterType.append(tp)
 
 
 		nfields = len(clusterName)
 		print(f"rank 0 nfields={nfields}")
-		print(clusterName)
+		print('Names:',clusterDF['Name'].iloc[clusterName])
 
 		#scatter the fieldID, RA, Dec 
 		#get as close as we can to having everything scattered
@@ -168,11 +179,10 @@ if __name__ == "__main__":
 			np.array(clusterRhm)[:maxIndex], 
 			np.array(clusterVdisp)[:maxIndex], 
 			np.array(clusterType)[:maxIndex], 
-		)).T
+		)).astype('float64').T
 
 		print("reshaping to send to other processes")
 		sendbuf = np.reshape(output, (size, nVals*nClustersPerCore))
-		print("sendbuf shape = ", sendbuf.shape)
 		# print("OpSimID",clusterOpSimID)
 		# print("OpSimRA",clusterOpSimRA)
 		# print("OpSimDec",clusterOpSimDec)
@@ -191,12 +201,10 @@ if __name__ == "__main__":
 	#now reshape again to get back to the right format
 	fieldData = np.reshape(recvbuf, (nClustersPerCore, nVals))	
 
-	#print("rank", rank, fieldData)
-
 	#add on any extra fields to rank =0
-	if (rank == 0):
+	if (rank == root):
 		if (nClustersPerCore*size < nClusters):
-			print("adding to rank 0")
+			print("adding to rank ", root)
 			extra = np.vstack((
 				np.array(clusterOpSimID)[maxIndex:],
 				np.array(clusterOpSimRA)[maxIndex:],
@@ -206,9 +214,10 @@ if __name__ == "__main__":
 				np.array(clusterDistance)[maxIndex:], 
 				np.array(clusterMetallicity)[maxIndex:], 
 				np.array(clusterAge)[maxIndex:], 
-				np.array(clusterRhm)[:maxIndex], 
+				np.array(clusterRhm)[maxIndex:], 
 				np.array(clusterVdisp)[maxIndex:], 
-			)).T
+				np.array(clusterType)[maxIndex:], 
+			)).astype('float64').T
 			fieldData = np.vstack((fieldData, extra))
 
 
@@ -226,7 +235,7 @@ if __name__ == "__main__":
 
 	worker.filterFilesRoot = '/projects/p30137/ageller/EBLSST/input/filters/'
 	worker.filters = filters
-	worker.clusterName = fields[3]
+	worker.clusterName = clusterDF['Name'].iloc[fields[3].astype('int')].values
 	worker.clusterMass = fields[4]
 	worker.clusterDistance = fields[5]
 	worker.clusterMetallicity = fields[6]
@@ -236,7 +245,7 @@ if __name__ == "__main__":
 	worker.clusterType = fields[10]
 
 	#os.environ['PYSYN_CDBS'] = '/projects/p30137/ageller/PySynphotData'
-	print(f"PYSYN_CDBS environ = {os.environ['PYSYN_CDBS']}")
+	#print(f"PYSYN_CDBS environ = {os.environ['PYSYN_CDBS']}")
 
 	#redefine the OpSim fieldID, RA, Dec and the run through the rest of the code
 	OpS = OpSim()
@@ -258,13 +267,15 @@ if __name__ == "__main__":
 	ofile = worker.ofile
 	k = 0
 	for i in range(len(worker.clusterName)):
-		if (worker.OpSim.fieldID[i] not in finishedIDs and worker.OpSim.fieldID[i] != -1):
+		worker.clusterName[i] = worker.clusterName[i].replace(' ','_')
+		nme = worker.clusterName[i]
+		if (nme not in finishedIDs and worker.clusterName[i] != -1):
 			#initialize
 			print(f"RANK={rank}, OpSimi={i}, ID={worker.OpSim.fieldID[i]}, cluster={worker.clusterName[i]}")
 			passed = worker.initialize(OpSimi=i) #Note: this will not redo the OpSim class, because we've set it above
 	
 			#set up the output file
-			worker.ofile = 'output_files/'+str(worker.clusterName[i]).replace(" ", "_") + '__' + ofile
+			worker.ofile = 'output_files/' + nme + '__' + ofile
 
 			#check if this is a new file or if we are appending
 			append = False
@@ -294,25 +305,6 @@ if __name__ == "__main__":
 				#run through ellc and gatspy
 
 				#get the output from Andrew's cluster code
-				#should output as follows
-				# EB.m1 = line[0]
-				# EB.m2 = line[1]
-				# EB.period = 10.**line[2] #days
-				# EB.eccentricity = line[3]
-				# EB.r1 = line[4]
-				# EB.r2 = line[5]
-				# EB.L1 = line[6]
-				# EB.L2 = line[7]
-				# EB.xGx = line[8] #unused
-				# EB.yGx = line[9] #unused
-				# EB.zGx = line[10] #unutsed
-				# EB.dist = line[11] #kpc
-				# EB.inclination = line[12] *180./np.pi #degrees
-				# EB.OMEGA = line[13] *180./np.pi #degrees
-				# EB.omega = line[14] *180./np.pi #degrees
-				# EB.AV = line[15] #optional, if not available, make it None
-				# EB.M_H = line[16]
-
 				clusterDat = worker.sampleCluster(i)
 
 				print(f'Nlines in clusterDat={len(clusterDat)} for ID={worker.OpSim.fieldID[i]}')

@@ -101,7 +101,7 @@ class getClusterBinaries(object):
 
 		"""
 		# Initial (input) binares -- using sampler method from cosmic #1234 - random seed
-		print("Initial_Binary_Sample",self.random_seed, self.age, self.Z, self.Nbin, self.period_hardsoft)
+		print("initial binary input:",self.random_seed, self.age, self.Z, self.Nbin, self.sigma, 	self.period_hardsoft)
 		InitialBinaries, sampled_mass, n_sampled = InitialBinaryTable.sampler('multidim',\
 		 [0,14], [0,14],self.random_seed,1, 'delta_burst', self.age, self.Z, self.Nbin, porb_lo = 0.15, porb_hi = self.period_hardsoft)
 
@@ -191,10 +191,9 @@ class getClusterBinaries(object):
 
 if __name__ == "__main__":
 
-	# Test instances, creating instance of class to make sure eveything's working right
-	path = '/Users/andrewbowen/ceb_project/data/'#path that directs to our cluster datafile
-
-	test_binary = getClusterBinaries(1000., 0.1, 1., 10)
+	# Test instances, creating instance of class to make sure everything's working right
+	test_binary = getClusterBinaries(12344., 0.0, 11., 10)
+	test_binary.random_seed = 1111
 	#test_binary.period_hardsoft = 5.1
 	#MyBinaries = test_binary.Initial_Binary_Sample(13000, 10, 0.01, np.random.randint(1,200))
 

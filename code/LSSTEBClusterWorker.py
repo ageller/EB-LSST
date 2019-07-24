@@ -297,7 +297,7 @@ class LSSTEBClusterWorker(object):
 
 		self.csvwriter.writerow(output)	
 
-	def sampleCluster(i):
+	def sampleCluster(self, i):
 		"""
 		get the output from Andrew's cluster code
 		should output as follows
@@ -321,7 +321,23 @@ class LSSTEBClusterWorker(object):
 		"""
 		print("sampling cluster", self.clusterName[i])
 		sampler = getClusterBinaries(self.clusterAge[i], self.clusterMetallicity[i], self.clusterVdisp[i], self.n_bin)
+		sampler.random_seed = self.seed
 		sampler.runAll()
 
 		return sampler.output
+
+
+	def initialize(self, OpSimi=0):
+		if (self.seed == None):
+			np.random.seed()
+		else:
+			np.random.seed(seed = self.seed)
+
+
+		self.OpSim.setDates(OpSimi, self.filters)
+		print(f'total number of OpSim observation dates (all filters) = {self.OpSim.totalNobs[OpSimi]}')
+		if (self.OpSim.totalNobs[OpSimi] < self.NobsLim):
+			return False
+
+		return True
 
