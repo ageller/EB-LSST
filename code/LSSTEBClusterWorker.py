@@ -160,9 +160,13 @@ class LSSTEBClusterWorker(object):
 		for i, filt in enumerate(self.filters):
 
 			#observe the EB (get dates, create the light curve for this filter)
-			print("calling observe", filt)
-			EB.observe(filt)
+			#print("calling observe", filt)
+			EB.appMagObs[filt] = [0.]
+			EB.appMagObsErr[filt] = [0.]
+			EB.deltaMag[filt] = [0.]
 			EB.LSS[filt] = -999.
+
+			if (EB.obsDates[filt][0] != None): EB.observe(filt)
 
 			if (EB.obsDates[filt][0] != None and min(EB.appMagObs[filt]) > 0):
 

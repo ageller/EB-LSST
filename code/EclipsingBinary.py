@@ -335,6 +335,10 @@ class EclipsingBinary(object):
 		# print(self.t_zero, self.period, self.a, self.q,
 		# 	self.R_1, self.R_2, self.inclination, self.sbratio)
 		#This is in arbitrary units... H ow do we get this into real units??
+		# print("calling ellc", filt, self.obsDates[filt], ldc_1, ldc_2, self.t_zero, self.period, self.a, self.q,
+		# 		self.f_c, self.f_s, self.ld_1,  self.ld_2, self.R_1, self.R_2, self.inclination, self.sbratio, 
+		# 		self.shape_1, self.shape_2, self.grid_1,self.grid_2)
+
 		if (np.isfinite(ldc_1[0]) and np.isfinite(ldc_2[0])):
 			lc = ellc.lc(self.obsDates[filt], ldc_1=ldc_1, ldc_2=ldc_2, 
 				t_zero=self.t_zero, period=self.period, a=self.a, q=self.q,
@@ -349,7 +353,9 @@ class EclipsingBinary(object):
 				radius_1=self.R_1, radius_2=self.R_2, incl=self.inclination, sbratio=self.sbratio,
 				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2)
 
+		#print('have lc', filt, lc)
 		lc = lc/np.max(lc) #maybe there's a better normalization?
+
 		if (min(lc) > 0):
 			#this is mathematically the same as below
 			# #let's redefine these here, but with the lc accounted for
@@ -446,7 +452,7 @@ class EclipsingBinary(object):
 		#one option for getting the extinction
 		if (self.AV == None):
 			self.AV = vespa.stars.extinction.get_AV_infinity(self.RA, self.Dec, frame='icrs')
-			
+
 		self.SED1 = SED()
 		self.SED1.filters = self.filters
 		self.SED1.filterFilesRoot = self.filterFilesRoot
