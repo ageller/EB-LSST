@@ -107,7 +107,7 @@ if __name__ == "__main__":
 #########################################
 #########################################
 ## remove this loc statement, when table is fixed (replace with index)
-	nClusters = len(clusterDF.loc[ (clusterDF['OpSim RA'] != 0) & (clusterDF['sigma[km/s]'] > 0) & (clusterDF['Age'] > 0) ]) #total number of clusters
+	nClusters = len(clusterDF.loc[ (clusterDF['OpSim RA'] != 0) & (clusterDF['sigma_v[km/s]'] > 0) & (clusterDF['Age'] > 0) ]) #total number of clusters
 
 	finishedIDs = getFinishedIDs()
 	nClusters -= len(finishedIDs)
@@ -145,18 +145,21 @@ if __name__ == "__main__":
 						tp = 0
 					if (tp == 'G'):
 						tp = 1
-					if (clusterDF['OpSim RA'].values[i] != 0 and clusterDF['OpSim Dec'].values[i] != 0 and clusterDF['sigma[km/s]'].values[i] > 0 and clusterDF['Age'].values[i] > 0):
-						c = SkyCoord(clusterDF['OpSim RA'].values[i], clusterDF['OpSim Dec'].values[i])
+					if (clusterDF['OpSim RA'].values[i] != 0 and clusterDF['OpSim Dec'].values[i] != 0 and clusterDF['sigma_v[km/s]'].values[i] > 0 and clusterDF['Age'].values[i] > 0):
 						clusterOpSimID.append(clusterDF['OpSim ID'][i])
-						clusterOpSimRA.append(c.ra.degree)
-						clusterOpSimDec.append(c.dec.degree)
+						#c = SkyCoord(clusterDF['OpSim RA'].values[i], clusterDF['OpSim Dec'].values[i])
+						#clusterOpSimRA.append(c.ra.degree)
+						#clusterOpSimDec.append(c.dec.degree)
+						clusterOpSimRA.append(clusterDF['OpSim RA'].values[i])
+						clusterOpSimDec.append(clusterDF['OpSim Dec'].values[i])
+
 						clusterName.append(clusterDF.index[i])
 						clusterMass.append(clusterDF['mass[Msun]'][i])
 						clusterDistance.append(clusterDF['dist[kpc]'][i])
 						clusterMetallicity.append(clusterDF['Z'][i])
 						clusterAge.append(clusterDF['Age'][i])
 						clusterRhm.append(clusterDF['rh[pc]'][i])
-						clusterVdisp.append(clusterDF['sigma[km/s]'][i])
+						clusterVdisp.append(clusterDF['sigma_v[km/s]'][i])
 						clusterType.append(tp)
 
 
@@ -166,7 +169,7 @@ if __name__ == "__main__":
 
 		#scatter the fieldID, RA, Dec 
 		#get as close as we can to having everything scattered
-		maxIndex = min(nClustersPerCore*size, nfields-1)
+		maxIndex = min(int(nClustersPerCore)*int(size), int(nfields))
 		output = np.vstack((
 			np.array(clusterOpSimID)[:maxIndex],
 			np.array(clusterOpSimRA)[:maxIndex],
@@ -181,6 +184,7 @@ if __name__ == "__main__":
 			np.array(clusterType)[:maxIndex], 
 		)).astype('float64').T
 
+		print("check",maxIndex, nClustersPerCore, size, nfields, output.shape)
 		print("reshaping to send to other processes")
 		sendbuf = np.reshape(output, (size, nVals*nClustersPerCore))
 		# print("OpSimID",clusterOpSimID)

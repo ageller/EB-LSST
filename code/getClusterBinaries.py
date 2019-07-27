@@ -111,7 +111,7 @@ class getClusterBinaries(object):
 		# Initial (input) binares -- using sampler method from cosmic #1234 - random seed
 		print("initial binary input:",self.random_seed, self.age, self.Z, self.Nbin, self.sigma, 	self.period_hardsoft)
 		InitialBinaries, sampled_mass, n_sampled = InitialBinaryTable.sampler('multidim',\
-		 [0,14], [0,14],self.random_seed,1, 'delta_burst', self.age, self.Z, self.Nbin, porb_lo = 0.15, porb_hi = self.period_hardsoft)
+		 [0,12], [0,12],self.random_seed,1, 'delta_burst', self.age, self.Z, self.Nbin, porb_lo = 0.15, porb_hi = self.period_hardsoft)
 
 
 
@@ -153,11 +153,16 @@ class getClusterBinaries(object):
 		self.omega = np.random.uniform(0,2*np.pi,Nvals)
 		self.OMEGA = np.random.uniform(0,2*np.pi,Nvals)
 
+		noneArray = np.array([None for x in range Nvals])
 		output = np.array([self.bcmEvolved['mass_1'].values, self.bcmEvolved['mass_2'].values, \
-			self.bcmEvolved['porb'].values, self.bcmEvolved['ecc'].values, 10.**self.bcmEvolved['rad_1'].values, 10.**self.bcmEvolved['rad_2'].values,\
-			 10.**self.bcmEvolved['lumin_1'].values, 10.**self.bcmEvolved['lumin_2'].values, \
-			 np.ones(Nvals), np.ones(Nvals), np.ones(Nvals), np.ones(Nvals), \
-			 self.inc, self.OMEGA, self.omega, np.ones(Nvals)*self.Z, 10.**self.bcmEvolved['teff_1'], 10.**self.bcmEvolved['teff_2']])
+			np.log10(self.bcmEvolved['porb'].values), self.bcmEvolved['ecc'].values, \
+			10.**self.bcmEvolved['rad_1'].values, 10.**self.bcmEvolved['rad_2'].values,\
+			10.**self.bcmEvolved['lumin_1'].values, 10.**self.bcmEvolved['lumin_2'].values, \
+			noneArray, noneArray, noneArray, np.ones(Nvals)*self.dist, \
+			self.inc, self.OMEGA, self.omega, \
+			noneArray, np.ones(Nvals)*self.Z, \
+			10.**self.bcmEvolved['teff_1'], 10.**self.bcmEvolved['teff_2'], \
+			self.bcmEvolved['k1'], self.bcmEvolved['k2']])
 
 		#print('original output array: ',output)
 

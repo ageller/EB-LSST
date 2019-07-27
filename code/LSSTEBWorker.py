@@ -289,7 +289,7 @@ class LSSTEBworker(object):
 		else:
 			output = [EB.period, EB.m1, EB.m2, EB.r1, EB.r2, EB.eccentricity, EB.inclination, EB.dist, EB.nobs, EB.AV, EB.M_H, EB.appMagMean['r_'], EB.maxDeltaMag, EB.deltaMag['r_'],EB.appmag_failed, EB.incl_failed, EB.period_failed, EB.radius_failed]
 
-			#this is for gatspt
+			#this is for gatspy
 			for filt in self.filters:
 				output.append(EB.LSS[filt]) 
 			output.append(EB.LSM) 

@@ -30,6 +30,8 @@ class EclipsingBinary(object):
 		self.r2 = None #*units.solRad
 		self.L1 = None #*units.solLum
 		self.L2 = None #*units.solLum
+		self.k1 = None #BSE stellar type
+		self.k2 = None #BSE stellar type
 		self.period = None #*units.day 
 		self.eccentricity = None
 		self.OMEGA = None
@@ -294,8 +296,6 @@ class EclipsingBinary(object):
 			
 			return find_y_a1, find_y_a2, find_y_a3, find_y_a4
 	
-		self.appMagObs[filt] = [None]
-		self.deltaMag[filt] = [None]
 
 		#in case the user did not initialize
 		if (self.T1 == None):
@@ -350,7 +350,6 @@ class EclipsingBinary(object):
 				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2)
 
 		lc = lc/np.max(lc) #maybe there's a better normalization?
-		print("lc", lc)
 		if (min(lc) > 0):
 			#this is mathematically the same as below
 			# #let's redefine these here, but with the lc accounted for
@@ -415,6 +414,9 @@ class EclipsingBinary(object):
 		if (self.radius_failed or self.period_failed or self.incl_failed or self.appmag_failed):
 			self.observable = False
 
+		if (self.verbose):
+			print("observable", self.observable, self.radius_failed, self.period_failed, self.incl_failed, self.appmag_failed)
+			
 	def initializeSeed(self):
 		if (self.seed == None):
 			np.random.seed()
@@ -503,6 +505,10 @@ class EclipsingBinary(object):
 
 			self.LSS[f] = -999.
 			self.appMagMeanAll += self.appMagMean[f]
+			self.appMagObs[f] = [None]
+			self.appMagObsErr[f] = [None]
+			self.deltaMag[f] = [None]
+
 		self.appMagMeanAll /= len(self.filters)
 
 		#check if we can observe this (not accounting for the location in galaxy)
@@ -540,4 +546,5 @@ class EclipsingBinary(object):
 
 		self.nobs += len(self.obsDates[filt])
 		#get the light curve, and related information
+		print("calling light curve", filt)
 		self.setLightCurve(filt)

@@ -160,6 +160,7 @@ class LSSTEBClusterWorker(object):
 		for i, filt in enumerate(self.filters):
 
 			#observe the EB (get dates, create the light curve for this filter)
+			print("calling observe", filt)
 			EB.observe(filt)
 			EB.LSS[filt] = -999.
 
@@ -227,8 +228,10 @@ class LSSTEBClusterWorker(object):
 		EB.r2 = line[5]
 		EB.L1 = line[6]
 		EB.L2 = line[7]
-		EB.T1 = line[16]
-		EB.T2 = line[17]
+		EB.T1 = line[17]
+		EB.T2 = line[18]
+		EB.k1 = line[19]
+		EB.k2 = line[20]
 		EB.period = 10.**line[2] #days
 		EB.eccentricity = line[3]
 		EB.inclination = line[12] *180./np.pi #degrees
@@ -271,7 +274,7 @@ class LSSTEBClusterWorker(object):
 
 
 	def writeOutputLine(self, EB, OpSimi=0, header = False, noRun = False):
-		cols = ['p', 'm1', 'm2', 'r1', 'r2', 'e', 'i', 'd', 'nobs','Av','[M/H]','appMagMean_r', 'maxDeltaMag', 'deltaMag_r','mag_failure', 'incl_failure', 'period_failure', 'radius_failure', 'u_LSS_PERIOD', 'g_LSS_PERIOD', 'r_LSS_PERIOD', 'i_LSS_PERIOD', 'z_LSS_PERIOD', 'y_LSS_PERIOD','LSM_PERIOD']
+		cols = ['p', 'm1', 'm2', 'r1', 'r2', 'k1', 'k2', 'e', 'i', 'd', 'nobs','Av','[M/H]','appMagMean_r', 'maxDeltaMag', 'deltaMag_r','mag_failure', 'incl_failure', 'period_failure', 'radius_failure', 'u_LSS_PERIOD', 'g_LSS_PERIOD', 'r_LSS_PERIOD', 'i_LSS_PERIOD', 'z_LSS_PERIOD', 'y_LSS_PERIOD','LSM_PERIOD']
 		if (header):
 			if (self.useOpSimDates and self.OpSim != None):
 				print("writing header")
@@ -284,9 +287,7 @@ class LSSTEBClusterWorker(object):
 			output = [-1 for x in range(len(cols))]
 
 		else:
-			print("deltaMag", EB.deltaMag)
-			print("appMagMean", EB.appMagMean)
-			output = [EB.period, EB.m1, EB.m2, EB.r1, EB.r2, EB.eccentricity, EB.inclination, EB.dist, EB.nobs, EB.AV, EB.M_H, EB.appMagMean['r_'], EB.maxDeltaMag, EB.deltaMag['r_'],EB.appmag_failed, EB.incl_failed, EB.period_failed, EB.radius_failed]
+			output = [EB.period, EB.m1, EB.m2, EB.r1, EB.r2, EB.k1, EB.k2, EB.eccentricity, EB.inclination, EB.dist, EB.nobs, EB.AV, EB.M_H, EB.appMagMean['r_'], EB.maxDeltaMag, EB.deltaMag['r_'],EB.appmag_failed, EB.incl_failed, EB.period_failed, EB.radius_failed]
 
 			#this is for gatspt
 			for filt in self.filters:
