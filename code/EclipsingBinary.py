@@ -454,9 +454,8 @@ class EclipsingBinary(object):
 			count = 0
 			while (self.AV == None && count < 100):
 				self.AV = vespa.stars.extinction.get_AV_infinity(self.RA, self.Dec, frame='icrs')
-				count += 1
-			if (self.AV == None):
-				print("WARNING: No AV found", self.RA, self.Dec, self.AV, count)
+				if (self.AV == None):
+					print("WARNING: No AV found", self.RA, self.Dec, self.AV, count)
 
 		self.SED1 = SED()
 		self.SED1.filters = self.filters
