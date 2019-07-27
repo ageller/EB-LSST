@@ -516,7 +516,8 @@ class EclipsingBinary(object):
 			self.appMagObs[f] = [None]
 			self.appMagObsErr[f] = [None]
 			self.deltaMag[f] = [None]
-
+			self.obsDates[f] = [None]
+			
 		self.appMagMeanAll /= len(self.filters)
 
 		#check if we can observe this (not accounting for the location in galaxy)
