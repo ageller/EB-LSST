@@ -135,34 +135,38 @@ class getClusterBinaries(object):
 
 		self.bpp = bpp
 		self.bcm = bcm
-		self.bcmEvolved = self.bcm.loc[self.bcm['tphys'] == self.age]
-		#print(self.bcmEvolved)
+		##################
+		#we need to grab only the final values at the age of the cluster, and those that are still in binaries
+		###############
+		self.bcmEvolved = self.bcm.loc[(self.bcm['tphys'] == self.age) & (self.bcm['bin_state'] == 0) & (self.bcm['mass_1'] > 0) & (self.bcm['mass_2'] > 0)]
 
 
 	# Method to generate final output array of arrays from Aaron
 	def EB_output(self):
 		#double check that we have the correct units
 
-		##################
-		#we need to grab only the final values at the age of the cluster
-		###############
 		Nvals = len(self.bcmEvolved['mass_1'].values)
+		print("Number of binaries", Nvals)
 
 		# Inclination and omega values
 		self.inc = np.arccos(2.*np.random.uniform(0,1,Nvals) - 1.)
 		self.omega = np.random.uniform(0,2*np.pi,Nvals)
 		self.OMEGA = np.random.uniform(0,2*np.pi,Nvals)
 
-		noneArray = np.array([None for x in range Nvals])
+		noneArray = np.array([None for x in range(Nvals)])
+		distArray = noneArray
+		if (self.dist != None):
+			distArray = np.ones(Nvals)*self.dist
+
 		output = np.array([self.bcmEvolved['mass_1'].values, self.bcmEvolved['mass_2'].values, \
 			np.log10(self.bcmEvolved['porb'].values), self.bcmEvolved['ecc'].values, \
 			10.**self.bcmEvolved['rad_1'].values, 10.**self.bcmEvolved['rad_2'].values,\
 			10.**self.bcmEvolved['lumin_1'].values, 10.**self.bcmEvolved['lumin_2'].values, \
-			noneArray, noneArray, noneArray, np.ones(Nvals)*self.dist, \
+			noneArray, noneArray, noneArray, distArray, \
 			self.inc, self.OMEGA, self.omega, \
 			noneArray, np.ones(Nvals)*self.Z, \
 			10.**self.bcmEvolved['teff_1'], 10.**self.bcmEvolved['teff_2'], \
-			self.bcmEvolved['k1'], self.bcmEvolved['k2']])
+			self.bcmEvolved['kstar_1'], self.bcmEvolved['kstar_2']])
 
 		#print('original output array: ',output)
 

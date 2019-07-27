@@ -443,6 +443,10 @@ class EclipsingBinary(object):
 		self.R_1e = self.r1/self.Eggleton_RL(self.m1/self.m2, self.a * (1. - self.eccentricity))
 		self.R_2e = self.r2/self.Eggleton_RL(self.m2/self.m1, self.a * (1. - self.eccentricity))
 
+		#one option for getting the extinction
+		if (self.AV == None):
+			self.AV = vespa.stars.extinction.get_AV_infinity(self.RA, self.Dec, frame='icrs')
+			
 		self.SED1 = SED()
 		self.SED1.filters = self.filters
 		self.SED1.filterFilesRoot = self.filterFilesRoot
@@ -480,8 +484,6 @@ class EclipsingBinary(object):
 		self.appMagMeanAll = 0.
 
 		#one option for getting the extinction
-		if (self.AV == None):
-			self.AV = vespa.stars.extinction.get_AV_infinity(self.RA, self.Dec, frame='icrs')
 		#ext = F04(Rv=self.RV)
 		ext = F04(Rv=self.RV)
 		#a check

@@ -107,7 +107,7 @@ if __name__ == "__main__":
 #########################################
 #########################################
 ## remove this loc statement, when table is fixed (replace with index)
-	nClusters = len(clusterDF.loc[ (clusterDF['OpSim RA'] != 0) & (clusterDF['sigma_v[km/s]'] > 0) & (clusterDF['Age'] > 0) ]) #total number of clusters
+	nClusters = len(clusterDF.loc[ (clusterDF['OpSim RA'] != 0) & (clusterDF['sigma_v[km/s]'] > 0) & (clusterDF['Age'] > 0) & (clusterDF['dist[kpc]'] > 0) ]) #total number of clusters
 
 	finishedIDs = getFinishedIDs()
 	nClusters -= len(finishedIDs)
@@ -145,7 +145,7 @@ if __name__ == "__main__":
 						tp = 0
 					if (tp == 'G'):
 						tp = 1
-					if (clusterDF['OpSim RA'].values[i] != 0 and clusterDF['OpSim Dec'].values[i] != 0 and clusterDF['sigma_v[km/s]'].values[i] > 0 and clusterDF['Age'].values[i] > 0):
+					if (clusterDF['OpSim RA'].values[i] != 0 and clusterDF['OpSim Dec'].values[i] != 0 and clusterDF['sigma_v[km/s]'].values[i] > 0 and clusterDF['Age'].values[i] > 0 and clusterDF['dist[kpc]'].values[i] > 0):
 						clusterOpSimID.append(clusterDF['OpSim ID'][i])
 						#c = SkyCoord(clusterDF['OpSim RA'].values[i], clusterDF['OpSim Dec'].values[i])
 						#clusterOpSimRA.append(c.ra.degree)
