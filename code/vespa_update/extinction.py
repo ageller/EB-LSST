@@ -60,5 +60,9 @@ def get_AV_infinity(ra,dec,frame='icrs'):
 			print("An exception occurred in extinction 2")
 
 
-	os.remove(tmpfile)
+	try:
+		os.remove(tmpfile)
+	except:
+		print("An exception occurred in extinction 3")
+
 	return AV
