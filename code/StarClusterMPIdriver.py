@@ -109,7 +109,7 @@ if __name__ == "__main__":
 ## remove this loc statement, when table is fixed (replace with index)
 	nClusters = len(clusterDF.loc[ (clusterDF['OpSim RA'] != 0) & (clusterDF['sigma_v[km/s]'] > 0) & (clusterDF['Age'] > 0) & (clusterDF['dist[kpc]'] > 0) ]) #total number of clusters
 
-	finishedIDs = getFinishedIDs()
+	finishedIDs = getFinishedIDs(Nbins = args.n_bin)
 	nClusters -= len(finishedIDs)
 	nClustersPerCore = int(np.floor(nClusters/size))
 	print(f"nClusters={nClusters}, nClustersPerCore={nClustersPerCore}")

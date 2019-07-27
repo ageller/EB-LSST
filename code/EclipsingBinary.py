@@ -453,7 +453,7 @@ class EclipsingBinary(object):
 		#one option for getting the extinction
 		if (self.AV == None):
 			count = 0
-			while (self.AV == None && count < 100):
+			while (self.AV == None and count < 100):
 				self.AV = extinction.get_AV_infinity(self.RA, self.Dec, frame='icrs')
 				if (self.AV == None):
 					print("WARNING: No AV found", self.RA, self.Dec, self.AV, count)
