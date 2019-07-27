@@ -12,7 +12,8 @@ import ellc
 from dust_extinction.parameter_averages import F04
 
 #for A_V
-import vespa
+#import vespa.stars.extinction
+from vespa_update import extinction
 
 ######################
 #my code
@@ -453,7 +454,7 @@ class EclipsingBinary(object):
 		if (self.AV == None):
 			count = 0
 			while (self.AV == None && count < 100):
-				self.AV = vespa.stars.extinction.get_AV_infinity(self.RA, self.Dec, frame='icrs')
+				self.AV = extinction.get_AV_infinity(self.RA, self.Dec, frame='icrs')
 				if (self.AV == None):
 					print("WARNING: No AV found", self.RA, self.Dec, self.AV, count)
 
