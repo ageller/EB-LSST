@@ -11,7 +11,10 @@ import matplotlib.pyplot as plt
 #######################
 #3rd party codes
 from gatspy.periodic import LombScargleMultiband, LombScargle, LombScargleFast, LombScargleMultibandFast
-import emcee
+
+#for A_V
+#import vespa.stars.extinction
+from vespa_update import extinction
 
 ######################
 #my code
@@ -40,6 +43,7 @@ class LSSTEBClusterWorker(object):
 
 		self.filters = ['u_', 'g_', 'r_', 'i_', 'z_', 'y_']
 
+		self.OpSim = None
 
 		self.n_bin = 100000
 		self.n_band = 2
@@ -68,13 +72,6 @@ class LSSTEBClusterWorker(object):
 
 		self.seed = None
 
-		#for emcee 
-		self.emcee_nthreads = 1 #note: currently, I *think* this won't work with >1 thread.  Not pickleable as written.
-		self.emcee_nsamples = 2000
-		self.emcee_nwalkers = 100
-		self.emcee_nburn = 100
-		self.emcee_sampler = None
-
 		#cluster info
 		self.clusterName = None
 		self.clusterMass = None
@@ -84,6 +81,8 @@ class LSSTEBClusterWorker(object):
 		self.clusterRhm = None
 		self.clusterVdisp = None
 		self.clusterType = None
+
+		self.clusterAV = [None]
 
 	def make_gatspy_plots(self, j):
 		EB = self.return_dict[j]
@@ -253,6 +252,9 @@ class LSSTEBClusterWorker(object):
 			EB.M_H = line[16]
 
 
+		if (EB.AV == None):
+			EB.AV = self.clusterAV[OpSimi]
+
 		EB.t_zero = np.random.random() * EB.period
 
 		#for observations
@@ -337,6 +339,16 @@ class LSSTEBClusterWorker(object):
 		else:
 			np.random.seed(seed = self.seed)
 
+
+		#get the extinction
+		count = 0
+		if (len(self.clusterAV) < len(self.clusterName)):
+			self.clusterAV = np.array([None for x in range(len(self.clusterName))])
+		
+		while (self.clusterAV[OpSimi] == None && count < 100):
+			self.clusterAV[OpSimi] = extinction.get_AV_infinity(self.OpSim.RA[OpSimi], self.OpSim.Dec[OpSimi], frame='icrs')
+			if (self.clusterAV[OpSimi] == None):
+				print("WARNING: No AV found", self.OpSim.RA[OpSimi], self.OpSim.Dec[OpSimi], self.clusterAV[OpSimi], count)
 
 		self.OpSim.setDates(OpSimi, self.filters)
 		print(f'total number of OpSim observation dates (all filters) = {self.OpSim.totalNobs[OpSimi]}')
