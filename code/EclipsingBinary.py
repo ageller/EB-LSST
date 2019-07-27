@@ -515,9 +515,9 @@ class EclipsingBinary(object):
 			self.appMagMeanAll += self.appMagMean[f]
 			self.appMagObs[f] = [None]
 			self.appMagObsErr[f] = [None]
-			self.deltaMag[f] = [None]
+			self.deltaMag[f] = 0.
 			self.obsDates[f] = [None]
-			
+
 		self.appMagMeanAll /= len(self.filters)
 
 		#check if we can observe this (not accounting for the location in galaxy)
@@ -555,5 +555,6 @@ class EclipsingBinary(object):
 
 		self.nobs += len(self.obsDates[filt])
 		#get the light curve, and related information
-		print("calling light curve", filt)
-		self.setLightCurve(filt)
+		if (self.obsDates[filt][0] != None): 
+			#print("calling light curve", filt)
+			self.setLightCurve(filt)
