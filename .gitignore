@@ -16,10 +16,14 @@ __pycache__
 *.pyc
 
 # databases #
-##########3
+##########
 *.db
 
 *.csv
 *.vot
 *.dat
 *.h5
+
+#vi swap files #
+##############
+.swp
