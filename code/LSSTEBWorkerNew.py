@@ -359,6 +359,8 @@ class LSSTEBWorker(object):
 		dist = []
 		Av = [] 
 		MH = []
+		nWarn = 0.
+		maxTol = self.mTol
 		while len(m1) < self.n_bin:
 			s = self.Galaxy.model.sample()
 			fb = fbFit(s['m_ini'].iloc[0]) #I think I should base this on the initial mass, since these binary fractions are for unevolved stars
@@ -384,12 +386,13 @@ class LSSTEBWorker(object):
 						lum2.append(10.**ss['logL'].iloc[0])
 						teff2.append(10.**ss['logTe'].iloc[0])
 					else:
-						print('WARNING: increasing tolerance', mTolUse)
+						#print('WARNING: increasing tolerance', mTolUse)
 						mTolUse *=2
+						nWarn += 1
+						maxTol = np.max([mTolUse, maxTol])
 					if (counter > 100):
 						print('WARNING: did not reach tolerance, will probably die...')
 					counter += 1
-				
 				logp.append(getlogp())
 				ecc.append(getecc())
 				
@@ -397,6 +400,8 @@ class LSSTEBWorker(object):
 				Av.append(s['Av'].iloc[0]) #is this measure OK?
 				MH.append(s['[M/H]'].iloc[0])
 
+		if (nWarn > 0):
+			print(f'WARNING: had to increase mass tolerance {nWarn} times. Max tolerance = {maxTol}.')
 		m1 = np.array(m1)
 		rad1 = np.array(rad1)
 		lum1 = np.array(lum1)
