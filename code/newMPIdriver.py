@@ -208,7 +208,6 @@ if __name__ == "__main__":
 		if (worker.OpSim.fieldID[i] not in finishedIDs and worker.OpSim.fieldID[i] != -1):
 			#initialize
 			print(f"RANK={rank}, OpSimi={i}, ID={worker.OpSim.fieldID[i]}")
-			print("ADD STELLAR TYPES TO OUTPUT FILE!!!")
 			passed = worker.initialize(OpSimi=i) #Note: this will not redo the OpSim class, because we've set it above
 	
 			#set up the output file
