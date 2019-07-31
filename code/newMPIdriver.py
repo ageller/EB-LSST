@@ -1,6 +1,6 @@
 #!/software/anaconda3.6/bin/python
 
-from LSSTEBWorkerNew import LSSTEBworker 
+from LSSTEBWorkerNew import LSSTEBWorker 
 from OpSim import OpSim
 import csv
 import argparse
@@ -165,7 +165,7 @@ if __name__ == "__main__":
 			fieldData = np.vstack((fieldData, extra))
 
 	#define the worker
-	worker = LSSTEBworker()
+	worker = LSSTEBWorker()
 	worker.filterFilesRoot = '/projects/p30137/ageller/EBLSST/input/filters/'
 	worker.filters = filters
 	#os.environ['PYSYN_CDBS'] = '/projects/p30137/ageller/PySynphotData'
