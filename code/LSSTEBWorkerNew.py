@@ -20,6 +20,7 @@ from vespa_update import extinction
 #my code
 from EclipsingBinary import EclipsingBinary
 from OpSim import OpSim
+from TRILEGAL import TRILEGAL
 
 #Andrew's code
 from getClusterBinaries import getClusterBinaries
