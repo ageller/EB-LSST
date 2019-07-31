@@ -245,6 +245,7 @@ if __name__ == "__main__":
 
 
 				#run through ellc and gatspy
+				worker.getGalaxy(i)
 				gxDat = worker.sampleGalaxy(i)
 
 				print(f'Nlines in gxDate={len(gxDat)} for ID={worker.OpSim.fieldID[i]}')

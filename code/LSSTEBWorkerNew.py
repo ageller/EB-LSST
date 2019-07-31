@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 import scipy.special as ss
 import datetime
+from astropy.modeling import models, fitting
+from astropy import units as u
+from astropy import constants 
 
 import matplotlib
 matplotlib.use('agg')
@@ -289,15 +292,18 @@ class LSSTEBWorker(object):
 
 		self.csvwriter.writerow(output)	
 
-	def sampleGalaxy(self, OpSimi):
 
+	def getGalaxy(self, OpSimi):
 		self.Galaxy = TRILEGAL()
 		self.Galaxy.RA = self.OpSim.RA[OpSimi]
 		self.Galaxy.Dec = self.OpSim.Dec[OpSimi]
 		self.Galaxy.fieldID = self.OpSim.fieldID[OpSimi]
 		self.Galaxy.tmpdir = self.galDir
 		self.Galaxy.tmpfname = 'TRILEGAL_model_fID'+str(int(self.OpSim.fieldID[OpSimi]))+'.h5'
-		self.Galaxy.setModel()	
+		self.Galaxy.setModel()
+
+	def sampleGalaxy(self, OpSimi):
+
 
 		#for the binary fraction
 		def fitRagfb():
@@ -373,7 +379,7 @@ class LSSTEBWorker(object):
 						lum2.append(10.**ss['logL'].iloc[0])
 						teff2.append(10.**ss['logTe'].iloc[0])
 					else:
-						#print('WARNING: failed to reach tolerance', mTolUse)
+						print('WARNING: failed to reach tolerance', mTolUse)
 						mTolUse *=2
 				
 				logp.append(getlogp())
