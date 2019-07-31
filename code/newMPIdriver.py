@@ -1,6 +1,6 @@
 #!/software/anaconda3.6/bin/python
 
-from LSSTEBWorkerNew import LSSTEBWorker 
+from newLSSTEBWorker import LSSTEBWorker 
 from OpSim import OpSim
 import csv
 import argparse
