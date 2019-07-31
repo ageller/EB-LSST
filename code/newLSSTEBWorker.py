@@ -423,7 +423,6 @@ class LSSTEBWorker(object):
 
 		#we don't need position, but we do need distance
 		output = np.vstack( (m1, m2, logp, ecc, rad1, rad2, lum1, lum2, x, x, x, dist, inc, OMEGA, omega, Av, MH, teff1, teff2) ).T
-		print("Binary output shape = ",output.shape)
 
 		return output
 
