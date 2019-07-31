@@ -1,6 +1,7 @@
 #!/software/anaconda3.6/bin/python
 
-from EBLSST import LSSTEBworker, OpSim
+from LSSTEBWorkerNew import LSSTEBworker 
+from OpSim import OpSim
 import csv
 import argparse
 import numpy as np
