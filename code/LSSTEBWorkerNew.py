@@ -290,7 +290,7 @@ class LSSTEBWorker(object):
 
 		self.csvwriter.writerow(output)	
 
-	def sampleGalaxy(self, i):
+	def sampleGalaxy(self, OpSimi):
 
 		self.Galaxy = TRILEGAL()
 		self.Galaxy.RA = self.OpSim.RA[OpSimi]
