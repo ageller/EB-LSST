@@ -22,8 +22,6 @@ from EclipsingBinary import EclipsingBinary
 from OpSim import OpSim
 from TRILEGAL import TRILEGAL
 
-#Andrew's code
-from getClusterBinaries import getClusterBinaries
 
 class LSSTEBWorker(object):
 
@@ -301,7 +299,7 @@ class LSSTEBWorker(object):
 		self.Galaxy.tmpfname = 'TRILEGAL_model_fID'+str(int(self.OpSim.fieldID[OpSimi]))+'.h5'
 		self.Galaxy.setModel()	
 
-				#for the binary fraction
+		#for the binary fraction
 		def fitRagfb():
 			x = [0.05, 0.1, 1, 8, 15]  #estimates of midpoints in bins, and using this: https://sites.uni.edu/morgans/astro/course/Notes/section2/spectralmasses.html
 			y = [0.20, 0.35, 0.50, 0.70, 0.75]
@@ -331,11 +329,9 @@ class LSSTEBWorker(object):
 
 #test for the Sun
 #print(getRad(4.43, 1)) 
-
+		print("creating binaries...")
 		fbFit= fitRagfb()
 		#print(fbFit)
-
-
 
 		m1 = []
 		rad1 = []
