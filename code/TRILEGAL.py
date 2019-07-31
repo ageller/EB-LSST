@@ -22,6 +22,7 @@ class TRILEGAL(object):
 		self.filterset = 'lsst' 
 		self.tmpfname = 'TRILEGAL_model.h5'
 		self.tmpdir = '.'
+		self.deleteModel = True
 
 		self.model = None
 		self.KDE = None
@@ -53,7 +54,9 @@ class TRILEGAL(object):
 
 		if (self.shuffle):
 			self.model = self.model.sample(frac=1).reset_index(drop=True)
-		os.remove(os.path.join(self.tmpdir,self.tmpfname))
+
+		if (self.deleteModel):
+			os.remove(os.path.join(self.tmpdir,self.tmpfname))
 
 		data = np.vstack((self.model['logL'].values, self.model['logTe'].values, self.model['logg'].values, \
 						self.model['logDist'].values, self.model['Av'].values, self.model['[M/H]'].values))

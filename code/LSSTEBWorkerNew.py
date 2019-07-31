@@ -293,13 +293,14 @@ class LSSTEBWorker(object):
 		self.csvwriter.writerow(output)	
 
 
-	def getGalaxy(self, OpSimi):
+	def getGalaxy(self, OpSimi, deleteModel = True):
 		self.Galaxy = TRILEGAL()
 		self.Galaxy.RA = self.OpSim.RA[OpSimi]
 		self.Galaxy.Dec = self.OpSim.Dec[OpSimi]
 		self.Galaxy.fieldID = self.OpSim.fieldID[OpSimi]
 		self.Galaxy.tmpdir = self.galDir
 		self.Galaxy.tmpfname = 'TRILEGAL_model_fID'+str(int(self.OpSim.fieldID[OpSimi]))+'.h5'
+		self.Galaxy.deleteModel = deleteModel
 		self.Galaxy.setModel()
 
 	def sampleGalaxy(self, OpSimi):
@@ -336,6 +337,9 @@ class LSSTEBWorker(object):
 #test for the Sun
 #print(getRad(4.43, 1)) 
 		print("creating binaries...")
+		m2Use = 0.5
+		mTolUse = 0.001
+
 		fbFit= fitRagfb()
 		#print(fbFit)
 
@@ -356,7 +360,7 @@ class LSSTEBWorker(object):
 		Av = [] 
 		MH = []
 		while len(m1) < self.n_bin:
-			s = self.Galaxy.sample()
+			s = self.Galaxy.model.sample()
 			fb = fbFit(s['m_ini'].iloc[0]) #I think I should base this on the initial mass, since these binary fractions are for unevolved stars
 			xx = np.random.random()
 			if (xx < fb):
@@ -369,8 +373,9 @@ class LSSTEBWorker(object):
 				#rad2, lum2, teff2 need to be drawn from TRILEGAL given m2
 				done = False
 				mTolUse = self.mTol
+				counter = 0.
 				while (not done):
-					df_sort = self.Galaxy.loc[ (self.Galaxy['Mact'] - m2Use).abs() < mTolUse]
+					df_sort = self.Galaxy.model.loc[ (self.Galaxy.model['Mact'] - m2Use).abs() < mTolUse]
 					if (len(df_sort) > 0):
 						done = True
 						ss = df_sort.sample()
@@ -379,8 +384,11 @@ class LSSTEBWorker(object):
 						lum2.append(10.**ss['logL'].iloc[0])
 						teff2.append(10.**ss['logTe'].iloc[0])
 					else:
-						print('WARNING: failed to reach tolerance', mTolUse)
+						print('WARNING: increasing tolerance', mTolUse)
 						mTolUse *=2
+					if (counter > 100):
+						print('WARNING: did not reach tolerance, will probably die...')
+					counter += 1
 				
 				logp.append(getlogp())
 				ecc.append(getecc())
