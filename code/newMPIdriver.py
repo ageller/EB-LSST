@@ -134,16 +134,13 @@ if __name__ == "__main__":
 
 		nfields = len(OpS.fieldID)
 		print(f"rank 0 nfields={nfields}")
-		print(unfin)
-		print(OpS.fieldID)
-		print(OpS.RA)
-		print(OpS.Dec)
 
 		#scatter the fieldID, RA, Dec 
 		#get as close as we can to having everything scattered
-		maxIndex = min(nfieldsPerCore*size, nfields-1)
+		maxIndex = min(nfieldsPerCore*size, nfields)
 		output = np.vstack((OpS.fieldID[:maxIndex], OpS.RA[:maxIndex], OpS.Dec[:maxIndex])).T
 
+		print("check",maxIndex, nfieldsPerCore, size, nfields, output.shape)
 		print("reshaping to send to other processes")
 		sendbuf = np.reshape(output, (size, 3*nfieldsPerCore))
 
