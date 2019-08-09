@@ -327,7 +327,7 @@ class LSSTEBClusterWorker(object):
 		print("sampling cluster", self.clusterName[i])
 		sampler = getClusterBinaries(self.clusterAge[i], self.clusterMetallicity[i], self.clusterVdisp[i], self.n_bin)
 		sampler.random_seed = self.seed
-		sampler.dist = self.clusterDistance[i];
+		sampler.dist = self.clusterDistance[i]
 		sampler.runAll()
 
 		return sampler.output

@@ -46,6 +46,7 @@ class getClusterBinaries(object):
 		#self.cluster_file_path = cluster_file_path#Full files paths to gc and oc data
 
 
+
 		# Class variables for later
 		self.period_hardsoft = None
 		self.output = None
@@ -58,6 +59,11 @@ class getClusterBinaries(object):
 		self.omega = None
 		self.OMEGA = None
 		self.random_seed = 0
+
+		# in case we also want singles
+		self.Nsing = 0
+		self.initialSingles = None
+		self.evolvedSingles = None
 
 		# BSE dictionary copied from cosmic's documentation (unchanged): https://cosmic-popsynth.github.io
 		self.BSEDict = {'xi': 0.5, 'bhflag': 1, 'neta': 0.5, 'windflag': 3, 'wdflag': 0, 'alpha1': 1.0, \
@@ -98,6 +104,40 @@ class getClusterBinaries(object):
 		self.period_hardsoft = np.round(np.log10(Phs),decimals=1)#rounding to 2 decimal places for cosmic
 
 
+	# create "singles" from wide binaries with 0Msun companions
+	def Initial_Single_Sample(self):
+		"""
+
+		Creates and evolves a set of "single" = wide binaries with 0Msun comparions with given 
+		age (to evolve to), number of stars, and  metallicity.
+
+		"""
+		# Initial (input) binares -- using sampler method from cosmic #1234 - random seed
+		print("initial single input:",self.random_seed, self.age, self.Z, self.Nsing)
+		# InitialSingles, sampled_mass, n_sampled = InitialBinaryTable.sampler('multidim',\
+		# 	[0,12], [0,12],self.random_seed,1, 'delta_burst', self.age, self.Z, self.Nsing)
+		InitialSingles, sampled_mass, n_sampled = InitialBinaryTable.sampler('independent', \
+			[0,12], [0,12], primary_model='kroupa93', ecc_model='uniform', SFH_model='delta_burst', \
+			component_age=self.age, met=self.Z, size=self.Nsing)
+
+		#change the periods and secondary masses
+		for i, row in InitialSingles.iterrows():
+			InitialSingles.at[i,'mass2_binary'] = 0
+			InitialSingles.at[i,'porb'] = 1e10
+
+		#print(InitialSingles)		
+
+		self.InitialSingles = InitialSingles
+
+	# Evolving hard binaries from our initial binary table above
+	def EvolveSingles(self):
+
+		"""Takes Initial (hard) binaries from above and evolves them"""
+		bpp, bcm, initC  = Evolve.evolve(initialbinarytable = self.InitialSingles, BSEDict = self.BSEDict)
+		##################
+		#we need to grab only the final values at the age of the cluster, and those that are still in binaries
+		###############
+		self.SinglesEvolved = bcm.loc[(bcm['tphys'] == self.age)]
 
 
 	# New sampler function - only pulls initial binaries, want them to be hard binaries so we set maximum period cutoff with porb_hi and porb_lo
@@ -112,17 +152,6 @@ class getClusterBinaries(object):
 		print("initial binary input:",self.random_seed, self.age, self.Z, self.Nbin, self.sigma, 	self.period_hardsoft)
 		InitialBinaries, sampled_mass, n_sampled = InitialBinaryTable.sampler('multidim',\
 		 [0,12], [0,12],self.random_seed,1, 'delta_burst', self.age, self.Z, self.Nbin, porb_lo = 0.15, porb_hi = self.period_hardsoft)
-
-
-
-		# Input binary params
-		p_i = InitialBinaries['porb']
-		m1_i = InitialBinaries['mass1_binary']#In Msun units
-		m2_i = InitialBinaries['mass2_binary']
-		ecc_i = InitialBinaries['ecc']
-		tphysf_i = InitialBinaries['tphysf']#Time to evolve to (Myr)
-		Z_i = InitialBinaries['metallicity']
-		
 
 		self.InitialBinaries = InitialBinaries
 

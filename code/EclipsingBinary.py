@@ -121,6 +121,7 @@ class EclipsingBinary(object):
 		self.cadence = 3.
 		self.Nfilters = 6.
 		self.nobs = 0
+		self.light_3 = 0
 		#this is for the magnitude uncertainties
 		#https://arxiv.org/pdf/0805.2366.pdf
 		self.sigmaDict = {
@@ -345,14 +346,14 @@ class EclipsingBinary(object):
 				t_zero=self.t_zero, period=self.period, a=self.a, q=self.q,
 				f_c=self.f_c, f_s=self.f_s, ld_1=self.ld_1,  ld_2=self.ld_2,
 				radius_1=self.R_1, radius_2=self.R_2, incl=self.inclination, sbratio=self.sbratio, 
-				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2) 
+				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2, light_3=self.light_3) 
 		else:
 			print(f"WARNING: nan's in ldc filter={filt}, ldc_1={ldc_1}, T1={T1}, logg1={g1}, ldc_2={ldc_2}, T2={T2}, logg2={g2}, [M/H]={MH}")
 			lc = ellc.lc(self.obsDates[filt], 
 				t_zero=self.t_zero, period=self.period, a=self.a, q=self.q,
 				f_c=self.f_c, f_s=self.f_s, 
 				radius_1=self.R_1, radius_2=self.R_2, incl=self.inclination, sbratio=self.sbratio,
-				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2)
+				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2, light_3=self.light_3)
 
 		#print('have lc', filt, lc)
 		lc = lc/np.max(lc) #maybe there's a better normalization?
