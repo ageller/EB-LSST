@@ -232,8 +232,8 @@ if __name__ == "__main__":
 
 			worker.csvwriter = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
-			#write header
-			if (not append):
+			#write header, this will not contain the galaxy Nstars number
+			if (not append and not passed):
 				worker.writeOutputLine(None, OpSimi=i, header=True)
 				csvfile.flush()
 
@@ -243,6 +243,11 @@ if __name__ == "__main__":
 				#run through ellc and gatspy
 				worker.getGalaxy(i)
 				gxDat = worker.sampleGalaxy(i)
+
+				#write header, this will  contain the galaxy Nstars number
+				if (not append):
+					worker.writeOutputLine(None, OpSimi=i, header=True)
+					csvfile.flush()
 
 				print(f'Nlines in gxDate={len(gxDat)} for ID={worker.OpSim.fieldID[i]}')
 
