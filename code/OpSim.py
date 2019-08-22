@@ -8,7 +8,7 @@ import sqlite3
 class OpSim(object):
 
 	def __init__(self, *args,**kwargs):
-		self.dbFile = '../input/db/minion_1016_sqlite.db' #for the OpSim database
+		self.dbFile = '../input/db/baseline2018a.db' #for the OpSim database
 
 		self.verbose = False
 		self.fieldCursor = None
@@ -33,11 +33,13 @@ class OpSim(object):
 		db = sqlite3.connect(self.dbFile)
 		cursor = db.cursor()
 
-		cursor.execute("SELECT fieldid, expDate, filter, fiveSigmaDepth FROM summary") 
+		#cursor.execute("SELECT fieldid, expDate, filter, fiveSigmaDepth FROM summary")  #old, for minion
+		cursor.execute("SELECT Field_fieldid, observationStartTime, filter, fiveSigmaDepth FROM ObsHistory")
 		self.summaryCursor = np.array(cursor.fetchall()) #NOTE: this takes a LONG time
 		print("have summary cursor.")
 
-		cursor.execute("SELECT fieldid, fieldra, fielddec FROM field")
+		#cursor.execute("SELECT fieldid, fieldra, fielddec FROM field") #old, for minion
+		cursor.execute("SELECT fieldid, ra, dec FROM Field")
 		self.fieldCursor = np.array(cursor.fetchall()) #NOTE: this takes a LONG time
 		print("have field cursor.")
 
