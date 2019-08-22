@@ -46,7 +46,7 @@ class LSSTEBworker(object):
 		self.n_cores = 1
 
 		self.ofile = 'output_file.csv' #output file name
-		self.dbFile = '../input/db/minion_1016_sqlite.db' #for the OpSim database
+		self.dbFile = '../input/db/baseline2018a.db' #for the OpSim database
 		self.filterFilesRoot = '../input/filters/'
 		self.GalaxyFile ='../input/Breivik/dat_ThinDisk_12_0_12_0.h5' #for Katie's model
 		self.GalaxyFileLogPrefix ='../input/Breivik/fixedPopLogCm_'

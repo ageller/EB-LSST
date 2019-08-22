@@ -123,7 +123,7 @@ if __name__ == "__main__":
 			os.makedirs('output_files')
 
 		OpS = OpSim()
-		OpS.dbFile = '/projects/p30137/ageller/EBLSST/input/db/minion_1016_sqlite.db' #for the OpSim database	
+		OpS.dbFile = '/projects/p30137/ageller/EBLSST/input/db/baseline2018a.db' #for the OpSim database	
 		OpS.getAllOpSimFields()
 
 		clusterName = []
@@ -253,7 +253,7 @@ if __name__ == "__main__":
 
 	#redefine the OpSim fieldID, RA, Dec and the run through the rest of the code
 	OpS = OpSim()
-	OpS.dbFile = '/projects/p30137/ageller/EBLSST/input/db/minion_1016_sqlite.db' #for the OpSim database	
+	OpS.dbFile = '/projects/p30137/ageller/EBLSST/input/db/baseline2018a.db' #for the OpSim database	
 	OpS.getCursors()
 	OpS.fieldID = fields[0]
 	OpS.RA = fields[1]

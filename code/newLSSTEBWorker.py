@@ -53,7 +53,7 @@ class LSSTEBWorker(object):
 		self.n_cores = 1
 
 		self.ofile = 'output_file.csv' #output file name
-		self.dbFile = '../input/db/minion_1016_sqlite.db' #for the OpSim database
+		self.dbFile = '../input/db/baseline2018a.db' #for the OpSim database
 		self.filterFilesRoot = '../input/filters/'
 
 		#dictionaries -- could be handled by the multiprocessing manager, redefined in driver
