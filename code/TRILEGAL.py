@@ -15,7 +15,7 @@ os.environ['PATH'] = p2
 
 class TRILEGAL(object):
 	def __init__(self, *args,**kwargs):
-		self.area = 10.
+		self.area = np.pi*(3.5/2.)**2. #square degrees (LSST FoV)
 		self.maglim = 26
 		self.sigma_AV = 0.1 #default
 		self.binaries = False
@@ -32,10 +32,12 @@ class TRILEGAL(object):
 		self.fieldID = None
 		self.Nstars = 0
 
+		self.resEl = np.pi*(0.4/2.)**2. #square arcseconds, assumed 0.4 arcsec seeing
+		self.starsPerResEl = 0.
+
 		self.shuffle = True
 
 	def setModel(self):
-		print(f'downloading TRILEGAL model for ID={self.fieldID}, RA={self.RA}, DEC={self.Dec}')
 		passed = False
 		area0 = self.area
 		while (not passed):
@@ -47,6 +49,17 @@ class TRILEGAL(object):
 				print(f"reducing TRILEGAL area to {self.area}...")
 		self.model = pd.read_hdf(os.path.join(self.tmpdir,self.tmpfname))
 		self.Nstars = len(self.model) * (area0/self.area)**2.
+
+		#check for crowding
+		#first see if we need to normalize this to the LSST FoV
+		LSSTFoV = np.pi*(3.5/2.)**2.
+		FoVratio = LSSTFoV/self.area #ideally this ratio is 1.
+
+		#assume a uniform surface density stars/square degree
+		surfaceDensity = self.Nstars*FoVratio/LSSTFoV
+
+		#stars/resolution element
+		self.starsPerResEl = np.array(surfaceDensity*resEl)
 
 		#add the distance
 		logDist = np.log10( 10.**(self.model['m-M0'].values/5.) *10. / 1000.) #log(d [kpc])
@@ -61,3 +74,5 @@ class TRILEGAL(object):
 		data = np.vstack((self.model['logL'].values, self.model['logTe'].values, self.model['logg'].values, \
 						self.model['logDist'].values, self.model['Av'].values, self.model['[M/H]'].values))
 		self.KDE = scipy.stats.gaussian_kde(data)
+
+		print(f'downloading TRILEGAL model for ID={self.fieldID}, RA={self.RA}, DEC={self.Dec}, Nstars={self.Nstars}, Nstars/resEl={self.starsPerResEl}')

@@ -52,6 +52,10 @@ class EclipsingBinary(object):
 		self.SED1 = None
 		self.SED2 = None
 
+		#for Galaxy
+		self.Galaxy = None
+		self.SEDsingle = None
+
 		#from https://www.lsst.org/scientists/keynumbers
 		#in nm
 		self.wavelength = {
@@ -121,7 +125,10 @@ class EclipsingBinary(object):
 		self.cadence = 3.
 		self.Nfilters = 6.
 		self.nobs = 0
-		self.light_3 = 0
+		self.light_3 = {}
+		for f in self.filters:
+			self.light_3[f] = 0.
+
 		#this is for the magnitude uncertainties
 		#https://arxiv.org/pdf/0805.2366.pdf
 		self.sigmaDict = {
@@ -211,7 +218,13 @@ class EclipsingBinary(object):
 		return BCV
 
 	#Some approximate function for deriving stellar parameters
-	def getRad(self, m):
+	def getRad(self, logg, m):
+		#g = GM/r**2
+		g = 10.**logg * units.cm/units.s**2.
+		r = ((constants.G*m*units.Msun/g)**0.5).decompose().to(units.Rsun).value
+		return r
+
+	def getRadOld(self, m):
 		#(not needed with Katie's model, but included here in case needed later)
 		#use stellar mass to get stellar radius (not necessary, read out by Katie's work)
 		if (m > 1):  #*units.solMass
@@ -346,14 +359,14 @@ class EclipsingBinary(object):
 				t_zero=self.t_zero, period=self.period, a=self.a, q=self.q,
 				f_c=self.f_c, f_s=self.f_s, ld_1=self.ld_1,  ld_2=self.ld_2,
 				radius_1=self.R_1, radius_2=self.R_2, incl=self.inclination, sbratio=self.sbratio, 
-				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2, light_3=self.light_3) 
+				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2, light_3=self.light_3[filt]) 
 		else:
 			print(f"WARNING: nan's in ldc filter={filt}, ldc_1={ldc_1}, T1={T1}, logg1={g1}, ldc_2={ldc_2}, T2={T2}, logg2={g2}, [M/H]={MH}")
 			lc = ellc.lc(self.obsDates[filt], 
 				t_zero=self.t_zero, period=self.period, a=self.a, q=self.q,
 				f_c=self.f_c, f_s=self.f_s, 
 				radius_1=self.R_1, radius_2=self.R_2, incl=self.inclination, sbratio=self.sbratio,
-				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2, light_3=self.light_3)
+				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2, light_3=self.light_3[filt])
 
 		#print('have lc', filt, lc)
 		lc = lc/np.max(lc) #maybe there's a better normalization?
@@ -533,6 +546,43 @@ class EclipsingBinary(object):
 		#get the field ID number from OpSim where this binary would be observed
 		if (self.useOpSimDates and self.observable and self.OpSim.fieldID[0] == None):
 			self.OpSim.setFieldID(self.RA, self.Dec)
+
+		#if it's observable, get the contribution of the third light
+		if (self.observable and self.Galaxy.starsPerResEl >= 1):
+			getGalaxylight_3()
+
+	def getGalaxylight_3(self):
+		Fv3 = {}
+		for f in self.filters:
+			Fv3[f] = 0.
+			#if there is already a light_3 defined, then I need to add this onto the previous light 3 value
+			if (self.light_3[f] > 0):
+				Fv3[f] = self.light_3[f]*(self.Fv1[f] + self.Fv2[f])
+
+		crowd = self.Galaxy.model.sample(int(round(self.Galaxy.starsPerResEl)))
+		for index, s in crowd.iterrows():
+			self.SEDsingle = SED()
+			self.SEDsingle.filters = self.filters
+			self.SEDsingle.filterFilesRoot = self.filterFilesRoot
+			self.SEDsingle.T = 10.**s['logTe'].iloc[0]*units.K
+			self.SEDsingle.R = getRad(s['logg'].iloc[0], s['Mact'].iloc[0])*units.solRad
+			self.SEDsingle.L = 10.**s['logL'].iloc[0]*units.solLum
+			self.SEDsingle.logg = s['logg'].iloc[0]
+			self.SEDsingle.M_H = s['[M/H]'].iloc[0]
+			self.SEDsingle.EBV = s['Av'].iloc[0]/self.RV #could use this to account for reddening in SED
+			self.SEDsingle.initialize()
+
+			#one option for getting the extinction
+			Lconst = self.SED.getLconst()
+			for f in self.filters:
+				Fv3[f] += self.SEDsingle.getFvAB(10.**s['logDist'].iloc[0]*units.kpc, f, Lconst = Lconst)
+
+
+		for f in self.filters:
+			self.light_3[f] = Fv3[f]/(self.Fv1[f] + self.Fv2[f])
+
+		print("3rd light : ",self.light_3)
+		
 
 	def observe(self, filt):
 

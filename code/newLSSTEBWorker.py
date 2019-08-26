@@ -212,6 +212,8 @@ class LSSTEBWorker(object):
 	def getEB(self, line, OpSimi=0):
 		EB = EclipsingBinary()
 
+		EB.Galaxy = self.Galaxy
+		
 		# EB.seed = self.seed + i
 		EB.initializeSeed()
 		EB.filterFilesRoot = self.filterFilesRoot
