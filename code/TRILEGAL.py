@@ -32,7 +32,7 @@ class TRILEGAL(object):
 		self.fieldID = None
 		self.Nstars = 0
 
-		self.resEl = np.pi*(0.4/2.)**2. #square arcseconds, assumed 0.4 arcsec seeing
+		self.resEl = np.pi*(0.5/2./3600.)**2. #square degrees, assumed 0.5 arcsec seeing
 		self.starsPerResEl = 0.
 
 		self.shuffle = True
