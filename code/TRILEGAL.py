@@ -59,7 +59,7 @@ class TRILEGAL(object):
 		surfaceDensity = self.Nstars*FoVratio/LSSTFoV
 
 		#stars/resolution element
-		self.starsPerResEl = np.array(surfaceDensity*resEl)
+		self.starsPerResEl = np.array(surfaceDensity*self.resEl)
 
 		#add the distance
 		logDist = np.log10( 10.**(self.model['m-M0'].values/5.) *10. / 1000.) #log(d [kpc])
