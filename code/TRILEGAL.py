@@ -52,11 +52,12 @@ class TRILEGAL(object):
 
 		#check for crowding
 		#first see if we need to normalize this to the LSST FoV
-		LSSTFoV = np.pi*(3.5/2.)**2.
-		FoVratio = LSSTFoV/self.area #ideally this ratio is 1.
+		#LSSTFoV = np.pi*(3.5/2.)**2.
+		#FoVratio = LSSTFoV/self.area #ideally this ratio is 1.
 
 		#assume a uniform surface density stars/square degree
-		surfaceDensity = self.Nstars*FoVratio/LSSTFoV
+		#surfaceDensity = self.Nstars*FoVratio/LSSTFoV
+		surfaceDensity = self.Nstars/self.area
 
 		#stars/resolution element
 		self.starsPerResEl = np.array(surfaceDensity*self.resEl)
