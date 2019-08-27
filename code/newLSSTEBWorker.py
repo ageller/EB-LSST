@@ -228,6 +228,8 @@ class LSSTEBWorker(object):
 		EB.L2 = line[7]
 		EB.T1 = line[17]
 		EB.T2 = line[18]
+		EB.g1 = line[19]
+		EB.g2 = line[20]
 		EB.period = 10.**line[2] #days
 		EB.eccentricity = line[3]
 		EB.inclination = line[12] *180./np.pi #degrees
@@ -239,10 +241,8 @@ class LSSTEBWorker(object):
 		EB.RA = self.OpSim.RA[OpSimi]
 		EB.Dec = self.OpSim.Dec[OpSimi]
 
-		if (len(line) >= 16):
-			EB.AV = line[15]
-		if (len(line) >= 17):
-			EB.M_H = line[16]
+		EB.AV = line[15]
+		EB.M_H = line[16]
 
 		EB.t_zero = np.random.random() * EB.period
 
@@ -349,11 +349,13 @@ class LSSTEBWorker(object):
 		rad1 = []
 		lum1 = []
 		teff1 = []
+		logg1 = []
 
 		m2 = []
 		rad2 = []
 		lum2 = []
 		teff2 = []
+		logg2 = []
 
 		logp = []
 		ecc = []
@@ -372,7 +374,8 @@ class LSSTEBWorker(object):
 				rad1.append(getRad(s['logg'].iloc[0], s['Mact'].iloc[0]))
 				lum1.append(10.**s['logL'].iloc[0])
 				teff1.append(10.**s['logTe'].iloc[0])
-				
+				logg1.append(s['logg'].iloc[0])
+
 				m2Use = s['Mact'].iloc[0]*getq()
 				#rad2, lum2, teff2 need to be drawn from TRILEGAL given m2
 				done = False
@@ -387,6 +390,7 @@ class LSSTEBWorker(object):
 						rad2.append(getRad(ss['logg'].iloc[0], ss['Mact'].iloc[0]))
 						lum2.append(10.**ss['logL'].iloc[0])
 						teff2.append(10.**ss['logTe'].iloc[0])
+						logg2.append(ss['logg'].iloc[0])
 					else:
 						#print('WARNING: increasing tolerance', mTolUse)
 						mTolUse *=2
@@ -407,9 +411,11 @@ class LSSTEBWorker(object):
 		m1 = np.array(m1)
 		rad1 = np.array(rad1)
 		lum1 = np.array(lum1)
+		logg1 = np.array(logg1)
 		m2 = np.array(m2)
 		rad2 = np.array(rad2)
 		lum2 = np.array(lum2)
+		logg2 = np.array(logg2)
 		logp = np.array(logp)
 		ecc = np.array(ecc)
 		dist = np.array(dist)
@@ -424,7 +430,7 @@ class LSSTEBWorker(object):
 
 
 		#we don't need position, but we do need distance
-		output = np.vstack( (m1, m2, logp, ecc, rad1, rad2, lum1, lum2, x, x, x, dist, inc, OMEGA, omega, Av, MH, teff1, teff2) ).T
+		output = np.vstack( (m1, m2, logp, ecc, rad1, rad2, lum1, lum2, x, x, x, dist, inc, OMEGA, omega, Av, MH, teff1, teff2, logg1, logg2) ).T
 
 		return output
 

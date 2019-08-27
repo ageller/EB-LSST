@@ -453,8 +453,8 @@ class EclipsingBinary(object):
 		self.q = self.m2/self.m1
 		if (self.T1 == None): self.T1 = self.getTeff(self.L1, self.r1)
 		if (self.T2 == None): self.T2 = self.getTeff(self.L2, self.r2)
-		self.g1 = self.getlogg(self.m1, self.L1, self.T1)
-		self.g2 = self.getlogg(self.m2, self.L2, self.T2)
+		if (self.g1 == None): self.g1 = self.getlogg(self.m1, self.L1, self.T1)
+		if (self.g2 == None): self.g2 = self.getlogg(self.m2, self.L2, self.T2)
 		self.a = self.getafromP(self.m1*units.solMass, self.m2*units.solMass, self.period*units.day).to(units.solRad).value
 		self.f_c = np.sqrt(self.eccentricity)*np.cos(self.omega*np.pi/180.)
 		self.f_s = np.sqrt(self.eccentricity)*np.sin(self.omega*np.pi/180.)
