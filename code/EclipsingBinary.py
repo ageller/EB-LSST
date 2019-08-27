@@ -549,7 +549,7 @@ class EclipsingBinary(object):
 
 		#if it's observable, get the contribution of the third light
 		if (self.observable and self.Galaxy.starsPerResEl >= 1):
-			getGalaxylight_3()
+			self.getGalaxylight_3()
 
 	def getGalaxylight_3(self):
 		Fv3 = {}
