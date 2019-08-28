@@ -170,7 +170,7 @@ class SED(object):
 			# 	g = np.clip(self.logg, 0, 4.5)
 			# 	T = np.clip(self.T.to(units.K).value, 2000., 7000.0)
 			# 	MH = np.clip(self.M_H, -4, 1)
-			print("parameters", self.logg,g, self.T.to(units.K).value, T, self.M_H, MH)
+			#print("parameters", self.logg,g, self.T.to(units.K).value, T, self.M_H, MH)
 			self.specModel = pyS.Icat(self.specModelName, T, MH, g)
 			self.specModel.nu = (constants.c/(self.specModel.wave*units.angstrom)).to(units.Hz).value
 			self.specModel.fnu = ((((self.specModel.wave*units.angstrom)**2./constants.c) * (self.specModel.flux*units.Ba/units.s)).to(units.g/units.s**2.)).value

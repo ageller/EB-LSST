@@ -255,16 +255,19 @@ if __name__ == "__main__":
 					line = gxDat[j]
 	
 					#define the binary parameters
-					EB = worker.getEB(line, OpSimi=i)
-					print(f"RANK={rank}, OpSimi={i}, linej={j}, ID={worker.OpSim.fieldID[i]}, pb={EB.period}")
-	
-					if (EB.observable):
-						worker.return_dict[k] = EB
-						worker.run_ellc_gatspy(k)
-						EB = worker.return_dict[k]
-	
-					worker.writeOutputLine(EB)
-					csvfile.flush()
+					try:
+						EB = worker.getEB(line, OpSimi=i)
+						print(f"RANK={rank}, OpSimi={i}, linej={j}, ID={worker.OpSim.fieldID[i]}, pb={EB.period}")
+		
+						if (EB.observable):
+							worker.return_dict[k] = EB
+							worker.run_ellc_gatspy(k)
+							EB = worker.return_dict[k]
+		
+						worker.writeOutputLine(EB)
+						csvfile.flush()
+					except:
+						print("WARNING: bad input line", line)
 			else:
 				worker.writeOutputLine(None, OpSimi=i, noRun=True)
 				csvfile.flush()
