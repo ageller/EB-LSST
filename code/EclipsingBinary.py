@@ -548,10 +548,11 @@ class EclipsingBinary(object):
 			self.OpSim.setFieldID(self.RA, self.Dec)
 
 		#if it's observable, get the contribution of the third light
-		if (self.observable and self.Galaxy.starsPerResEl >= 1):
-			self.getGalaxylight_3()
+		nCrowd = int(np.random.poisson(self.Galaxy.starsPerResEl))
+		if (self.observable and nCrowd >= 1):
+			self.getGalaxylight_3(nCrowd)
 
-	def getGalaxylight_3(self):
+	def getGalaxylight_3(self, nCrowd):
 		Fv3 = {}
 		for f in self.filters:
 			Fv3[f] = 0.
@@ -559,7 +560,7 @@ class EclipsingBinary(object):
 			if (self.light_3[f] > 0):
 				Fv3[f] = self.light_3[f]*(self.Fv1[f] + self.Fv2[f])
 
-		crowd = self.Galaxy.model.sample(int(round(self.Galaxy.starsPerResEl)))
+		crowd = self.Galaxy.model.sample(nCrowd)
 		for index, s in crowd.iterrows():
 			self.SEDsingle = SED()
 			self.SEDsingle.filters = self.filters
