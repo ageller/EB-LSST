@@ -271,7 +271,7 @@ N_totalrecoverableobsDist195_array_1000 = []
 
 
 def fitRagfb():
-	x = [0.05, 0.1, 1, 8, 15]  #estimates of midpoints in bins, and using this: https://sites.uni.edu/morgans/astro/course/Notes/section2/spectralmasses.html
+	x = [0.05, 0.1, 1, 8, 15]  #estimates of midpoints in bins, and using this: https:/sites.uni.edu/morgans/astro/course/Notes/section2/spectralmasses.html
 	y = [0.20, 0.35, 0.50, 0.70, 0.75]
 	init = models.PowerLaw1D(amplitude=0.5, x_0=1, alpha=-1.)
 	fitter = fitting.LevMarLSQFitter()
@@ -739,19 +739,19 @@ print("wholerecoverypercent_normal = $", wholerecoverypercent_normal, "/pm", sig
 print("wholerecoverypercent_normal_03 = $", wholerecoverypercent_normal_03, "/pm", sigmanormal_03, "$")
 print("wholerecoverypercent_normal_1 = $", wholerecoverypercent_normal_1, "/pm", sigmanormal_1, "$")
 print("wholerecoverypercent_normal_10 = $", wholerecoverypercent_normal_10, "/pm", sigmanormal_10, "$")
-print("wholerecoverypercent_normal_30 = $", wholerecoverypercent_normal_03, "/pm", sigmanormal_30, "$")
+print("wholerecoverypercent_normal_30 = $", wholerecoverypercent_normal_30, "/pm", sigmanormal_30, "$")
 print("wholerecoverypercent_normal_100 = $", wholerecoverypercent_normal_100, "/pm", sigmanormal_100, "$")
 print("wholerecoverypercent_normal_1000 = $", wholerecoverypercent_normal_1000, "/pm", sigmanormal_1000, "$")
 
 print("********************************")
 
-print("overallrecoverypercent_normal = $", overallrecoverypercent_normal, "/pm", sigmanormal)
-print("overallrecoverypercent_normal_03 = $", overallrecoverypercent_normal_03, "/pm", sigmanormal_03)
-print("overallrecoverypercent_normal_1 = $", overallrecoverypercent_normal_1, "/pm", sigmanormal_1)
-print("overallrecoverypercent_normal_10 = $", overallrecoverypercent_normal_10, "/pm", sigmanormal_10)
-print("overallrecoverypercent_normal_30 = $", overallrecoverypercent_normal_03, "/pm", sigmanormal_30)
-print("overallrecoverypercent_normal_100 = $", overallrecoverypercent_normal_100, "/pm", sigmanormal_100)
-print("overallrecoverypercent_normal_1000 = $", overallrecoverypercent_normal_1000, "/pm", sigmanormal_1000)
+print("overallrecoverypercent_normal = $", overallrecoverypercent_normal, "/pm", overallsigmanormal)
+print("overallrecoverypercent_normal_03 = $", overallrecoverypercent_normal_03, "/pm", overallsigmanormal_03)
+print("overallrecoverypercent_normal_1 = $", overallrecoverypercent_normal_1, "/pm", overallsigmanormal_1)
+print("overallrecoverypercent_normal_10 = $", overallrecoverypercent_normal_10, "/pm", overallsigmanormal_10)
+print("overallrecoverypercent_normal_30 = $", overallrecoverypercent_normal_30, "/pm", overallsigmanormal_30)
+print("overallrecoverypercent_normal_100 = $", overallrecoverypercent_normal_100, "/pm", overallsigmanormal_100)
+print("overallrecoverypercent_normal_1000 = $", overallrecoverypercent_normal_1000, "/pm", overallsigmanormal_1000)
 
 
 
@@ -771,19 +771,19 @@ print("wholerecoverypercent_normal22 = $", wholerecoverypercent_normal22, "/pm",
 print("wholerecoverypercent_normal22_03 = $", wholerecoverypercent_normal22_03, "/pm", sigmanormal22_03, "$")
 print("wholerecoverypercent_normal22_1 = $", wholerecoverypercent_normal22_1, "/pm", sigmanormal22_1, "$")
 print("wholerecoverypercent_normal22_10 = $", wholerecoverypercent_normal22_10, "/pm", sigmanormal22_10, "$")
-print("wholerecoverypercent_normal22_30 = $", wholerecoverypercent_normal22_03, "/pm", sigmanormal22_30, "$")
+print("wholerecoverypercent_normal22_30 = $", wholerecoverypercent_normal22_30, "/pm", sigmanormal22_30, "$")
 print("wholerecoverypercent_normal22_100 = $", wholerecoverypercent_normal22_100, "/pm", sigmanormal22_100, "$")
 print("wholerecoverypercent_normal22_1000 = $", wholerecoverypercent_normal22_1000, "/pm", sigmanormal22_1000, "$")
 
 print("********************************")
 
-print("overallrecoverypercent_normal22 = $", overallrecoverypercent_normal22, "/pm", sigmanormal22, "$")
-print("overallrecoverypercent_normal22_03 = $", overallrecoverypercent_normal22_03, "/pm", sigmanormal22_03, "$")
-print("overallrecoverypercent_normal22_1 = $", overallrecoverypercent_normal22_1, "/pm", sigmanormal22_1, "$")
-print("overallrecoverypercent_normal22_10 = $", overallrecoverypercent_normal22_10, "/pm", sigmanormal22_10, "$")
-print("overallrecoverypercent_normal22_30 = $", overallrecoverypercent_normal22_03, "/pm", sigmanormal22_30, "$")
-print("overallrecoverypercent_normal22_100 = $", overallrecoverypercent_normal22_100, "/pm", sigmanormal22_100, "$")
-print("overallrecoverypercent_normal22_1000 = $", overallrecoverypercent_normal22_1000, "/pm", sigmanormal22_1000, "$")
+print("overallrecoverypercent_normal22 = $", overallrecoverypercent_normal22, "/pm", overallsigmanormal22, "$")
+print("overallrecoverypercent_normal22_03 = $", overallrecoverypercent_normal22_03, "/pm", overallsigmanormal22_03, "$")
+print("overallrecoverypercent_normal22_1 = $", overallrecoverypercent_normal22_1, "/pm", overallsigmanormal22_1, "$")
+print("overallrecoverypercent_normal22_10 = $", overallrecoverypercent_normal22_10, "/pm", overallsigmanormal22_10, "$")
+print("overallrecoverypercent_normal22_30 = $", overallrecoverypercent_normal22_30, "/pm", overallsigmanormal22_30, "$")
+print("overallrecoverypercent_normal22_100 = $", overallrecoverypercent_normal22_100, "/pm", overallsigmanormal22_100, "$")
+print("overallrecoverypercent_normal22_1000 = $", overallrecoverypercent_normal22_1000, "/pm", overallsigmanormal22_1000, "$")
 
 
 print("###############################")
@@ -802,19 +802,19 @@ print("wholerecoverypercent_normal195 = $", wholerecoverypercent_normal195, "/pm
 print("wholerecoverypercent_normal195_03 = $", wholerecoverypercent_normal195_03, "/pm", sigmanormal195_03, "$")
 print("wholerecoverypercent_normal195_1 = $", wholerecoverypercent_normal195_1, "/pm", sigmanormal195_1, "$")
 print("wholerecoverypercent_normal195_10 = $", wholerecoverypercent_normal195_10, "/pm", sigmanormal195_10, "$")
-print("wholerecoverypercent_normal195_30 = $", wholerecoverypercent_normal195_03, "/pm", sigmanormal195_30, "$")
+print("wholerecoverypercent_normal195_30 = $", wholerecoverypercent_normal195_30, "/pm", sigmanormal195_30, "$")
 print("wholerecoverypercent_normal195_100 = $", wholerecoverypercent_normal195_100, "/pm", sigmanormal195_100, "$")
 print("wholerecoverypercent_normal195_1000 = $", wholerecoverypercent_normal195_1000, "/pm", sigmanormal195_1000, "$")
 
 print("********************************")
 
-print("overallrecoverypercent_normal195 = $", overallrecoverypercent_normal195, "/pm", sigmanormal195, "$")
-print("overallrecoverypercent_normal195_03 = $", overallrecoverypercent_normal195_03, "/pm", sigmanormal195_03, "$")
-print("overallrecoverypercent_normal195_1 = $", overallrecoverypercent_normal195_1, "/pm", sigmanormal195_1, "$")
-print("overallrecoverypercent_normal195_10 = $", overallrecoverypercent_normal195_10, "/pm", sigmanormal195_10, "$")
-print("overallrecoverypercent_normal195_30 = $", overallrecoverypercent_normal195_03, "/pm", sigmanormal195_30, "$")
-print("overallrecoverypercent_normal195_100 = $", overallrecoverypercent_normal195_100, "/pm", sigmanormal195_100, "$")
-print("overallrecoverypercent_normal195_1000 = $", overallrecoverypercent_normal195_1000, "/pm", sigmanormal195_1000, "$")
+print("overallrecoverypercent_normal195 = $", overallrecoverypercent_normal195, "/pm", overallsigmanormal195, "$")
+print("overallrecoverypercent_normal195_03 = $", overallrecoverypercent_normal195_03, "/pm", overallsigmanormal195_03, "$")
+print("overallrecoverypercent_normal195_1 = $", overallrecoverypercent_normal195_1, "/pm", overallsigmanormal195_1, "$")
+print("overallrecoverypercent_normal195_10 = $", overallrecoverypercent_normal195_10, "/pm", overallsigmanormal195_10, "$")
+print("overallrecoverypercent_normal195_30 = $", overallrecoverypercent_normal195_30, "/pm", overallsigmanormal195_30, "$")
+print("overallrecoverypercent_normal195_100 = $", overallrecoverypercent_normal195_100, "/pm", overallsigmanormal195_100, "$")
+print("overallrecoverypercent_normal195_1000 = $", overallrecoverypercent_normal195_1000, "/pm", overallsigmanormal195_1000, "$")
 
 print("#############################")
 
@@ -1134,7 +1134,7 @@ N_totalrecoverablefast = np.sum(N_totalrecoverablefast_array)
 N_totalrecoverablefast_03 = np.sum(N_totalrecoverablefast_array_03)
 N_totalrecoverablefast_1 = np.sum(N_totalrecoverablefast_array_1)
 N_totalrecoverablefast_10 = np.sum(N_totalrecoverablefast_array_10)
-N_totalrecoverablefast_30 = np.sum(N_totalrecoverablefast_array_30)
+N_totalrecoverablefast_30 = np.sum(N_totalrecoverablefast_array_30) 
 N_totalrecoverablefast_100 = np.sum(N_totalrecoverablefast_array_100)
 N_totalrecoverablefast_1000 = np.sum(N_totalrecoverablefast_array_1000)
 
@@ -1299,19 +1299,19 @@ print("wholerecoverypercent_fast = $", wholerecoverypercent_fast, "/pm", sigmafa
 print("wholerecoverypercent_fast_03 = $", wholerecoverypercent_fast_03, "/pm", sigmafast_03, "$")
 print("wholerecoverypercent_fast_1 = $", wholerecoverypercent_fast_1, "/pm", sigmafast_1, "$")
 print("wholerecoverypercent_fast_10 = $", wholerecoverypercent_fast_10, "/pm", sigmafast_10, "$")
-print("wholerecoverypercent_fast_30 = $", wholerecoverypercent_fast_03, "/pm", sigmafast_30, "$")
+print("wholerecoverypercent_fast_30 = $", wholerecoverypercent_fast_30, "/pm", sigmafast_30, "$")
 print("wholerecoverypercent_fast_100 = $", wholerecoverypercent_fast_100, "/pm", sigmafast_100, "$")
 print("wholerecoverypercent_fast_1000 = $", wholerecoverypercent_fast_1000, "/pm", sigmafast_1000, "$")
 
 print("********************************")
 
-print("overallrecoverypercent_fast = $", overallrecoverypercent_fast, "/pm", sigmafast, "$")
-print("overallrecoverypercent_fast_03 = $", overallrecoverypercent_fast_03, "/pm", sigmafast_03, "$")
-print("overallrecoverypercent_fast_1 = $", overallrecoverypercent_fast_1, "/pm", sigmafast_1, "$")
-print("overallrecoverypercent_fast_10 = $", overallrecoverypercent_fast_10, "/pm", sigmafast_10, "$")
-print("overallrecoverypercent_fast_30 = $", overallrecoverypercent_fast_03, "/pm", sigmafast_30, "$")
-print("overallrecoverypercent_fast_100 = $", overallrecoverypercent_fast_100, "/pm", sigmafast_100, "$")
-print("overallrecoverypercent_fast_1000 = $", overallrecoverypercent_fast_1000, "/pm", sigmafast_1000, "$")
+print("overallrecoverypercent_fast = $", overallrecoverypercent_fast, "/pm", overallsigmafast, "$")
+print("overallrecoverypercent_fast_03 = $", overallrecoverypercent_fast_03, "/pm", overallsigmafast_03, "$")
+print("overallrecoverypercent_fast_1 = $", overallrecoverypercent_fast_1, "/pm", overallsigmafast_1, "$")
+print("overallrecoverypercent_fast_10 = $", overallrecoverypercent_fast_10, "/pm", overallsigmafast_10, "$")
+print("overallrecoverypercent_fast_30 = $", overallrecoverypercent_fast_30, "/pm", overallsigmafast_30, "$")
+print("overallrecoverypercent_fast_100 = $", overallrecoverypercent_fast_100, "/pm", overallsigmafast_100, "$")
+print("overallrecoverypercent_fast_1000 = $", overallrecoverypercent_fast_1000, "/pm", overallsigmafast_1000, "$")
 
 
 
@@ -1331,19 +1331,19 @@ print("wholerecoverypercent_fast22 = $", wholerecoverypercent_fast22, "/pm", sig
 print("wholerecoverypercent_fast22_03 = $", wholerecoverypercent_fast22_03, "/pm", sigmafast22_03, "$")
 print("wholerecoverypercent_fast22_1 = $", wholerecoverypercent_fast22_1, "/pm", sigmafast22_1, "$")
 print("wholerecoverypercent_fast22_10 = $", wholerecoverypercent_fast22_10, "/pm", sigmafast22_10, "$")
-print("wholerecoverypercent_fast22_30 = $", wholerecoverypercent_fast22_03, "/pm", sigmafast22_30, "$")
+print("wholerecoverypercent_fast22_30 = $", wholerecoverypercent_fast22_30, "/pm", sigmafast22_30, "$")
 print("wholerecoverypercent_fast22_100 = $", wholerecoverypercent_fast22_100, "/pm", sigmafast22_100, "$")
 print("wholerecoverypercent_fast22_1000 = $", wholerecoverypercent_fast22_1000, "/pm", sigmafast22_1000, "$")
 
 print("********************************")
 
-print("overallrecoverypercent_fast22 = $", overallrecoverypercent_fast22, "/pm", sigmafast22, "$")
-print("overallrecoverypercent_fast22_03 = $", overallrecoverypercent_fast22_03, "/pm", sigmafast22_03, "$")
-print("overallrecoverypercent_fast22_1 = $", overallrecoverypercent_fast22_1, "/pm", sigmafast22_1, "$")
-print("overallrecoverypercent_fast22_10 = $", overallrecoverypercent_fast22_10, "/pm", sigmafast22_10, "$")
-print("overallrecoverypercent_fast22_30 = $", overallrecoverypercent_fast22_03, "/pm", sigmafast22_30, "$")
-print("overallrecoverypercent_fast22_100 = $", overallrecoverypercent_fast22_100, "/pm", sigmafast22_100, "$")
-print("overallrecoverypercent_fast22_1000 = $", overallrecoverypercent_fast22_1000, "/pm", sigmafast22_1000, "$")
+print("overallrecoverypercent_fast22 = $", overallrecoverypercent_fast22, "/pm", overallsigmafast22, "$")
+print("overallrecoverypercent_fast22_03 = $", overallrecoverypercent_fast22_03, "/pm", overallsigmafast22_03, "$")
+print("overallrecoverypercent_fast22_1 = $", overallrecoverypercent_fast22_1, "/pm", overallsigmafast22_1, "$")
+print("overallrecoverypercent_fast22_10 = $", overallrecoverypercent_fast22_10, "/pm", overallsigmafast22_10, "$")
+print("overallrecoverypercent_fast22_30 = $", overallrecoverypercent_fast22_30, "/pm", overallsigmafast22_30, "$")
+print("overallrecoverypercent_fast22_100 = $", overallrecoverypercent_fast22_100, "/pm", overallsigmafast22_100, "$")
+print("overallrecoverypercent_fast22_1000 = $", overallrecoverypercent_fast22_1000, "/pm", overallsigmafast22_1000, "$")
 
 
 print("###############################")
@@ -1362,19 +1362,19 @@ print("wholerecoverypercent_fast195 = $", wholerecoverypercent_fast195, "/pm", s
 print("wholerecoverypercent_fast195_03 = $", wholerecoverypercent_fast195_03, "/pm", sigmafast195_03, "$")
 print("wholerecoverypercent_fast195_1 = $", wholerecoverypercent_fast195_1, "/pm", sigmafast195_1, "$")
 print("wholerecoverypercent_fast195_10 = $", wholerecoverypercent_fast195_10, "/pm", sigmafast195_10, "$")
-print("wholerecoverypercent_fast195_30 = $", wholerecoverypercent_fast195_03, "/pm", sigmafast195_30, "$")
+print("wholerecoverypercent_fast195_30 = $", wholerecoverypercent_fast195_30, "/pm", sigmafast195_30, "$")
 print("wholerecoverypercent_fast195_100 = $", wholerecoverypercent_fast195_100, "/pm", sigmafast195_100, "$")
 print("wholerecoverypercent_fast195_1000 = $", wholerecoverypercent_fast195_1000, "/pm", sigmafast195_1000, "$")
 
 print("********************************")
 
-print("overallrecoverypercent_fast195 = $", overallrecoverypercent_fast195, "/pm", sigmafast195, "$")
-print("overallrecoverypercent_fast195_03 = $", overallrecoverypercent_fast195_03, "/pm", sigmafast195_03, "$")
-print("overallrecoverypercent_fast195_1 = $", overallrecoverypercent_fast195_1, "/pm", sigmafast195_1, "$")
-print("overallrecoverypercent_fast195_10 = $", overallrecoverypercent_fast195_10, "/pm", sigmafast195_10, "$")
-print("overallrecoverypercent_fast195_30 = $", overallrecoverypercent_fast195_03, "/pm", sigmafast195_30, "$")
-print("overallrecoverypercent_fast195_100 = $", overallrecoverypercent_fast195_100, "/pm", sigmafast195_100, "$")
-print("overallrecoverypercent_fast195_1000 = $", overallrecoverypercent_fast195_1000, "/pm", sigmafast195_1000, "$")
+print("overallrecoverypercent_fast195 = $", overallrecoverypercent_fast195, "/pm", overallsigmafast195, "$")
+print("overallrecoverypercent_fast195_03 = $", overallrecoverypercent_fast195_03, "/pm", overallsigmafast195_03, "$")
+print("overallrecoverypercent_fast195_1 = $", overallrecoverypercent_fast195_1, "/pm", overallsigmafast195_1, "$")
+print("overallrecoverypercent_fast195_10 = $", overallrecoverypercent_fast195_10, "/pm", overallsigmafast195_10, "$")
+print("overallrecoverypercent_fast195_30 = $", overallrecoverypercent_fast195_30, "/pm", overallsigmafast195_30, "$")
+print("overallrecoverypercent_fast195_100 = $", overallrecoverypercent_fast195_100, "/pm", overallsigmafast195_100, "$")
+print("overallrecoverypercent_fast195_1000 = $", overallrecoverypercent_fast195_1000, "/pm", overallsigmafast195_1000, "$")
 
 print("#############################")
 
@@ -1858,19 +1858,19 @@ print("wholerecoverypercent_obsDist = $", wholerecoverypercent_obsDist, "/pm", s
 print("wholerecoverypercent_obsDist_03 = $", wholerecoverypercent_obsDist_03, "/pm", sigmaobsDist_03, "$")
 print("wholerecoverypercent_obsDist_1 = $", wholerecoverypercent_obsDist_1, "/pm", sigmaobsDist_1, "$")
 print("wholerecoverypercent_obsDist_10 = $", wholerecoverypercent_obsDist_10, "/pm", sigmaobsDist_10, "$")
-print("wholerecoverypercent_obsDist_30 = $", wholerecoverypercent_obsDist_03, "/pm", sigmaobsDist_30, "$")
+print("wholerecoverypercent_obsDist_30 = $", wholerecoverypercent_obsDist_30, "/pm", sigmaobsDist_30, "$")
 print("wholerecoverypercent_obsDist_100 = $", wholerecoverypercent_obsDist_100, "/pm", sigmaobsDist_100, "$")
 print("wholerecoverypercent_obsDist_1000 = $", wholerecoverypercent_obsDist_1000, "/pm", sigmaobsDist_1000, "$")
 
 print("********************************")
 
-print("overallrecoverypercent_obsDist = $", overallrecoverypercent_obsDist, "/pm", sigmaobsDist, "$")
-print("overallrecoverypercent_obsDist_03 = $", overallrecoverypercent_obsDist_03, "/pm", sigmaobsDist_03, "$")
-print("overallrecoverypercent_obsDist_1 = $", overallrecoverypercent_obsDist_1, "/pm", sigmaobsDist_1, "$")
-print("overallrecoverypercent_obsDist_10 = $", overallrecoverypercent_obsDist_10, "/pm", sigmaobsDist_10, "$")
-print("overallrecoverypercent_obsDist_30 = $", overallrecoverypercent_obsDist_03, "/pm", sigmaobsDist_30, "$")
-print("overallrecoverypercent_obsDist_100 = $", overallrecoverypercent_obsDist_100, "/pm", sigmaobsDist_100, "$")
-print("overallrecoverypercent_obsDist_1000 = $", overallrecoverypercent_obsDist_1000, "/pm", sigmaobsDist_1000, "$")
+print("overallrecoverypercent_obsDist = $", overallrecoverypercent_obsDist, "/pm", overallsigmaobsDist, "$")
+print("overallrecoverypercent_obsDist_03 = $", overallrecoverypercent_obsDist_03, "/pm", overallsigmaobsDist_03, "$")
+print("overallrecoverypercent_obsDist_1 = $", overallrecoverypercent_obsDist_1, "/pm", overallsigmaobsDist_1, "$")
+print("overallrecoverypercent_obsDist_10 = $", overallrecoverypercent_obsDist_10, "/pm", overallsigmaobsDist_10, "$")
+print("overallrecoverypercent_obsDist_30 = $", overallrecoverypercent_obsDist_30, "/pm", overallsigmaobsDist_30, "$")
+print("overallrecoverypercent_obsDist_100 = $", overallrecoverypercent_obsDist_100, "/pm", overallsigmaobsDist_100, "$")
+print("overallrecoverypercent_obsDist_1000 = $", overallrecoverypercent_obsDist_1000, "/pm", overallsigmaobsDist_1000, "$")
 
 
 
@@ -1890,19 +1890,19 @@ print("wholerecoverypercent_obsDist22 = $", wholerecoverypercent_obsDist22, "/pm
 print("wholerecoverypercent_obsDist22_03 = $", wholerecoverypercent_obsDist22_03, "/pm", sigmaobsDist22_03, "$")
 print("wholerecoverypercent_obsDist22_1 = $", wholerecoverypercent_obsDist22_1, "/pm", sigmaobsDist22_1, "$")
 print("wholerecoverypercent_obsDist22_10 = $", wholerecoverypercent_obsDist22_10, "/pm", sigmaobsDist22_10, "$")
-print("wholerecoverypercent_obsDist22_30 = $", wholerecoverypercent_obsDist22_03, "/pm", sigmaobsDist22_30, "$")
+print("wholerecoverypercent_obsDist22_30 = $", wholerecoverypercent_obsDist22_30, "/pm", sigmaobsDist22_30, "$")
 print("wholerecoverypercent_obsDist22_100 = $", wholerecoverypercent_obsDist22_100, "/pm", sigmaobsDist22_100, "$")
 print("wholerecoverypercent_obsDist22_1000 = $", wholerecoverypercent_obsDist22_1000, "/pm", sigmaobsDist22_1000, "$")
 
 print("********************************")
 
-print("overallrecoverypercent_obsDist22 = $", overallrecoverypercent_obsDist22, "/pm", sigmaobsDist22, "$")
-print("overallrecoverypercent_obsDist22_03 = $", overallrecoverypercent_obsDist22_03, "/pm", sigmaobsDist22_03, "$")
-print("overallrecoverypercent_obsDist22_1 = $", overallrecoverypercent_obsDist22_1, "/pm", sigmaobsDist22_1, "$")
-print("overallrecoverypercent_obsDist22_10 = $", overallrecoverypercent_obsDist22_10, "/pm", sigmaobsDist22_10, "$")
-print("overallrecoverypercent_obsDist22_30 = $", overallrecoverypercent_obsDist22_03, "/pm", sigmaobsDist22_30, "$")
-print("overallrecoverypercent_obsDist22_100 = $", overallrecoverypercent_obsDist22_100, "/pm", sigmaobsDist22_100, "$")
-print("overallrecoverypercent_obsDist22_1000 = $", overallrecoverypercent_obsDist22_1000, "/pm", sigmaobsDist22_1000, "$")
+print("overallrecoverypercent_obsDist22 = $", overallrecoverypercent_obsDist22, "/pm", overallsigmaobsDist22, "$")
+print("overallrecoverypercent_obsDist22_03 = $", overallrecoverypercent_obsDist22_03, "/pm", overallsigmaobsDist22_03, "$")
+print("overallrecoverypercent_obsDist22_1 = $", overallrecoverypercent_obsDist22_1, "/pm", overallsigmaobsDist22_1, "$")
+print("overallrecoverypercent_obsDist22_10 = $", overallrecoverypercent_obsDist22_10, "/pm", overallsigmaobsDist22_10, "$")
+print("overallrecoverypercent_obsDist22_30 = $", overallrecoverypercent_obsDist22_30, "/pm", overallsigmaobsDist22_30, "$")
+print("overallrecoverypercent_obsDist22_100 = $", overallrecoverypercent_obsDist22_100, "/pm", overallsigmaobsDist22_100, "$")
+print("overallrecoverypercent_obsDist22_1000 = $", overallrecoverypercent_obsDist22_1000, "/pm", overallsigmaobsDist22_1000, "$")
 
 
 print("###############################")
@@ -1921,19 +1921,19 @@ print("wholerecoverypercent_obsDist195 = $", wholerecoverypercent_obsDist195, "/
 print("wholerecoverypercent_obsDist195_03 = $", wholerecoverypercent_obsDist195_03, "/pm", sigmaobsDist195_03, "$")
 print("wholerecoverypercent_obsDist195_1 = $", wholerecoverypercent_obsDist195_1, "/pm", sigmaobsDist195_1, "$")
 print("wholerecoverypercent_obsDist195_10 = $", wholerecoverypercent_obsDist195_10, "/pm", sigmaobsDist195_10, "$")
-print("wholerecoverypercent_obsDist195_30 = $", wholerecoverypercent_obsDist195_03, "/pm", sigmaobsDist195_30, "$")
+print("wholerecoverypercent_obsDist195_30 = $", wholerecoverypercent_obsDist195_30, "/pm", sigmaobsDist195_30, "$")
 print("wholerecoverypercent_obsDist195_100 = $", wholerecoverypercent_obsDist195_100, "/pm", sigmaobsDist195_100, "$")
 print("wholerecoverypercent_obsDist195_1000 = $", wholerecoverypercent_obsDist195_1000, "/pm", sigmaobsDist195_1000, "$")
 
 print("********************************")
 
-print("overallrecoverypercent_obsDist195 = $", overallrecoverypercent_obsDist195, "/pm", sigmaobsDist195, "$")
-print("overallrecoverypercent_obsDist195_03 = $", overallrecoverypercent_obsDist195_03, "/pm", sigmaobsDist195_03, "$")
-print("overallrecoverypercent_obsDist195_1 = $", overallrecoverypercent_obsDist195_1, "/pm", sigmaobsDist195_1, "$")
-print("overallrecoverypercent_obsDist195_10 = $", overallrecoverypercent_obsDist195_10, "/pm", sigmaobsDist195_10, "$")
-print("overallrecoverypercent_obsDist195_30 = $", overallrecoverypercent_obsDist195_03, "/pm", sigmaobsDist195_30, "$")
-print("overallrecoverypercent_obsDist195_100 = $", overallrecoverypercent_obsDist195_100, "/pm", sigmaobsDist195_100, "$")
-print("overallrecoverypercent_obsDist195_1000 = $", overallrecoverypercent_obsDist195_1000, "/pm", sigmaobsDist195_1000, "$")
+print("overallrecoverypercent_obsDist195 = $", overallrecoverypercent_obsDist195, "/pm", overallsigmaobsDist195, "$")
+print("overallrecoverypercent_obsDist195_03 = $", overallrecoverypercent_obsDist195_03, "/pm", overallsigmaobsDist195_03, "$")
+print("overallrecoverypercent_obsDist195_1 = $", overallrecoverypercent_obsDist195_1, "/pm", overallsigmaobsDist195_1, "$")
+print("overallrecoverypercent_obsDist195_10 = $", overallrecoverypercent_obsDist195_10, "/pm", overallsigmaobsDist195_10, "$")
+print("overallrecoverypercent_obsDist195_30 = $", overallrecoverypercent_obsDist195_30, "/pm", overallsigmaobsDist195_30, "$")
+print("overallrecoverypercent_obsDist195_100 = $", overallrecoverypercent_obsDist195_100, "/pm", overallsigmaobsDist195_100, "$")
+print("overallrecoverypercent_obsDist195_1000 = $", overallrecoverypercent_obsDist195_1000, "/pm", overallsigmaobsDist195_1000, "$")
 
 print("#############################")
 
