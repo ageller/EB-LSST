@@ -55,6 +55,7 @@ def apply_args(worker, args):
 		worker.seed = args.seed
 
 def file_len(fname):
+	i = 0
 	with open(fname) as f:
 		for i, l in enumerate(f):
 			pass
