@@ -133,7 +133,7 @@ if __name__ == "__main__":
 	IDs = []
 	for i, f in enumerate(files):
 		print(round(i/len(files),4), f)
-		fl = file_len(f)
+		fl = file_len(d+f)
 		if (fl >= 4):
 			#read in the header
 			header = pd.read_csv(d+f, nrows=1)
