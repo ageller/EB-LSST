@@ -155,7 +155,7 @@ if __name__ == "__main__":
 		NobsPrsa = 0.
 		NrecPrsa = 0.
 		Nall = len(data.index)
-		prsa = data.loc[(data['appMagMean'] <= 19.5) & (data['p'] < 1000)]
+		prsa = data.loc[(data['appMagMean_r'] <= 19.5) & (data['p'] < 1000)]
 		NallPrsa = len(prsa.index)
 		if (Nall >= Nlim):
 			#create histograms
@@ -165,7 +165,7 @@ if __name__ == "__main__":
 			ehAll0, eb = np.histogram(data["e"], bins=ebins)
 			lphAll0, lpb = np.histogram(np.ma.log10(data["p"].values).filled(-999), bins=lpbins)
 			dhAll0, db = np.histogram(data["d"], bins=dbins)
-			maghAll0, magb = np.histogram(data["appMagMean"], bins=magbins)
+			maghAll0, magb = np.histogram(data["appMagMean_r"], bins=magbins)
 			rhAll0, rb = np.histogram(data["r2"]/data["r1"], bins=rbins)
 
 			#account for the binary fraction, as a function of mass
@@ -187,7 +187,7 @@ if __name__ == "__main__":
 			#Obs
 			obs = data.loc[data['LSM_PERIOD'] != -999]
 			Nobs = len(obs.index)
-			prsaObs = data.loc[(data['appMagMean'] <= 19.5) & (data['p'] < 1000) & (data['LSM_PERIOD'] != -999)]
+			prsaObs = data.loc[(data['appMagMean_r'] <= 19.5) & (data['p'] < 1000) & (data['LSM_PERIOD'] != -999)]
 			NobsPrsa = len(prsaObs.index)
 			if (Nobs >= Nlim):
 				m1hObs0, m1b = np.histogram(obs["m1"], bins=mbins)
@@ -195,7 +195,7 @@ if __name__ == "__main__":
 				ehObs0, eb = np.histogram(obs["e"], bins=ebins)
 				lphObs0, lpb = np.histogram(np.ma.log10(obs["p"].values).filled(-999), bins=lpbins)
 				dhObs0, db = np.histogram(obs["d"], bins=dbins)
-				maghObs0, magb = np.histogram(obs["appMagMean"], bins=magbins)
+				maghObs0, magb = np.histogram(obs["appMagMean_r"], bins=magbins)
 				rhObs0, rb = np.histogram(obs["r2"]/obs["r1"], bins=rbins)
 				m1hObs += m1hObs0/Nall*Nmult
 				qhObs += qhObs0/Nall*Nmult
@@ -211,7 +211,7 @@ if __name__ == "__main__":
 				twiceP = abs(data['LSM_PERIOD'] - 2.*data['p'])/(2.*data['p'])
 				rec = data.loc[(data['LSM_PERIOD'] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
 				Nrec = len(rec.index)
-				prsaRec = data.loc[(data['appMagMean'] <= 19.5) & (data['p'] < 1000) & (data['LSM_PERIOD'] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
+				prsaRec = data.loc[(data['appMagMean_r'] <= 19.5) & (data['p'] < 1000) & (data['LSM_PERIOD'] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
 				NrecPrsa = len(prsaRec.index)
 				if (Nrec >= Nlim):
 					m1hRec0, m1b = np.histogram(rec["m1"], bins=mbins)
@@ -219,7 +219,7 @@ if __name__ == "__main__":
 					ehRec0, eb = np.histogram(rec["e"], bins=ebins)
 					lphRec0, lpb = np.histogram(np.ma.log10(rec["p"].values).filled(-999), bins=lpbins)
 					dhRec0, db = np.histogram(rec["d"], bins=dbins)
-					maghRec0, magb = np.histogram(rec["appMagMean"], bins=magbins)
+					maghRec0, magb = np.histogram(rec["appMagMean_r"], bins=magbins)
 					rhRec0, rb = np.histogram(rec["r2"]/rec["r1"], bins=rbins)
 					m1hRec += m1hRec0/Nall*Nmult
 					qhRec += qhRec0/Nall*Nmult
