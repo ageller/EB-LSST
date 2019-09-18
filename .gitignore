@@ -19,7 +19,7 @@ __pycache__
 ##########
 *.db
 
-*.csv
+#*.csv
 *.vot
 *.dat
 *.h5
