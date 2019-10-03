@@ -14,7 +14,7 @@ except ImportError:
     np, pd = (None, None)
     UnitsError, SkyCoord = (None, None)
 
-from extinction import get_AV_infinity
+from vespa.stars.extinction import get_AV_infinity
 
 NONMAG_COLS = ['Gc','logAge', '[M/H]', 'm_ini', 'logL', 'logTe', 'logg',
                'm-M0', 'Av', 'm2/m1', 'mbol', 'Mact'] #all the rest are mags
