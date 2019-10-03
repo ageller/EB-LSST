@@ -206,6 +206,7 @@ if __name__ == "__main__":
 	ofile = worker.ofile
 	k = 0
 	for i in range(len(fields[0])):
+		worker.n_bin = args.n_bin
 		if (worker.OpSim.fieldID[i] not in finishedIDs and worker.OpSim.fieldID[i] != -1):
 			#initialize
 			print(f"RANK={rank}, OpSimi={i}, ID={worker.OpSim.fieldID[i]}")

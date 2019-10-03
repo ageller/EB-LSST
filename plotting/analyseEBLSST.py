@@ -80,7 +80,7 @@ if __name__ == "__main__":
 	#bins for all the histograms
 	Nbins = 25
 	mbins = np.arange(0,10, 0.1, dtype='float')
-	qbins = np.arange(0,10, 0.2, dtype='float')
+	qbins = np.arange(0,1, 0.1, dtype='float')
 	ebins = np.arange(0, 1.05, 0.05, dtype='float')
 	lpbins = np.arange(-2, 10, 0.5, dtype='float')
 	dbins = np.arange(0, 40, 1, dtype='float')
@@ -133,7 +133,7 @@ if __name__ == "__main__":
 	IDs = []
 	for i, f in enumerate(files):
 		print(round(i/len(files),4), f)
-		fl = file_len(f)
+		fl = file_len(d+f)
 		if (fl >= 4):
 			#read in the header
 			header = pd.read_csv(d+f, nrows=1)
