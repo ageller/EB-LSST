@@ -90,7 +90,7 @@ def saveHist(histAll, histObs, histRec, bin_edges, xtitle, fname, filters = ['u_
 			for f in filters:
 				outline += ','+str(histRec[h][i])
 			outline += '\n'
-			f.write(outline
+			f.write(outline)
 
 if __name__ == "__main__":
 
