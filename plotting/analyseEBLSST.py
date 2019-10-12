@@ -76,12 +76,12 @@ def saveHist(histAll, histObs, histRec, bin_edges, xtitle, fname, filters = ['u_
 	fig.savefig(fname+'.pdf',format='pdf', bbox_inches = 'tight')
 
 	#write to a text file
-	with open(fname+'.csv','w') as f:
+	with open(fname+'.csv','w') as fl:
 		outline = 'binEdges,histAll,histObs'
 		for f in filters:
 			outline += ','+f+'histRec'
 		outline += '\n'
-		f.write(outline)
+		fl.write(outline)
 		for i in range(len(bin_edges)):
 			b = bin_edges
 			hi
@@ -90,7 +90,7 @@ def saveHist(histAll, histObs, histRec, bin_edges, xtitle, fname, filters = ['u_
 			for f in filters:
 				outline += ','+str(histRec[h][i])
 			outline += '\n'
-			f.write(outline)
+			fl.write(outline)
 
 if __name__ == "__main__":
 
