@@ -80,7 +80,6 @@ class LSSTEBClusterWorker(object):
 		self.clusterAge = None
 		self.clusterRhm = None
 		self.clusterVdisp = None
-		self.clusterType = None
 
 		self.clusterAV = [None]
 

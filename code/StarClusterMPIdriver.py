@@ -20,10 +20,9 @@ def define_args():
 
 	parser.add_argument("-n", "--n_bin", 		type=int, help="Number of binaries per process [100000]")
 	parser.add_argument("-o", "--output_file", 	type=str, help="output file name")
+	parser.add_argument("-i", "--input_file", 	type=str, help="input file name")
 	parser.add_argument("-s", "--seed", 		type=int, help="random seed []")
 	parser.add_argument("-v", "--verbose", 		action='store_true', help="Set to show verbose output [true]")
-	parser.add_argument("-g", "--globular", 	action='store_false', help="Run the globular clusters? [true]")
-	parser.add_argument("-c", "--open", 		action='store_false', help="Run the open clusters? [true]")
 
 	#https://docs.python.org/2/howto/argparse.html
 	args = parser.parse_args()
@@ -99,22 +98,22 @@ if __name__ == "__main__":
 	if (args.n_bin == None):
 		args.n_bin = 4
 
+	if (args.input_file == None):
+		args.input_file = 'GCdataForEBLSST.csv'
+
 	#these tables should contain (at least) the cluster Name, Mass, Distance, Metallicity, Rhm, Age, and OpSim ID, RA, Dec
-	#Andrew needs to fix this
-	clusterDF = pd.read_csv("all_clusters.csv").fillna(0.)
-	#print("df", clusterDF)
+	clusterDF = pd.read_csv(args.input_file).fillna(0.)
 
 #########################################
 #########################################
-## remove this loc statement, when table is fixed (replace with index)
-	nClusters = len(clusterDF.loc[ (clusterDF['OpSim RA'] != 0) & (clusterDF['sigma_v[km/s]'] > 0) & (clusterDF['Age'] > 0) & (clusterDF['dist[kpc]'] > 0) ]) #total number of clusters
+	nClusters = len(clusterDF) #total number of clusters
 
 	finishedIDs = getFinishedIDs(Nbins = args.n_bin)
 	nClusters -= len(finishedIDs)
 	nClustersPerCore = int(np.floor(nClusters/size))
 	print(f"nClusters={nClusters}, nClustersPerCore={nClustersPerCore}")
 
-	nVals = 11
+	nVals = 10
 	sendbuf = np.empty((size, nVals*nClustersPerCore), dtype='float64')
 	recvbuf = np.empty(nVals*nClustersPerCore, dtype='float64')
 
@@ -133,34 +132,22 @@ if __name__ == "__main__":
 		clusterAge = []
 		clusterRhm = []
 		clusterVdisp = []
-		clusterType = []
 		clusterOpSimID = []
 		clusterOpSimRA = []
 		clusterOpSimDec = []
 		for i, ID in enumerate(clusterDF['Name']):
 			if ID.replace(" ","_") not in finishedIDs: 
-				tp = clusterDF['Cluster Type'][i]
-				if ((tp == 'O' and (args.open)) or (tp == 'G' and (args.globular))):
-					if (tp == 'O'):
-						tp = 0
-					if (tp == 'G'):
-						tp = 1
-					if (clusterDF['OpSim RA'].values[i] != 0 and clusterDF['OpSim Dec'].values[i] != 0 and clusterDF['sigma_v[km/s]'].values[i] > 0 and clusterDF['Age'].values[i] > 0 and clusterDF['dist[kpc]'].values[i] > 0):
-						clusterOpSimID.append(clusterDF['OpSim ID'][i])
-						#c = SkyCoord(clusterDF['OpSim RA'].values[i], clusterDF['OpSim Dec'].values[i])
-						#clusterOpSimRA.append(c.ra.degree)
-						#clusterOpSimDec.append(c.dec.degree)
-						clusterOpSimRA.append(clusterDF['OpSim RA'].values[i])
-						clusterOpSimDec.append(clusterDF['OpSim Dec'].values[i])
+				clusterOpSimID.append(clusterDF['OpSimID'][i])
+				clusterOpSimRA.append(clusterDF['OpSimRA[deg]'].values[i])
+				clusterOpSimDec.append(clusterDF['OpSimDec[deg]'].values[i])
 
-						clusterName.append(clusterDF.index[i])
-						clusterMass.append(clusterDF['mass[Msun]'][i])
-						clusterDistance.append(clusterDF['dist[kpc]'][i])
-						clusterMetallicity.append(clusterDF['Z'][i])
-						clusterAge.append(clusterDF['Age'][i])
-						clusterRhm.append(clusterDF['rh[pc]'][i])
-						clusterVdisp.append(clusterDF['sigma_v[km/s]'][i])
-						clusterType.append(tp)
+				clusterName.append(ID)
+				clusterMass.append(clusterDF['mass[Msun]'][i])
+				clusterDistance.append(clusterDF['dist[pc]'][i]/1000.) #code wants kpc
+				clusterMetallicity.append(clusterDF['[Fe/H]'][i])
+				clusterAge.append(clusterDF['age[Myr]'][i])
+				clusterRhm.append(clusterDF['rhm[pc]'][i])
+				clusterVdisp.append(clusterDF['sigma_v0_z[km/s]'][i])
 
 
 		nfields = len(clusterName)
@@ -181,7 +168,6 @@ if __name__ == "__main__":
 			np.array(clusterAge)[:maxIndex], 
 			np.array(clusterRhm)[:maxIndex], 
 			np.array(clusterVdisp)[:maxIndex], 
-			np.array(clusterType)[:maxIndex], 
 		)).astype('float64').T
 
 		print("check",maxIndex, nClustersPerCore, size, nfields, output.shape)
@@ -220,7 +206,6 @@ if __name__ == "__main__":
 				np.array(clusterAge)[maxIndex:], 
 				np.array(clusterRhm)[maxIndex:], 
 				np.array(clusterVdisp)[maxIndex:], 
-				np.array(clusterType)[maxIndex:], 
 			)).astype('float64').T
 			fieldData = np.vstack((fieldData, extra))
 
@@ -246,7 +231,6 @@ if __name__ == "__main__":
 	worker.clusterAge = fields[7]
 	worker.clusterRhm = fields[8]
 	worker.clusterVdisp = fields[9]
-	worker.clusterType = fields[10]
 
 	#os.environ['PYSYN_CDBS'] = '/projects/p30137/ageller/PySynphotData'
 	#print(f"PYSYN_CDBS environ = {os.environ['PYSYN_CDBS']}")
