@@ -256,8 +256,9 @@ class LSSTEBWorker(object):
 		if (self.useOpSimDates):
 			#print("sending OpSim to EB", self.OpSim.obsDates)
 			EB.OpSim = self.OpSim
-		EB.initialize()
 
+		EB.initialize()
+		
 		#some counters for how many EBs we could potentially observe with LSST
 		self.n_totalrun += 1
 		self.n_appmag_failed += EB.appmag_failed
