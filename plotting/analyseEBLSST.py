@@ -26,31 +26,49 @@ def fitRagfb():
 
 	return fit
 
-def saveHist(histAll, histObs, histRec, bin_edges, xtitle, fname):
+def saveHist(histAll, histObs, histRec, bin_edges, xtitle, fname, filters = ['u_', 'g_', 'r_', 'i_', 'z_', 'y_','all']):
 	c1 = '#0294A5'  #turqoise
 	c2 = '#d95f02' #orange from color brewer
 	c3 = '#00353E' #slate
 	f,(ax1, ax2) = plt.subplots(2,1,figsize=(5, 8), sharex=True)
 
+	histAll = np.insert(histAll,0,0)
+	histObs = np.insert(histObs,0,0)
+	for f in filters:
+		histRec[f] = np.insert(histRec[f],0,0)
+
 	#PDF
 	ax1.step(bin_edges, histAll/np.sum(histAll), color=c1)
 	ax1.step(bin_edges, histObs/np.sum(histObs), color=c2)
-	ax1.step(bin_edges, histRec/np.sum(histRec), color=c3)
+	for f in filters:
+		lw = 1
+		if (f == 'all'):
+			lw = 0.5
+		ax1.step(bin_edges, histRec[f]/np.sum(histRec[f]), color=c3, linewidth=lw)
 	ax1.set_ylabel('PDF')
 	ax1.set_yscale('log')
+
 	#CDF
 	cdfAll = []
 	cdfObs = []
-	cdfRec = []
+	cdfRec = dict()
+	for f in filters:
+		cdfRec[f] = []
+
 	for i in range(len(histAll)):
 		cdfAll.append(np.sum(histAll[:i])/np.sum(histAll))
 	for i in range(len(histObs)):
 		cdfObs.append(np.sum(histObs[:i])/np.sum(histObs))
-	for i in range(len(histRec)):
-		cdfRec.append(np.sum(histRec[:i])/np.sum(histRec))
+	for f in filters:
+		for i in range(len(histRec[f])):
+			cdfRec[f].append(np.sum(histRec[f][:i])/np.sum(histRec[f]))
 	ax2.step(bin_edges, cdfAll, color=c1)
 	ax2.step(bin_edges, cdfObs, color=c2)
-	ax2.step(bin_edges, cdfRec, color=c3)
+	for f in filters:
+		lw = 1
+		if (f == 'all'):
+			lw = 0.5
+		ax2.step(bin_edges, cdfRec[f], color=c3, linewidth=lw)
 	ax2.set_ylabel('CDF')
 
 	ax2.set_xlabel(xtitle)
@@ -59,11 +77,24 @@ def saveHist(histAll, histObs, histRec, bin_edges, xtitle, fname):
 
 	#write to a text file
 	with open(fname+'.csv','w') as f:
-		f.write('binEdges,histAll,histObs,histRec\n')
+		outline = 'binEdges,histAll,histObs'
+		for f in filters:
+			outline += ','+f+'histRec'
+		outline += '\n'
+		f.write(outline)
+		for i in range(len(bin_edges)):
+			b = bin_edges
+			hi
 		for (b,a,o,r) in zip(bin_edges, histAll, histObs, histRec):
-			f.write(str(b)+','+str(a)+','+str(o)+','+str(r)+'\n')
+			outline = str(bin_edges[i])+','+str(histAll[i])+','+str(histObs[i])
+			for f in filters:
+				outline += ','+str(histRec[h][i])
+			outline += '\n'
+			f.write(outline
 
 if __name__ == "__main__":
+
+	filters = ['u_', 'g_', 'r_', 'i_', 'z_', 'y_', 'all']
 
 	#get the Raghavan binary fraction fit
 	fbFit= fitRagfb()
@@ -103,13 +134,21 @@ if __name__ == "__main__":
 	maghObs = np.zeros_like(magbins)[1:]
 	rhObs = np.zeros_like(rbins)[1:]
 	#Recovered
-	m1hRec = np.zeros_like(mbins)[1:]
-	qhRec = np.zeros_like(qbins)[1:]
-	ehRec = np.zeros_like(ebins)[1:]
-	lphRec = np.zeros_like(lpbins)[1:]
-	dhRec = np.zeros_like(dbins)[1:]
-	maghRec = np.zeros_like(magbins)[1:]
-	rhRec = np.zeros_like(rbins)[1:]
+	m1hRec = dict()
+	qhRec = dict()
+	ehRec = dict()
+	lphRec = dict()
+	dhRec = dict()
+	maghRec = dict()
+	rhRec = dict()
+	for f in filters:
+		m1hRec[f] = np.zeros_like(mbins)[1:]
+		qhRec[f] = np.zeros_like(qbins)[1:]
+		ehRec[f] = np.zeros_like(ebins)[1:]
+		lphRec[f] = np.zeros_like(lpbins)[1:]
+		dhRec[f] = np.zeros_like(dbins)[1:]
+		maghRec[f] = np.zeros_like(magbins)[1:]
+		rhRec[f] = np.zeros_like(rbins)[1:]
 
 	RA = []
 	Dec = []
@@ -211,40 +250,47 @@ if __name__ == "__main__":
 					rhObs += rhObs0/Nall*Nmult
 
 					#Rec
-					fullP = abs(data['LSM_PERIOD'] - data['p'])/data['p']
-					halfP = abs(data['LSM_PERIOD'] - 0.5*data['p'])/(0.5*data['p'])
-					twiceP = abs(data['LSM_PERIOD'] - 2.*data['p'])/(2.*data['p'])
-					rec = data.loc[(data['LSM_PERIOD'] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
-					Nrec = len(rec.index)
-					prsaRec = data.loc[(data['appMagMean_r'] <= 19.5) & (data['p'] < 1000) & (data['p'] >0.5) & (data['LSM_PERIOD'] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
-					NrecPrsa = len(prsaRec.index)
-					if (Nrec >= Nlim):
-						m1hRec0, m1b = np.histogram(rec["m1"], bins=mbins)
-						qhRec0, qb = np.histogram(rec["m2"]/rec["m1"], bins=qbins)
-						ehRec0, eb = np.histogram(rec["e"], bins=ebins)
-						lphRec0, lpb = np.histogram(np.ma.log10(rec["p"].values).filled(-999), bins=lpbins)
-						dhRec0, db = np.histogram(rec["d"], bins=dbins)
-						maghRec0, magb = np.histogram(rec["appMagMean_r"], bins=magbins)
-						rhRec0, rb = np.histogram(rec["r2"]/rec["r1"], bins=rbins)
-						m1hRec += m1hRec0/Nall*Nmult
-						qhRec += qhRec0/Nall*Nmult
-						ehRec += ehRec0/Nall*Nmult
-						lphRec += lphRec0/Nall*Nmult
-						dhRec += dhRec0/Nall*Nmult
-						maghRec += maghRec0/Nall*Nmult
-						rhRec += rhRec0/Nall*Nmult
+					for f in filters:
+						key = f+'LSS_PERIOD'
+						if (f == 'all'):
+							key = 'LSM_PERIOD'
+						fullP = abs(data[key] - data['p'])/data['p']
+						halfP = abs(data[key] - 0.5*data['p'])/(0.5*data['p'])
+						twiceP = abs(data[key] - 2.*data['p'])/(2.*data['p'])
+						rec = data.loc[(data[key] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
+						Nrec = len(rec.index)
 
-						#for the mollweide
-						rF = Nrec/Nall
-						rN = Nrec/Nall*Nmult
-						raN = Nmult
-						obN = Nobs/Nall*Nmult
-						fiN = Nall
-						fioN = Nobs
-						firN = Nrec
-						NrecPrsa = NrecPrsa/Nall*Nmult
-						NobsPrsa = NobsPrsa/Nall*Nmult
-						NallPrsa = NallPrsa/Nall*Nmult		
+						if (Nrec >= Nlim):
+							m1hRec0, m1b = np.histogram(rec["m1"], bins=mbins)
+							qhRec0, qb = np.histogram(rec["m2"]/rec["m1"], bins=qbins)
+							ehRec0, eb = np.histogram(rec["e"], bins=ebins)
+							lphRec0, lpb = np.histogram(np.ma.log10(rec["p"].values).filled(-999), bins=lpbins)
+							dhRec0, db = np.histogram(rec["d"], bins=dbins)
+							maghRec0, magb = np.histogram(rec["appMagMean_r"], bins=magbins)
+							rhRec0, rb = np.histogram(rec["r2"]/rec["r1"], bins=rbins)
+							m1hRec[f] += m1hRec0/Nall*Nmult
+							qhRec[f] += qhRec0/Nall*Nmult
+							ehRec[f] += ehRec0/Nall*Nmult
+							lphRec[f] += lphRec0/Nall*Nmult
+							dhRec[f] += dhRec0/Nall*Nmult
+							maghRec[f] += maghRec0/Nall*Nmult
+							rhRec[f] += rhRec0/Nall*Nmult
+
+							#for the mollweide
+							if (f == 'all'):
+								rF = Nrec/Nall
+								rN = Nrec/Nall*Nmult
+								raN = Nmult
+								obN = Nobs/Nall*Nmult
+								fiN = Nall
+								fioN = Nobs
+								firN = Nrec
+
+								prsaRec = data.loc[(data['appMagMean_r'] <= 19.5) & (data['p'] < 1000) & (data['p'] >0.5) & (data['LSM_PERIOD'] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
+								NrecPrsa = len(prsaRec.index)
+								NrecPrsa = NrecPrsa/Nall*Nmult
+								NobsPrsa = NobsPrsa/Nall*Nmult
+								NallPrsa = NallPrsa/Nall*Nmult		
 
 
 
@@ -262,13 +308,13 @@ if __name__ == "__main__":
 
 
 	#plot and save the histograms
-	saveHist(np.insert(m1hAll,0,0), np.insert(m1hObs,0,0), np.insert(m1hRec,0,0), m1b, 'm1 (Msolar)', 'EBLSST_m1hist')
-	saveHist(np.insert(qhAll,0,0), np.insert(qhObs,0,0), np.insert(qhRec,0,0), qb, 'q (m2/m1)', 'EBLSST_qhist')
-	saveHist(np.insert(ehAll,0,0), np.insert(ehObs,0,0), np.insert(ehRec,0,0), eb, 'e', 'EBLSST_ehist')
-	saveHist(np.insert(lphAll,0,0), np.insert(lphObs,0,0), np.insert(lphRec,0,0), lpb, 'log(P [days])', 'EBLSST_lphist')
-	saveHist(np.insert(dhAll,0,0), np.insert(dhObs,0,0), np.insert(dhRec,0,0), db, 'd (kpc)', 'EBLSST_dhist')
-	saveHist(np.insert(maghAll,0,0), np.insert(maghObs,0,0), np.insert(maghRec,0,0), magb, 'mag', 'EBLSST_maghist')
-	saveHist(np.insert(rhAll,0,0), np.insert(rhObs,0,0), np.insert(rhRec,0,0), rb, 'r2/r1', 'EBLSST_rhist')
+	saveHist(m1hAll, m1hObs, m1hRec, m1b, 'm1 (Msolar)', 'EBLSST_m1hist')
+	saveHist(qhAll, qhObs, qhRec, qb, 'q (m2/m1)', 'EBLSST_qhist')
+	saveHist(ehAll, ehObs, ehRec, eb, 'e', 'EBLSST_ehist')
+	saveHist(lphAll, lphObs, lphRec, lpb, 'log(P [days])', 'EBLSST_lphist')
+	saveHist(dhAll, dhObs, dhRec, db, 'd (kpc)', 'EBLSST_dhist')
+	saveHist(maghAll, maghObs, maghRec, magb, 'mag', 'EBLSST_maghist')
+	saveHist(rhAll, rhObs, rhRec, rb, 'r2/r1', 'EBLSST_rhist')
 
 
 	#make the mollweide
