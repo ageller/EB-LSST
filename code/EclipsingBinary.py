@@ -431,8 +431,8 @@ class EclipsingBinary(object):
 		if (self.radius_failed or self.period_failed or self.incl_failed):
 			self.observable = False
 
-	if (self.verbose):
-			print("precheck observable", self.observable, self.radius_failed, self.period_failed, self.incl_failed)
+		if (self.verbose):
+				print("precheck observable", self.observable, self.radius_failed, self.period_failed, self.incl_failed)
 	
 			
 
