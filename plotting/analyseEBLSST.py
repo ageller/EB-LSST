@@ -1,5 +1,3 @@
-
-
 import pandas as pd
 import numpy as np
 import os
@@ -162,7 +160,7 @@ if __name__ == "__main__":
 			NobsPrsa = 0.
 			NrecPrsa = 0.
 			Nall = len(data.index)
-			prsa = data.loc[(data['appMagMean_r'] <= 19.5) & (data['p'] < 1000)]
+			prsa = data.loc[(data['appMagMean_r'] <= 19.5) & (data['p'] < 1000) & (data['p'] > 0.5)]
 			NallPrsa = len(prsa.index)
 			if (Nall >= Nlim):
 				#create histograms
@@ -194,7 +192,7 @@ if __name__ == "__main__":
 				#Obs
 				obs = data.loc[data['LSM_PERIOD'] != -999]
 				Nobs = len(obs.index)
-				prsaObs = data.loc[(data['appMagMean_r'] <= 19.5) & (data['p'] < 1000) & (data['LSM_PERIOD'] != -999)]
+				prsaObs = data.loc[(data['appMagMean_r'] <= 19.5) & (data['p'] < 1000) & (data['p'] >0.5) & (data['LSM_PERIOD'] != -999)]
 				NobsPrsa = len(prsaObs.index)
 				if (Nobs >= Nlim):
 					m1hObs0, m1b = np.histogram(obs["m1"], bins=mbins)
@@ -218,7 +216,7 @@ if __name__ == "__main__":
 					twiceP = abs(data['LSM_PERIOD'] - 2.*data['p'])/(2.*data['p'])
 					rec = data.loc[(data['LSM_PERIOD'] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
 					Nrec = len(rec.index)
-					prsaRec = data.loc[(data['appMagMean_r'] <= 19.5) & (data['p'] < 1000) & (data['LSM_PERIOD'] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
+					prsaRec = data.loc[(data['appMagMean_r'] <= 19.5) & (data['p'] < 1000) & (data['p'] >0.5) & (data['LSM_PERIOD'] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
 					NrecPrsa = len(prsaRec.index)
 					if (Nrec >= Nlim):
 						m1hRec0, m1b = np.histogram(rec["m1"], bins=mbins)
