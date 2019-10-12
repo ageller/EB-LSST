@@ -30,7 +30,7 @@ def saveHist(histAll, histObs, histRec, bin_edges, xtitle, fname, filters = ['u_
 	c1 = '#0294A5'  #turqoise
 	c2 = '#d95f02' #orange from color brewer
 	c3 = '#00353E' #slate
-	f,(ax1, ax2) = plt.subplots(2,1,figsize=(5, 8), sharex=True)
+	fig,(ax1, ax2) = plt.subplots(2,1,figsize=(5, 8), sharex=True)
 
 	histAll = np.insert(histAll,0,0)
 	histObs = np.insert(histObs,0,0)
@@ -72,8 +72,8 @@ def saveHist(histAll, histObs, histRec, bin_edges, xtitle, fname, filters = ['u_
 	ax2.set_ylabel('CDF')
 
 	ax2.set_xlabel(xtitle)
-	f.subplots_adjust(hspace=0)
-	f.savefig(fname+'.pdf',format='pdf', bbox_inches = 'tight')
+	fig.subplots_adjust(hspace=0)
+	fig.savefig(fname+'.pdf',format='pdf', bbox_inches = 'tight')
 
 	#write to a text file
 	with open(fname+'.csv','w') as f:
