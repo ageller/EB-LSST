@@ -458,25 +458,31 @@ class EclipsingBinary(object):
 		#self.initializeSeed()
 
 		self.q = self.m2/self.m1
+		self.a = self.getafromP(self.m1*units.solMass, self.m2*units.solMass, self.period*units.day).to(units.solRad).value
+		self.R_1 = (self.r1/self.a)
+		self.R_2 = (self.r2/self.a)
+		self.R_1e = self.r1/self.Eggleton_RL(self.m1/self.m2, self.a * (1. - self.eccentricity))
+		self.R_2e = self.r2/self.Eggleton_RL(self.m2/self.m1, self.a * (1. - self.eccentricity))
+		self.f_c = np.sqrt(self.eccentricity)*np.cos(self.omega*np.pi/180.)
+		self.f_s = np.sqrt(self.eccentricity)*np.sin(self.omega*np.pi/180.)
+
+		if (self.RA == None):
+			coord = SkyCoord(x=self.xGx, y=self.yGx, z=self.zGx, unit='pc', representation='cartesian', frame='galactocentric')
+			self.RA = coord.icrs.ra.to(units.deg).value
+			self.Dec = coord.icrs.dec.to(units.deg).value
+			
 		for f in self.filters:
 			self.appMagMean[f] = None
 			self.deltaMag[f] = None
 		self.maxDeltaMag = None
-		
+
 		self.preCheckIfObservable()
 		if (self.observable):
 			if (self.T1 == None): self.T1 = self.getTeff(self.L1, self.r1)
 			if (self.T2 == None): self.T2 = self.getTeff(self.L2, self.r2)
 			if (self.g1 == None): self.g1 = self.getlogg(self.m1, self.L1, self.T1)
 			if (self.g2 == None): self.g2 = self.getlogg(self.m2, self.L2, self.T2)
-			self.a = self.getafromP(self.m1*units.solMass, self.m2*units.solMass, self.period*units.day).to(units.solRad).value
-			self.f_c = np.sqrt(self.eccentricity)*np.cos(self.omega*np.pi/180.)
-			self.f_s = np.sqrt(self.eccentricity)*np.sin(self.omega*np.pi/180.)
-			self.R_1 = (self.r1/self.a)
-			self.R_2 = (self.r2/self.a)
 			self.sbratio = (self.L2/self.r2**2.)/(self.L1/self.r1**2.)
-			self.R_1e = self.r1/self.Eggleton_RL(self.m1/self.m2, self.a * (1. - self.eccentricity))
-			self.R_2e = self.r2/self.Eggleton_RL(self.m2/self.m1, self.a * (1. - self.eccentricity))
 
 			#one option for getting the extinction
 			if (self.AV == None):
@@ -514,10 +520,7 @@ class EclipsingBinary(object):
 			self.T12 = 10.**(3.762 + 0.25*logLb - 0.5*logRb)
 			#print(self.L1, self.L2, self.T1, self.T2, self.T12)
 
-			if (self.RA == None):
-				coord = SkyCoord(x=self.xGx, y=self.yGx, z=self.zGx, unit='pc', representation='cartesian', frame='galactocentric')
-				self.RA = coord.icrs.ra.to(units.deg).value
-				self.Dec = coord.icrs.dec.to(units.deg).value
+
 
 			#account for reddening and the different filter throughput functions (currently related to a blackbody)
 			self.appMagMeanAll = 0.
