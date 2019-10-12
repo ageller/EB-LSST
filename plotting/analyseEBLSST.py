@@ -85,7 +85,7 @@ def saveHist(histAll, histObs, histRec, bin_edges, xtitle, fname, filters = ['u_
 		for i in range(len(bin_edges)):
 			outline = str(bin_edges[i])+','+str(histAll[i])+','+str(histObs[i])
 			for f in filters:
-				outline += ','+str(histRec[h][i])
+				outline += ','+str(histRec[f][i])
 			outline += '\n'
 			fl.write(outline)
 
