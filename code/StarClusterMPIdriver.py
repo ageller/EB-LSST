@@ -135,13 +135,13 @@ if __name__ == "__main__":
 		clusterOpSimID = []
 		clusterOpSimRA = []
 		clusterOpSimDec = []
-		for i, ID in enumerate(clusterDF['Name']):
+		for i, ID in enumerate(clusterDF['ID']):
 			if ID.replace(" ","_") not in finishedIDs: 
 				clusterOpSimID.append(clusterDF['OpSimID'][i])
 				clusterOpSimRA.append(clusterDF['OpSimRA[deg]'].values[i])
 				clusterOpSimDec.append(clusterDF['OpSimDec[deg]'].values[i])
 
-				clusterName.append(ID)
+				clusterName.append(clusterDF.index[i]) #because I can't include strings
 				clusterMass.append(clusterDF['mass[Msun]'][i])
 				clusterDistance.append(clusterDF['dist[pc]'][i]/1000.) #code wants kpc
 				clusterMetallicity.append(clusterDF['[Fe/H]'][i])
@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
 		nfields = len(clusterName)
 		print(f"rank 0 nfields={nfields}")
-		print('Names:',clusterDF['Name'].iloc[clusterName])
+		print('Names:',clusterDF['ID'].iloc[clusterName])
 
 		#scatter the fieldID, RA, Dec 
 		#get as close as we can to having everything scattered
@@ -224,7 +224,7 @@ if __name__ == "__main__":
 
 	worker.filterFilesRoot = '/projects/p30137/ageller/EBLSST/input/filters/'
 	worker.filters = filters
-	worker.clusterName = clusterDF['Name'].iloc[fields[3].astype('int')].values
+	worker.clusterName = clusterDF['ID'].iloc[fields[3].astype('int')].values
 	worker.clusterMass = fields[4]
 	worker.clusterDistance = fields[5]
 	worker.clusterMetallicity = fields[6]

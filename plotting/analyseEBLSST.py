@@ -30,7 +30,7 @@ def saveHist(histAll, histObs, histRec, bin_edges, xtitle, fname, filters = ['u_
 	c1 = '#0294A5'  #turqoise
 	c2 = '#d95f02' #orange from color brewer
 	c3 = '#00353E' #slate
-	f,(ax1, ax2) = plt.subplots(2,1,figsize=(5, 8), sharex=True)
+	fig,(ax1, ax2) = plt.subplots(2,1,figsize=(5, 8), sharex=True)
 
 	histAll = np.insert(histAll,0,0)
 	histObs = np.insert(histObs,0,0)
@@ -72,25 +72,22 @@ def saveHist(histAll, histObs, histRec, bin_edges, xtitle, fname, filters = ['u_
 	ax2.set_ylabel('CDF')
 
 	ax2.set_xlabel(xtitle)
-	f.subplots_adjust(hspace=0)
-	f.savefig(fname+'.pdf',format='pdf', bbox_inches = 'tight')
+	fig.subplots_adjust(hspace=0)
+	fig.savefig(fname+'.pdf',format='pdf', bbox_inches = 'tight')
 
 	#write to a text file
-	with open(fname+'.csv','w') as f:
+	with open(fname+'.csv','w') as fl:
 		outline = 'binEdges,histAll,histObs'
 		for f in filters:
 			outline += ','+f+'histRec'
 		outline += '\n'
-		f.write(outline)
+		fl.write(outline)
 		for i in range(len(bin_edges)):
-			b = bin_edges
-			hi
-		for (b,a,o,r) in zip(bin_edges, histAll, histObs, histRec):
 			outline = str(bin_edges[i])+','+str(histAll[i])+','+str(histObs[i])
 			for f in filters:
-				outline += ','+str(histRec[h][i])
+				outline += ','+str(histRec[f][i])
 			outline += '\n'
-			f.write(outline
+			fl.write(outline)
 
 if __name__ == "__main__":
 

@@ -402,11 +402,7 @@ class EclipsingBinary(object):
 
 			self.deltaMag[filt] = abs(min(self.appMagObs[filt]) - max(self.appMagObs[filt]))
 
-
-	def checkIfObservable(self):
-
-		if (self.appMagMean['r_'] <= 15.8 or self.appMagMean['r_'] >= 24.5): #15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
-			self.appmag_failed = 1
+	def preCheckIfObservable(self):
 		
 		ratio = (self.r1 + self.r2)/(2.*self.a)
 		if (ratio <= 1):
@@ -432,11 +428,22 @@ class EclipsingBinary(object):
 		if (self.R_1 <= 0 or self.R_1 >=1 or self.R_2 <=0 or self.R_2 >= 1 or self.R_1e >=1 or self.R_2e >=1):
 			self.radius_failed = 1
 			
-		if (self.radius_failed or self.period_failed or self.incl_failed or self.appmag_failed):
+		if (self.radius_failed or self.period_failed or self.incl_failed):
+			self.observable = False
+
+	if (self.verbose):
+			print("precheck observable", self.observable, self.radius_failed, self.period_failed, self.incl_failed)
+	
+			
+
+	def magCheckIfObservable(self):
+
+		if (self.appMagMean['r_'] <= 15.8 or self.appMagMean['r_'] >= 24.5): #15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
+			self.appmag_failed = 1
 			self.observable = False
 
 		if (self.verbose):
-			print("observable", self.observable, self.radius_failed, self.period_failed, self.incl_failed, self.appmag_failed)
+			print("mag observable", self.observable)
 			
 	def initializeSeed(self):
 		if (self.seed == None):
@@ -451,96 +458,103 @@ class EclipsingBinary(object):
 		#self.initializeSeed()
 
 		self.q = self.m2/self.m1
-		if (self.T1 == None): self.T1 = self.getTeff(self.L1, self.r1)
-		if (self.T2 == None): self.T2 = self.getTeff(self.L2, self.r2)
-		if (self.g1 == None): self.g1 = self.getlogg(self.m1, self.L1, self.T1)
-		if (self.g2 == None): self.g2 = self.getlogg(self.m2, self.L2, self.T2)
-		self.a = self.getafromP(self.m1*units.solMass, self.m2*units.solMass, self.period*units.day).to(units.solRad).value
-		self.f_c = np.sqrt(self.eccentricity)*np.cos(self.omega*np.pi/180.)
-		self.f_s = np.sqrt(self.eccentricity)*np.sin(self.omega*np.pi/180.)
-		self.R_1 = (self.r1/self.a)
-		self.R_2 = (self.r2/self.a)
-		self.sbratio = (self.L2/self.r2**2.)/(self.L1/self.r1**2.)
-		self.R_1e = self.r1/self.Eggleton_RL(self.m1/self.m2, self.a * (1. - self.eccentricity))
-		self.R_2e = self.r2/self.Eggleton_RL(self.m2/self.m1, self.a * (1. - self.eccentricity))
-
-		#one option for getting the extinction
-		if (self.AV == None):
-			count = 0
-			while (self.AV == None and count < 100):
-				self.AV = extinction.get_AV_infinity(self.RA, self.Dec, frame='icrs')
-				if (self.AV == None):
-					print("WARNING: No AV found", self.RA, self.Dec, self.AV, count)
-
-		self.SED1 = SED()
-		self.SED1.filters = self.filters
-		self.SED1.filterFilesRoot = self.filterFilesRoot
-		self.SED1.T = self.T1*units.K
-		self.SED1.R = self.r1*units.solRad
-		self.SED1.L = self.L1*units.solLum
-		self.SED1.logg = self.g1
-		self.SED1.M_H = self.M_H
-		self.SED1.EBV = self.AV/self.RV #could use this to account for reddening in SED
-		self.SED1.initialize()
-
-		self.SED2 = SED()
-		self.SED2.filters = self.filters
-		self.SED2.filterFilesRoot = self.filterFilesRoot
-		self.SED2.T = self.T2*units.K
-		self.SED2.R = self.r2*units.solRad
-		self.SED2.L = self.L2*units.solLum
-		self.SED2.logg = self.g2
-		self.SED2.M_H = self.M_H
-		self.SED2.EBV = self.AV/self.RV #could use this to account for reddening in SED
-		self.SED2.initialize()
-
-		#estimate a combined Teff value, as I do in the N-body codes (but where does this comes from?)
-		logLb = np.log10(self.L1 + self.L2)
-		logRb = 0.5*np.log10(self.r1**2. + self.r2**2.)
-		self.T12 = 10.**(3.762 + 0.25*logLb - 0.5*logRb)
-		#print(self.L1, self.L2, self.T1, self.T2, self.T12)
-
-		if (self.RA == None):
-			coord = SkyCoord(x=self.xGx, y=self.yGx, z=self.zGx, unit='pc', representation='cartesian', frame='galactocentric')
-			self.RA = coord.icrs.ra.to(units.deg).value
-			self.Dec = coord.icrs.dec.to(units.deg).value
-
-		#account for reddening and the different filter throughput functions (currently related to a blackbody)
-		self.appMagMeanAll = 0.
-
-		#one option for getting the extinction
-		#ext = F04(Rv=self.RV)
-		ext = F04(Rv=self.RV)
-		#a check
-		# self.Ltest = self.SED.getL(self.T1*units.K, self.r1*units.solRad)
-		#definitely necessary for Kurucz because these models are not normalized
-		#for the bb  I'm getting a factor of 2 difference for some reason
-		Lconst1 = self.SED1.getLconst()
-		Lconst2 = self.SED2.getLconst()
-		#print(np.log10(Lconst1), np.log10(Lconst2))
 		for f in self.filters:
-			#print(extinction.fitzpatrick99(np.array([self.wavelength[f]*10.]), self.AV, self.RV, unit='aa')[0] , ext(self.wavelength[f]*units.nm)*self.AV)
-			#self.Ared[f] = extinction.fitzpatrick99(np.array([self.wavelength[f]*10.]), self.AV, self.RV, unit='aa')[0] #or ccm89
-			self.Ared[f] = ext(self.wavelength[f]*units.nm)*self.AV
+			self.appMagMean[f] = None
+			self.deltaMag[f] = None
+		self.maxDeltaMag = None
+		
+		self.preCheckIfObservable()
+		if (self.observable):
+			if (self.T1 == None): self.T1 = self.getTeff(self.L1, self.r1)
+			if (self.T2 == None): self.T2 = self.getTeff(self.L2, self.r2)
+			if (self.g1 == None): self.g1 = self.getlogg(self.m1, self.L1, self.T1)
+			if (self.g2 == None): self.g2 = self.getlogg(self.m2, self.L2, self.T2)
+			self.a = self.getafromP(self.m1*units.solMass, self.m2*units.solMass, self.period*units.day).to(units.solRad).value
+			self.f_c = np.sqrt(self.eccentricity)*np.cos(self.omega*np.pi/180.)
+			self.f_s = np.sqrt(self.eccentricity)*np.sin(self.omega*np.pi/180.)
+			self.R_1 = (self.r1/self.a)
+			self.R_2 = (self.r2/self.a)
+			self.sbratio = (self.L2/self.r2**2.)/(self.L1/self.r1**2.)
+			self.R_1e = self.r1/self.Eggleton_RL(self.m1/self.m2, self.a * (1. - self.eccentricity))
+			self.R_2e = self.r2/self.Eggleton_RL(self.m2/self.m1, self.a * (1. - self.eccentricity))
 
-			self.Fv1[f] = self.SED1.getFvAB(self.dist*units.kpc, f, Lconst = Lconst1)
-			self.Fv2[f] = self.SED2.getFvAB(self.dist*units.kpc, f, Lconst = Lconst2)
-			Fv = self.Fv1[f] + self.Fv2[f]
-			self.appMagMean[f] = -2.5*np.log10(Fv) + self.Ared[f] #AB magnitude 
+			#one option for getting the extinction
+			if (self.AV == None):
+				count = 0
+				while (self.AV == None and count < 100):
+					self.AV = extinction.get_AV_infinity(self.RA, self.Dec, frame='icrs')
+					if (self.AV == None):
+						print("WARNING: No AV found", self.RA, self.Dec, self.AV, count)
 
-			#print(self.wavelength[f], self.appMagMean[f], self.Ared[f], self.T1)
+			self.SED1 = SED()
+			self.SED1.filters = self.filters
+			self.SED1.filterFilesRoot = self.filterFilesRoot
+			self.SED1.T = self.T1*units.K
+			self.SED1.R = self.r1*units.solRad
+			self.SED1.L = self.L1*units.solLum
+			self.SED1.logg = self.g1
+			self.SED1.M_H = self.M_H
+			self.SED1.EBV = self.AV/self.RV #could use this to account for reddening in SED
+			self.SED1.initialize()
 
-			self.LSS[f] = -999.
-			self.appMagMeanAll += self.appMagMean[f]
-			self.appMagObs[f] = [None]
-			self.appMagObsErr[f] = [None]
-			self.deltaMag[f] = 0.
-			self.obsDates[f] = [None]
+			self.SED2 = SED()
+			self.SED2.filters = self.filters
+			self.SED2.filterFilesRoot = self.filterFilesRoot
+			self.SED2.T = self.T2*units.K
+			self.SED2.R = self.r2*units.solRad
+			self.SED2.L = self.L2*units.solLum
+			self.SED2.logg = self.g2
+			self.SED2.M_H = self.M_H
+			self.SED2.EBV = self.AV/self.RV #could use this to account for reddening in SED
+			self.SED2.initialize()
 
-		self.appMagMeanAll /= len(self.filters)
+			#estimate a combined Teff value, as I do in the N-body codes (but where does this comes from?)
+			logLb = np.log10(self.L1 + self.L2)
+			logRb = 0.5*np.log10(self.r1**2. + self.r2**2.)
+			self.T12 = 10.**(3.762 + 0.25*logLb - 0.5*logRb)
+			#print(self.L1, self.L2, self.T1, self.T2, self.T12)
 
-		#check if we can observe this (not accounting for the location in galaxy)
-		self.checkIfObservable()
+			if (self.RA == None):
+				coord = SkyCoord(x=self.xGx, y=self.yGx, z=self.zGx, unit='pc', representation='cartesian', frame='galactocentric')
+				self.RA = coord.icrs.ra.to(units.deg).value
+				self.Dec = coord.icrs.dec.to(units.deg).value
+
+			#account for reddening and the different filter throughput functions (currently related to a blackbody)
+			self.appMagMeanAll = 0.
+
+			#one option for getting the extinction
+			#ext = F04(Rv=self.RV)
+			ext = F04(Rv=self.RV)
+			#a check
+			# self.Ltest = self.SED.getL(self.T1*units.K, self.r1*units.solRad)
+			#definitely necessary for Kurucz because these models are not normalized
+			#for the bb  I'm getting a factor of 2 difference for some reason
+			Lconst1 = self.SED1.getLconst()
+			Lconst2 = self.SED2.getLconst()
+			#print(np.log10(Lconst1), np.log10(Lconst2))
+			for f in self.filters:
+				#print(extinction.fitzpatrick99(np.array([self.wavelength[f]*10.]), self.AV, self.RV, unit='aa')[0] , ext(self.wavelength[f]*units.nm)*self.AV)
+				#self.Ared[f] = extinction.fitzpatrick99(np.array([self.wavelength[f]*10.]), self.AV, self.RV, unit='aa')[0] #or ccm89
+				self.Ared[f] = ext(self.wavelength[f]*units.nm)*self.AV
+
+				self.Fv1[f] = self.SED1.getFvAB(self.dist*units.kpc, f, Lconst = Lconst1)
+				self.Fv2[f] = self.SED2.getFvAB(self.dist*units.kpc, f, Lconst = Lconst2)
+				Fv = self.Fv1[f] + self.Fv2[f]
+				self.appMagMean[f] = -2.5*np.log10(Fv) + self.Ared[f] #AB magnitude 
+
+				#print(self.wavelength[f], self.appMagMean[f], self.Ared[f], self.T1)
+
+				self.LSS[f] = -999.
+				self.appMagMeanAll += self.appMagMean[f]
+				self.appMagObs[f] = [None]
+				self.appMagObsErr[f] = [None]
+				self.deltaMag[f] = 0.
+				self.obsDates[f] = [None]
+
+			self.appMagMeanAll /= len(self.filters)
+
+			#check if we can observe this based on the magnitude
+			self.magCheckIfObservable()
 
 		#if we're using OpSim, then get the field ID
 		#get the field ID number from OpSim where this binary would be observed
@@ -548,9 +562,10 @@ class EclipsingBinary(object):
 			self.OpSim.setFieldID(self.RA, self.Dec)
 
 		#if it's observable, get the contribution of the third light
-		nCrowd = int(np.random.poisson(self.Galaxy.starsPerResEl))
-		if (self.observable and nCrowd >= 1):
-			self.getGalaxylight_3(nCrowd)
+		if (self.Galaxy != None):
+			nCrowd = int(np.random.poisson(self.Galaxy.starsPerResEl))
+			if (self.observable and nCrowd >= 1):
+				self.getGalaxylight_3(nCrowd)
 
 	def getGalaxylight_3(self, nCrowd):
 		Fv3 = {}
