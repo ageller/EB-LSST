@@ -470,10 +470,15 @@ class EclipsingBinary(object):
 			coord = SkyCoord(x=self.xGx, y=self.yGx, z=self.zGx, unit='pc', representation='cartesian', frame='galactocentric')
 			self.RA = coord.icrs.ra.to(units.deg).value
 			self.Dec = coord.icrs.dec.to(units.deg).value
-			
+
 		for f in self.filters:
 			self.appMagMean[f] = None
 			self.deltaMag[f] = None
+			self.LSS[f] = -999.
+			self.appMagObs[f] = [None]
+			self.appMagObsErr[f] = [None]
+			self.deltaMag[f] = 0.
+			self.obsDates[f] = [None]
 		self.maxDeltaMag = None
 
 		self.preCheckIfObservable()
@@ -547,12 +552,7 @@ class EclipsingBinary(object):
 
 				#print(self.wavelength[f], self.appMagMean[f], self.Ared[f], self.T1)
 
-				self.LSS[f] = -999.
 				self.appMagMeanAll += self.appMagMean[f]
-				self.appMagObs[f] = [None]
-				self.appMagObsErr[f] = [None]
-				self.deltaMag[f] = 0.
-				self.obsDates[f] = [None]
 
 			self.appMagMeanAll /= len(self.filters)
 
