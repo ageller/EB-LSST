@@ -479,7 +479,7 @@ class EclipsingBinary(object):
 			self.appMagObsErr[f] = [None]
 			self.deltaMag[f] = 0.
 			self.obsDates[f] = [None]
-		self.maxDeltaMag = None
+		self.maxDeltaMag = 0.
 
 		self.preCheckIfObservable()
 		if (self.observable):
