@@ -328,8 +328,11 @@ class LSSTEBWorker(object):
 			return np.random.random()
 
 		#log-normal distribution for period
-		def getlogp():
-			return np.random.normal(loc=5.03, scale=2.28)
+		def getlogp(maxlP = np.log10(3652.5)):#10yr
+			x = 2*maxlP
+			while (x > maxlP):
+				x = np.random.normal(loc=5.03, scale=2.28)
+			return x
 
 		def getRad(logg, m):
 			#g = GM/r**2
