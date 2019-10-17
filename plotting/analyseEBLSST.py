@@ -1,9 +1,17 @@
+#########################
+#########################
+# Need to account for limit in input period
+#########################
+#########################
+
 import pandas as pd
 import numpy as np
 import os
 from astropy.coordinates import SkyCoord
 from astropy import units
 from astropy.modeling import models, fitting
+import scipy.stats
+from scipy.integrate import quad
 
 #for Quest
 import matplotlib
@@ -25,6 +33,11 @@ def fitRagfb():
 	fit = fitter(init, x, y)
 
 	return fit
+
+def RagNormal(x):
+	mean = 5.03
+	std = 2.28
+	return scipy.stats.norm.pdf(x,mean,std)
 
 def saveHist(histAll, histObs, histRec, bin_edges, xtitle, fname, filters = ['u_', 'g_', 'r_', 'i_', 'z_', 'y_','all']):
 	c1 = '#0294A5'  #turqoise
@@ -97,6 +110,11 @@ if __name__ == "__main__":
 	fbFit= fitRagfb()
 	print(fbFit)
 		
+	#to normalize
+	intAll, err = quad(RagNormal, -20, 20)
+	intCut, err = quad(RagNormal, -20, np.log10(365*10.))
+	intNorm = intCut/intAll
+
 	#cutoff in percent error for "recovered"
 	Pcut = 0.1
 
@@ -195,7 +213,7 @@ if __name__ == "__main__":
 			NallPrsa = 0.
 			NobsPrsa = 0.
 			NrecPrsa = 0.
-			Nall = len(data.index)
+			Nall = len(data.index)/intNorm ###is this correct? (and the only place I need to normalize?)
 			prsa = data.loc[(data['appMagMean_r'] <= 19.5) & (data['p'] < 1000) & (data['p'] > 0.5)]
 			NallPrsa = len(prsa.index)
 			if (Nall >= Nlim):
