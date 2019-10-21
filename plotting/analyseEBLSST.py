@@ -251,7 +251,7 @@ if __name__ == "__main__":
 				#account for the binary fraction, as a function of mass
 				dm1 = np.diff(m1b)
 				m1val = m1b[:-1] + dm1/2.
-				fb = np.sum(m1hAll0/Nall*fbFit(m1val))
+				fb = np.sum(m1hAll0/len(data.index)*fbFit(m1val))
 				#print("fb = ", fb)
 				Nmult *= fb
 
