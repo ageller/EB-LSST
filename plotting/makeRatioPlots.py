@@ -76,16 +76,22 @@ def plotHist(histAll, histObs, histRec, bin_edges, xtitle, fname):
 if __name__ == "__main__":
 
 	data = pd.read_csv('EBLSST_lphist.csv')
-	plotHist(data['histAll'].values, data['histObs'].values, data['histRec'].values, data['binEdges'].values, 'log(Period [days])', 'EBLSST_lphist_final')
+	plotHist(data['histAll'].values, data['histObs'].values, data['allhistRec'].values, data['binEdges'].values, 'log(Period [days])', 'EBLSST_lphist_final')
 
 	data = pd.read_csv('EBLSST_ehist.csv')
-	plotHist(data['histAll'].values, data['histObs'].values, data['histRec'].values, data['binEdges'].values, 'Eccentricity', 'EBLSST_ehist_final')
+	plotHist(data['histAll'].values, data['histObs'].values, data['allhistRec'].values, data['binEdges'].values, 'Eccentricity', 'EBLSST_ehist_final')
 
 	data = pd.read_csv('EBLSST_dhist.csv')
-	plotHist(data['histAll'].values, data['histObs'].values, data['histRec'].values, data['binEdges'].values, 'Distance (kpc)', 'EBLSST_dhist_final')
+	plotHist(data['histAll'].values, data['histObs'].values, data['allhistRec'].values, data['binEdges'].values, 'Distance (kpc)', 'EBLSST_dhist_final')
 
 	data = pd.read_csv('EBLSST_m1hist.csv')
-	plotHist(data['histAll'].values, data['histObs'].values, data['histRec'].values, data['binEdges'].values, r'm$_1$ (M$_\odot$)', 'EBLSST_m1hist_final')
+	plotHist(data['histAll'].values, data['histObs'].values, data['allhistRec'].values, data['binEdges'].values, r'm$_1$ (M$_\odot$)', 'EBLSST_m1hist_final')
 
 	data = pd.read_csv('EBLSST_qhist.csv')
-	plotHist(data['histAll'].values, data['histObs'].values, data['histRec'].values, data['binEdges'].values, r'q (m$_2$/m$_1$)', 'EBLSST_qhist_final')
+	plotHist(data['histAll'].values, data['histObs'].values, data['allhistRec'].values, data['binEdges'].values, r'q (m$_2$/m$_1$)', 'EBLSST_qhist_final')
+
+	data = pd.read_csv('EBLSST_rhist.csv')
+	plotHist(data['histAll'].values, data['histObs'].values, data['allhistRec'].values, data['binEdges'].values, r'r$_2$/r$_1$', 'EBLSST_rhist_final')
+
+	data = pd.read_csv('EBLSST_maghist.csv')
+	plotHist(data['histAll'].values, data['histObs'].values, data['allhistRec'].values, data['binEdges'].values, r'$_r$ [mag]', 'EBLSST_maghist_final')

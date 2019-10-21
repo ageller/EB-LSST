@@ -244,6 +244,8 @@ class LSSTEBWorker(object):
 		EB.AV = line[15]
 		EB.M_H = line[16]
 
+		EB.TRILEGALrmag = line[21]
+
 		EB.t_zero = np.random.random() * EB.period
 
 		#for observations
@@ -354,6 +356,7 @@ class LSSTEBWorker(object):
 		lum1 = []
 		teff1 = []
 		logg1 = []
+		rmag = [] #so that I can use this rmag for binaries that don't pass the other criteria?
 
 		m2 = []
 		rad2 = []
@@ -379,6 +382,7 @@ class LSSTEBWorker(object):
 				lum1.append(10.**s['logL'].iloc[0])
 				teff1.append(10.**s['logTe'].iloc[0])
 				logg1.append(s['logg'].iloc[0])
+				rmag.append(s['r_mag'].iloc[0])
 
 				m2Use = s['Mact'].iloc[0]*getq()
 				#rad2, lum2, teff2 need to be drawn from TRILEGAL given m2
@@ -434,7 +438,7 @@ class LSSTEBWorker(object):
 
 
 		#we don't need position, but we do need distance
-		output = np.vstack( (m1, m2, logp, ecc, rad1, rad2, lum1, lum2, x, x, x, dist, inc, OMEGA, omega, Av, MH, teff1, teff2, logg1, logg2) ).T
+		output = np.vstack( (m1, m2, logp, ecc, rad1, rad2, lum1, lum2, x, x, x, dist, inc, OMEGA, omega, Av, MH, teff1, teff2, logg1, logg2, rmag) ).T
 
 		return output
 

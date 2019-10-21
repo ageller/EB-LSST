@@ -46,6 +46,7 @@ class EclipsingBinary(object):
 		self.verbose = False
 		self.RV = 3.1
 		self.M_H = 0. #metallicity
+		self.TRILEGALrmag = -999. #r magnitude from TRILEGAL
 
 		#for SED
 		self.filterFilesRoot = '../input/filters/'
@@ -479,6 +480,8 @@ class EclipsingBinary(object):
 			self.appMagObsErr[f] = [None]
 			self.deltaMag[f] = 0.
 			self.obsDates[f] = [None]
+		self.appMagMean['r_'] = self.TRILEGALrmag #for binaries that don't pass the preCheck
+
 		self.maxDeltaMag = 0.
 
 		self.preCheckIfObservable()
