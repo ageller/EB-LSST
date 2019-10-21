@@ -225,7 +225,8 @@ if __name__ == "__main__":
 			NobsPrsa = 0.
 			NrecPrsa = 0.
 			Nall = len(data.index)/intNorm ###is this correct? (and the only place I need to normalize?)
-			prsa = data.loc[(data['appMagMean_r'] <= 19.5) & (data['p'] < 1000) & (data['p'] > 0.5)]
+			prsa = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] > 15.8) & (data['p'] < 1000) & (data['p'] > 0.5)]
+
 			NallPrsa = len(prsa.index)
 			if (Nall >= Nlim):
 				#create histograms
@@ -266,7 +267,7 @@ if __name__ == "__main__":
 				#Obs
 				obs = data.loc[data['LSM_PERIOD'] != -999]
 				Nobs = len(obs.index)
-				prsaObs = data.loc[(data['appMagMean_r'] <= 19.5) & (data['p'] < 1000) & (data['p'] >0.5) & (data['LSM_PERIOD'] != -999)]
+				prsaObs = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] > 15.8) & (data['p'] < 1000) & (data['p'] >0.5) & (data['LSM_PERIOD'] != -999)]
 				NobsPrsa = len(prsaObs.index)
 				if (Nobs >= Nlim):
 					m1hObs0, m1b = np.histogram(obs["m1"], bins=mbins)
@@ -321,7 +322,7 @@ if __name__ == "__main__":
 								fioN = Nobs
 								firN = Nrec
 
-								prsaRec = data.loc[(data['appMagMean_r'] <= 19.5) & (data['p'] < 1000) & (data['p'] >0.5) & (data['LSM_PERIOD'] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
+								prsaRec = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] >15.8) & (data['p'] < 1000) & (data['p'] >0.5) & (data['LSM_PERIOD'] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
 								NrecPrsa = len(prsaRec.index)
 								NrecPrsa = NrecPrsa/Nall*Nmult
 								NobsPrsa = NobsPrsa/Nall*Nmult
@@ -387,11 +388,15 @@ if __name__ == "__main__":
 	print("number of binaries in input files (raw, log):",np.sum(fileN), np.log10(np.sum(fileN)))
 	print("number of binaries in tested with gatspy (raw, log):",np.sum(fileObsN), np.log10(np.sum(fileObsN)))
 	print("number of binaries in recovered with gatspy (raw, log):",np.sum(fileRecN), np.log10(np.sum(fileRecN)))
+	print("recovered/observable*100 with gatspy:",np.sum(fileRecN)/np.sum(fileObsN)*100.)
 	print("###################")
 	print("total in sample (raw, log):",np.sum(rawN), np.log10(np.sum(rawN)))
 	print("total observable (raw, log):",np.sum(obsN), np.log10(np.sum(obsN)))
 	print("total recovered (raw, log):",np.sum(recN), np.log10(np.sum(recN)))
+	print("recovered/observable*100:",np.sum(recN)/np.sum(obsN)*100.)
 	print("###################")
-	print("total in Prsa r<19.5 P<1000d sample (raw, log):",np.sum(allNPrsa), np.log10(np.sum(allNPrsa)))
-	print("total observable in Prsa r<19.5 P<1000d sample (raw, log):",np.sum(obsNPrsa), np.log10(np.sum(obsNPrsa)))
-	print("total recovered in Prsa r<19.5 P<1000d sample (raw, log):",np.sum(recNPrsa), np.log10(np.sum(recNPrsa)))
+	print("total in Prsa 15.8<r<19.5 P<1000d sample (raw, log):",np.sum(allNPrsa), np.log10(np.sum(allNPrsa)))
+	print("total observable in Prsa 15.8<r<19.5 P<1000d sample (raw, log):",np.sum(obsNPrsa), np.log10(np.sum(obsNPrsa)))
+	print("total recovered in Prsa 15.8<r<19.5 P<1000d sample (raw, log):",np.sum(recNPrsa), np.log10(np.sum(recNPrsa)))
+	print("Prsa r<19.5 P<1000d rec/obs*100:",np.sum(recNPrsa)/np.sum(obsNPrsa)*100.)
+
