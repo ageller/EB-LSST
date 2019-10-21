@@ -240,13 +240,13 @@ if __name__ == "__main__":
 				rhAll0, rb = np.histogram(data["r2"]/data["r1"], bins=rbins)
 
 				if (doIndividualPlots):
-					axmass.step(m1b[0:-1], m1hAll0/np.sum(m1hAll0), color='black')
-					axqrat.step(qb[0:-1], qhAll0/np.sum(qhAll0), color='black')
-					axecc.step(eb[0:-1], ehAll0/np.sum(ehAll0), color='black')
-					axlper.step(lpb[0:-1], lphAll0/np.sum(lphAll0), color='black')
-					axdist.step(db[0:-1], dhAll0/np.sum(dhAll0), color='black')
-					axmag.step(magb[0:-1], maghAll0/np.sum(maghAll0), color='black')
-					axrad.step(rb[0:-1], rhAll0/np.sum(rhAll0), color='black')
+					axmass.step(m1b[0:-1], m1hAll0/np.sum(m1hAll0), color='black', alpha=0.1)
+					axqrat.step(qb[0:-1], qhAll0/np.sum(qhAll0), color='black', alpha=0.1)
+					axecc.step(eb[0:-1], ehAll0/np.sum(ehAll0), color='black', alpha=0.1)
+					axlper.step(lpb[0:-1], lphAll0/np.sum(lphAll0), color='black', alpha=0.1)
+					axdist.step(db[0:-1], dhAll0/np.sum(dhAll0), color='black', alpha=0.1)
+					axmag.step(magb[0:-1], maghAll0/np.sum(maghAll0), color='black', alpha=0.1)
+					axrad.step(rb[0:-1], rhAll0/np.sum(rhAll0), color='black', alpha=0.1)
 
 				#account for the binary fraction, as a function of mass
 				dm1 = np.diff(m1b)
