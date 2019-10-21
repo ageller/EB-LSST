@@ -244,7 +244,7 @@ if __name__ == "__main__":
 					axqrat.step(qb[0:-1], qhAll0/np.sum(qhAll0), color='black')
 					axecc.step(eb[0:-1], ehAll0/np.sum(ehAll0), color='black')
 					axlper.step(lpb[0:-1], lphAll0/np.sum(lphAll0), color='black')
-					axd.step(db[0:-1], dhAll0/np.sum(dhAll0), color='black')
+					axdist.step(db[0:-1], dhAll0/np.sum(dhAll0), color='black')
 					axmag.step(magb[0:-1], maghAll0/np.sum(maghAll0), color='black')
 					axrad.step(rb[0:-1], rhAll0/np.sum(rhAll0), color='black')
 
