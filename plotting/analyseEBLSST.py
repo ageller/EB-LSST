@@ -211,7 +211,7 @@ if __name__ == "__main__":
 			Dec.append(header['OpSimDec'])
 
 			#read in rest of the file
-			data = pd.read_csv(d+f, header = 2).dropna()
+			data = pd.read_csv(d+f, header = 2).fillna(-999)
 			rF = 0.
 			rN = 0.
 			Nrec = 0.
