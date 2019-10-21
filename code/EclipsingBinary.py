@@ -472,7 +472,7 @@ class EclipsingBinary(object):
 			self.Dec = coord.icrs.dec.to(units.deg).value
 
 		for f in self.filters:
-			self.appMagMean[f] = None
+			self.appMagMean[f] = -999. 
 			self.deltaMag[f] = None
 			self.LSS[f] = -999.
 			self.appMagObs[f] = [None]
