@@ -17,6 +17,8 @@ from scipy.integrate import quad
 import matplotlib
 matplotlib.use('Agg')
 
+doIndividualPlots = True
+
 from matplotlib import pyplot as plt
 def file_len(fname):
 	i = 0
@@ -120,6 +122,15 @@ if __name__ == "__main__":
 
 	#minimum number of lines to consider in file
 	Nlim = 3
+
+	if (doIndividualPlots):
+		fmass, axmass = plt.subplots()
+		fqrat, axqrat = plt.subplots()
+		fecc, axecc = plt.subplots()
+		flper, axlper = plt.subplots()
+		fdist, axdist = plt.subplots()
+		fmag, axmag = plt.subplots()
+		frad, axrad = plt.subplots()
 
 	#bins for all the histograms
 	Nbins = 25
@@ -226,6 +237,15 @@ if __name__ == "__main__":
 				dhAll0, db = np.histogram(data["d"], bins=dbins)
 				maghAll0, magb = np.histogram(data["appMagMean_r"], bins=magbins)
 				rhAll0, rb = np.histogram(data["r2"]/data["r1"], bins=rbins)
+
+				if (doIndividualPlots):
+					axmass.step(m1b[0:-1], m1hAll0/total(m1hAll0), color='black')
+					axqrat.step(qb[0:-1], qhAll0/total(qhAll0), color='black')
+					axecc.step(eb[0:-1], ehAll0/total(ehAll0), color='black')
+					axlper.step(lpb[0:-1], lphAll0/total(lphAll0), color='black')
+					axd.step(db[0:-1], dhAll0/total(dhAll0), color='black')
+					axmag.step(magb[0:-1], maghAll0/total(maghAll0), color='black')
+					axrad.step(rb[0:-1], rhAll0/total(rhAll0), color='black')
 
 				#account for the binary fraction, as a function of mass
 				dm1 = np.diff(m1b)
