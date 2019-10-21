@@ -240,13 +240,13 @@ if __name__ == "__main__":
 				rhAll0, rb = np.histogram(data["r2"]/data["r1"], bins=rbins)
 
 				if (doIndividualPlots):
-					axmass.step(m1b[0:-1], m1hAll0/total(m1hAll0), color='black')
-					axqrat.step(qb[0:-1], qhAll0/total(qhAll0), color='black')
-					axecc.step(eb[0:-1], ehAll0/total(ehAll0), color='black')
-					axlper.step(lpb[0:-1], lphAll0/total(lphAll0), color='black')
-					axd.step(db[0:-1], dhAll0/total(dhAll0), color='black')
-					axmag.step(magb[0:-1], maghAll0/total(maghAll0), color='black')
-					axrad.step(rb[0:-1], rhAll0/total(rhAll0), color='black')
+					axmass.step(m1b[0:-1], m1hAll0/np.sum(m1hAll0), color='black')
+					axqrat.step(qb[0:-1], qhAll0/np.sum(qhAll0), color='black')
+					axecc.step(eb[0:-1], ehAll0/np.sum(ehAll0), color='black')
+					axlper.step(lpb[0:-1], lphAll0/np.sum(lphAll0), color='black')
+					axd.step(db[0:-1], dhAll0/np.sum(dhAll0), color='black')
+					axmag.step(magb[0:-1], maghAll0/np.sum(maghAll0), color='black')
+					axrad.step(rb[0:-1], rhAll0/np.sum(rhAll0), color='black')
 
 				#account for the binary fraction, as a function of mass
 				dm1 = np.diff(m1b)
@@ -384,6 +384,15 @@ if __name__ == "__main__":
 	cbar.set_label(r'log10(N) recovered')
 	f.savefig('mollweide_N.pdf',format='pdf', bbox_inches = 'tight')
 
+	if (doIndividualPlots):
+		fmass.savefig('massPDFall.pdf',format='pdf', bbox_inches = 'tight')
+		fqrat.savefig('qPDFall.pdf',format='pdf', bbox_inches = 'tight')
+		fecc.savefig('eccPDFall.pdf',format='pdf', bbox_inches = 'tight')
+		flper.savefig('lperPDFall.pdf',format='pdf', bbox_inches = 'tight')
+		fdist.savefig('distPDFall.pdf',format='pdf', bbox_inches = 'tight')
+		fmag.savefig('magPDFall.pdf',format='pdf', bbox_inches = 'tight')
+		frad.savefig('radPDFall.pdf',format='pdf', bbox_inches = 'tight')
+
 	print("###################")
 	print("number of binaries in input files (raw, log):",np.sum(fileN), np.log10(np.sum(fileN)))
 	print("number of binaries in tested with gatspy (raw, log):",np.sum(fileObsN), np.log10(np.sum(fileObsN)))
@@ -399,4 +408,5 @@ if __name__ == "__main__":
 	print("total observable in Prsa 15.8<r<19.5 P<1000d sample (raw, log):",np.sum(obsNPrsa), np.log10(np.sum(obsNPrsa)))
 	print("total recovered in Prsa 15.8<r<19.5 P<1000d sample (raw, log):",np.sum(recNPrsa), np.log10(np.sum(recNPrsa)))
 	print("Prsa r<19.5 P<1000d rec/obs*100:",np.sum(recNPrsa)/np.sum(obsNPrsa)*100.)
+
 
