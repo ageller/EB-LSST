@@ -244,7 +244,7 @@ if __name__ == "__main__":
 
 				#run through ellc and gatspy
 				worker.getGalaxy(i)
-				gxDat = worker.sampleGalaxy(i)
+				gxDat = worker.sampleGalaxy()
 
 				#write header, this will  contain the galaxy Nstars number
 				if (not append):
@@ -263,7 +263,8 @@ if __name__ == "__main__":
 		
 						if (EB.observable):
 							worker.return_dict[k] = EB
-							worker.run_ellc_gatspy(k)
+							worker.run_ellc(k)
+							worker.run_gatspy(k)
 							EB = worker.return_dict[k]
 		
 						worker.writeOutputLine(EB)

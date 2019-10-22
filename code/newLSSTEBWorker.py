@@ -134,7 +134,19 @@ class LSSTEBWorker(object):
 		f.savefig("lc_gatspy_fig_"+str(self.seed).rjust(10,'0')+".png", bbox_inches='tight')
 
 
-	def run_ellc_gatspy(self, j):
+	def run_ellc(self, j=0):
+		EB = self.return_dict[j]
+		for i, filt in enumerate(self.filters):
+
+			#observe the EB (get dates, create the light curve for this filter)
+			#print("checking observe", filt, EB.obsDates[filt][0])
+			EB.appMagObs[filt] = [0.]
+			EB.appMagObsErr[filt] = [0.]
+			EB.deltaMag[filt] = [0.]
+
+			EB.observe(filt)
+
+	def run_gatspy(self, j=0):
 		#this is the general simulation - ellc light curves and gatspy periodograms
 
 		EB = self.return_dict[j]
@@ -151,14 +163,7 @@ class LSSTEBWorker(object):
 
 		for i, filt in enumerate(self.filters):
 
-			#observe the EB (get dates, create the light curve for this filter)
-			#print("checking observe", filt, EB.obsDates[filt][0])
-			EB.appMagObs[filt] = [0.]
-			EB.appMagObsErr[filt] = [0.]
-			EB.deltaMag[filt] = [0.]
 			EB.LSS[filt] = -999.
-
-			EB.observe(filt)
 
 			if (EB.obsDates[filt][0] != None and min(EB.appMagObs[filt]) > 0):
 
@@ -298,7 +303,7 @@ class LSSTEBWorker(object):
 		self.csvwriter.writerow(output)	
 
 
-	def getGalaxy(self, OpSimi, deleteModel = True):
+	def getGalaxy(self, OpSimi, deleteModel = True, downloadModel = True):
 		self.Galaxy = TRILEGAL()
 		self.Galaxy.RA = self.OpSim.RA[OpSimi]
 		self.Galaxy.Dec = self.OpSim.Dec[OpSimi]
@@ -306,21 +311,10 @@ class LSSTEBWorker(object):
 		self.Galaxy.tmpdir = self.galDir
 		self.Galaxy.tmpfname = 'TRILEGAL_model_fID'+str(int(self.OpSim.fieldID[OpSimi]))+'.h5'
 		self.Galaxy.deleteModel = deleteModel
-		self.Galaxy.setModel()
-
-	def sampleGalaxy(self, OpSimi):
+		self.Galaxy.setModel(download = downloadModel)
 
 
-		#for the binary fraction
-		def fitRagfb():
-			x = [0.05, 0.1, 1, 8, 15]  #estimates of midpoints in bins, and using this: https://sites.uni.edu/morgans/astro/course/Notes/section2/spectralmasses.html
-			y = [0.20, 0.35, 0.50, 0.70, 0.75]
-			init = models.PowerLaw1D(amplitude=0.5, x_0=1, alpha=-1.)
-			fitter = fitting.LevMarLSQFitter()
-			fit = fitter(init, x, y)
-
-			return fit
-
+	def makeBinaryFromGalaxy(self, s):
 		#uniform distribution for mass ratio
 		def getq():
 			return np.random.random()
@@ -342,11 +336,94 @@ class LSSTEBWorker(object):
 			r = ((constants.G*m*u.Msun/g)**0.5).decompose().to(u.Rsun).value
 			return r
 
+		nWarn = 0.
+		maxTol = self.mTol
+		m2Use = 0.5
+		mTolUse = 0.001
+
+		m1 = s['Mact'].iloc[0]
+		rad1 = getRad(s['logg'].iloc[0], s['Mact'].iloc[0])
+		lum1 = 10.**s['logL'].iloc[0]
+		teff1 = 10.**s['logTe'].iloc[0]
+		logg1 = s['logg'].iloc[0]
+		rmag = s['r_mag'].iloc[0]
+
+		m2Use = s['Mact'].iloc[0]*getq()
+		done = False
+		mTolUse = self.mTol
+		counter = 0.
+		while (not done):
+			df_sort = self.Galaxy.model.loc[ (self.Galaxy.model['Mact'] - m2Use).abs() < mTolUse]
+			if (len(df_sort) > 0):
+				done = True
+				ss = df_sort.sample()
+				m2 = ss['Mact'].iloc[0]
+				rad2 = getRad(ss['logg'].iloc[0], ss['Mact'].iloc[0])
+				lum2 = 10.**ss['logL'].iloc[0]
+				teff2 = 10.**ss['logTe'].iloc[0]
+				logg2 = ss['logg'].iloc[0]
+			else:
+				#print('WARNING: increasing tolerance', mTolUse)
+				mTolUse *=2
+				nWarn += 1
+				maxTol = np.max([mTolUse, maxTol])
+			if (counter > 100):
+				print('WARNING: did not reach tolerance, will probably die...')
+			counter += 1
+		if (maxTol > 0.1):
+			print(f'WARNING: had to increase mass tolerance {nWarn} times. Max tolerance = {maxTol}.')
+		logp = getlogp()
+		ecc = getecc()
+		
+		dist = 10.**s['logDist'].iloc[0]
+		Av = s['Av'].iloc[0] #is this measure OK?
+		MH = s['[M/H]'].iloc[0]
+
+		#random angles
+		inc = np.arccos(2.*np.random.uniform(0,1) - 1.)
+		omega = np.random.uniform(0,2*np.pi)
+		OMEGA = np.random.uniform(0,2*np.pi)
+
+		return {
+			'm1':m1,
+			'rad1':rad1,
+			'lum1':lum1,
+			'teff1':teff1,
+			'logg1':logg1,
+			'm2':m2,
+			'rad2':rad2,
+			'lum2':lum2,
+			'teff2':teff2,
+			'logg2':logg2,
+			'logp':logp,
+			'ecc':ecc,
+			'inc':inc,
+			'omega':omega,
+			'OMEGA':OMEGA,
+			'dist':dist,
+			'rmag':rmag,
+			'Av':Av,
+			'MH':MH
+		}
+
+	def sampleGalaxy(self):
+
+
+		#for the binary fraction
+		def fitRagfb():
+			x = [0.05, 0.1, 1, 8, 15]  #estimates of midpoints in bins, and using this: https://sites.uni.edu/morgans/astro/course/Notes/section2/spectralmasses.html
+			y = [0.20, 0.35, 0.50, 0.70, 0.75]
+			init = models.PowerLaw1D(amplitude=0.5, x_0=1, alpha=-1.)
+			fitter = fitting.LevMarLSQFitter()
+			fit = fitter(init, x, y)
+
+			return fit
+
+
 #test for the Sun
 #print(getRad(4.43, 1)) 
 		print("creating binaries...")
-		m2Use = 0.5
-		mTolUse = 0.001
+
 
 		fbFit= fitRagfb()
 		#print(fbFit)
@@ -356,7 +433,6 @@ class LSSTEBWorker(object):
 		lum1 = []
 		teff1 = []
 		logg1 = []
-		rmag = [] #so that I can use this rmag for binaries that don't pass the other criteria?
 
 		m2 = []
 		rad2 = []
@@ -366,56 +442,46 @@ class LSSTEBWorker(object):
 
 		logp = []
 		ecc = []
+		inc = []
+		omega = []
+		OMEGA = []
 
+		rmag = [] #so that I can use this rmag for binaries that don't pass the other criteria?
 		dist = []
 		Av = [] 
 		MH = []
-		nWarn = 0.
-		maxTol = self.mTol
+
 		while len(m1) < self.n_bin:
 			s = self.Galaxy.model.sample()
 			fb = fbFit(s['m_ini'].iloc[0]) #I think I should base this on the initial mass, since these binary fractions are for unevolved stars
 			xx = np.random.random()
 			if (xx < fb):
-				m1.append(s['Mact'].iloc[0])
-				rad1.append(getRad(s['logg'].iloc[0], s['Mact'].iloc[0]))
-				lum1.append(10.**s['logL'].iloc[0])
-				teff1.append(10.**s['logTe'].iloc[0])
-				logg1.append(s['logg'].iloc[0])
-				rmag.append(s['r_mag'].iloc[0])
+				binary = makeBinaryFromGalaxy(s)
 
-				m2Use = s['Mact'].iloc[0]*getq()
-				#rad2, lum2, teff2 need to be drawn from TRILEGAL given m2
-				done = False
-				mTolUse = self.mTol
-				counter = 0.
-				while (not done):
-					df_sort = self.Galaxy.model.loc[ (self.Galaxy.model['Mact'] - m2Use).abs() < mTolUse]
-					if (len(df_sort) > 0):
-						done = True
-						ss = df_sort.sample()
-						m2.append(ss['Mact'].iloc[0])
-						rad2.append(getRad(ss['logg'].iloc[0], ss['Mact'].iloc[0]))
-						lum2.append(10.**ss['logL'].iloc[0])
-						teff2.append(10.**ss['logTe'].iloc[0])
-						logg2.append(ss['logg'].iloc[0])
-					else:
-						#print('WARNING: increasing tolerance', mTolUse)
-						mTolUse *=2
-						nWarn += 1
-						maxTol = np.max([mTolUse, maxTol])
-					if (counter > 100):
-						print('WARNING: did not reach tolerance, will probably die...')
-					counter += 1
-				logp.append(getlogp())
-				ecc.append(getecc())
-				
-				dist.append(10.**s['logDist'].iloc[0])
-				Av.append(s['Av'].iloc[0]) #is this measure OK?
-				MH.append(s['[M/H]'].iloc[0])
+				m1.append(binary['m1'])
+				rad1.append(binary['rad1'])
+				lum1.append(binary['lum1'])
+				teff1.append(binary['teff1'])
+				logg1.append(binary['logg1'])
 
-		if (nWarn > 0):
-			print(f'WARNING: had to increase mass tolerance {nWarn} times. Max tolerance = {maxTol}.')
+				m2.append(binary['m2'])
+				rad2.append(binary['rad2'])
+				lum2.append(binary['lum2'])
+				teff2.append(binary['teff2'])
+				logg2.append(binary['logg2'])
+
+				logp.append(binary['logp'])
+				ecc.append(binary['ecc'])
+				inc.append(binary['inc'])
+				omega.append(binary['omega'])
+				OMEGA.append(binary['OMEGA'])
+
+				rmag.append(binary['rmag'])
+				dist.append(binary['dist'])
+				Av.append(binary['Av'])
+				MH.append(binary['MH'])
+
+
 		m1 = np.array(m1)
 		rad1 = np.array(rad1)
 		lum1 = np.array(lum1)
@@ -426,22 +492,21 @@ class LSSTEBWorker(object):
 		logg2 = np.array(logg2)
 		logp = np.array(logp)
 		ecc = np.array(ecc)
+		inc = np.array(inc)
+		omega = np.array(omega)
+		OMEGA = np.array(OMEGA)
 		dist = np.array(dist)
 		Av = np.array(Av)
 		MH = np.array(MH)
+		rmag = np.array(rmag)
 
-		#random angles
-		inc = np.arccos(2.*np.random.uniform(0,1,self.n_bin) - 1.)
-		omega = np.random.uniform(0,2*np.pi,self.n_bin)
-		OMEGA = np.random.uniform(0,2*np.pi,self.n_bin)
+		#filler
 		x = np.zeros(self.n_bin)
-
 
 		#we don't need position, but we do need distance
 		output = np.vstack( (m1, m2, logp, ecc, rad1, rad2, lum1, lum2, x, x, x, dist, inc, OMEGA, omega, Av, MH, teff1, teff2, logg1, logg2, rmag) ).T
 
 		return output
-
 
 	def initialize(self, OpSimi=0):
 		if (self.seed == None):
