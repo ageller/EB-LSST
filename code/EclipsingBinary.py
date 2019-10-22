@@ -1,6 +1,7 @@
 import numpy as np
 from astropy import units, constants
 from astropy.coordinates import SkyCoord
+import pickle
 
 #######################
 #3rd party codes
@@ -46,6 +47,7 @@ class EclipsingBinary(object):
 		self.verbose = False
 		self.RV = 3.1
 		self.M_H = 0. #metallicity
+		self.TRILEGALrmag = -999. #r magnitude from TRILEGAL
 
 		#for SED
 		self.filterFilesRoot = '../input/filters/'
@@ -172,6 +174,8 @@ class EclipsingBinary(object):
 		}
 
 
+		self.magLims = [15.8, 24.] #lower and upper limits on the magnitude detection assumed for LSST: 15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
+
 		#set within the "driver" code, for gatspy
 		self.LSS = dict()
 		self.LSSmodel = dict()
@@ -179,8 +183,6 @@ class EclipsingBinary(object):
 		self.LSMmodel = None
 
 		self.seed = None
-
-
 
 
 	def getFlowerBCV(self, Teff):
@@ -438,7 +440,7 @@ class EclipsingBinary(object):
 
 	def magCheckIfObservable(self):
 
-		if (self.appMagMean['r_'] <= 15.8 or self.appMagMean['r_'] >= 24.5): #15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
+		if (self.appMagMean['r_'] <= self.magLims[0] or self.appMagMean['r_'] >= self.magLims[1]): #15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
 			self.appmag_failed = 1
 			self.observable = False
 
@@ -479,6 +481,8 @@ class EclipsingBinary(object):
 			self.appMagObsErr[f] = [None]
 			self.deltaMag[f] = 0.
 			self.obsDates[f] = [None]
+		self.appMagMean['r_'] = self.TRILEGALrmag #for binaries that don't pass the preCheck
+
 		self.maxDeltaMag = 0.
 
 		self.preCheckIfObservable()
@@ -633,3 +637,17 @@ class EclipsingBinary(object):
 		if (self.obsDates[filt][0] != None): 
 			#print("calling light curve", filt)
 			self.setLightCurve(filt)
+
+	def outputLCtoFile(self, fname):
+		obs = dict()
+		for filt in self.filters:
+			obs[filt] = dict()
+			obs[filt]['OpSimDates'] = self.obsDates[filt]
+			obs[filt]['mag'] = self.appMag[filt]
+			obs[filt]['magObs'] = self.appMagObs[filt]
+			obs[filt]['e_magObs'] = self.appMagObsErr[filt]
+
+		file = open(fname, 'wb')
+		pickle.dump(obs, file)
+		file.close()
+

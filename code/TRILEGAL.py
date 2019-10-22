@@ -37,9 +37,8 @@ class TRILEGAL(object):
 
 		self.shuffle = True
 
-	def setModel(self):
+	def downloadModel(self):
 		passed = False
-		area0 = self.area
 		while (not passed):
 			passed = trilegal_update.get_trilegal(self.tmpfname, self.RA, self.Dec, folder=self.tmpdir, galactic=False, \
 				filterset=self.filterset, area=self.area, maglim=self.maglim, binaries=self.binaries, \
@@ -47,6 +46,12 @@ class TRILEGAL(object):
 			if (not passed):
 				self.area *= 0.9
 				print(f"reducing TRILEGAL area to {self.area}...")
+
+	def setModel(self, download = True):
+		area0 = self.area
+		if (download):
+			self.downloadModel()
+
 		self.model = pd.read_hdf(os.path.join(self.tmpdir,self.tmpfname))
 		self.Nstars = len(self.model) * (area0/self.area)**2.
 
@@ -76,4 +81,4 @@ class TRILEGAL(object):
 						self.model['logDist'].values, self.model['Av'].values, self.model['[M/H]'].values))
 		self.KDE = scipy.stats.gaussian_kde(data)
 
-		print(f'downloading TRILEGAL model for ID={self.fieldID}, RA={self.RA}, DEC={self.Dec}, Nstars={self.Nstars}, Nstars/resEl={self.starsPerResEl}')
+		print(f'downloaded TRILEGAL model for ID={self.fieldID}, RA={self.RA}, DEC={self.Dec}, Nstars={self.Nstars}, Nstars/resEl={self.starsPerResEl}')
