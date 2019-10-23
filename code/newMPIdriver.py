@@ -258,16 +258,15 @@ if __name__ == "__main__":
 	
 					#define the binary parameters
 					try:
-						EB = worker.getEB(line, OpSimi=i)
+						worker.getEB(line, OpSimi=i)
 						print(f"RANK={rank}, OpSimi={i}, linej={j}, ID={worker.OpSim.fieldID[i]}, pb={EB.period}")
 		
-						if (EB.observable):
-							worker.return_dict[k] = EB
+						if (worker.EB.observable):
 							worker.run_ellc(k)
-							worker.run_gatspy(k)
-							EB = worker.return_dict[k]
+							if (worker.EB.observable):
+								worker.run_gatspy(k)
 		
-						worker.writeOutputLine(EB)
+						worker.writeOutputLine()
 						csvfile.flush()
 					except:
 						print("WARNING: bad input line", line)
