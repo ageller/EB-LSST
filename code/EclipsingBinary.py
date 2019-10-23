@@ -114,10 +114,12 @@ class EclipsingBinary(object):
 		self.appMagObs = dict()
 		self.appMagObsErr = dict()
 		self.deltaMag = dict()
+		self.eclipseDepthFrac = dict()
 		self.maxDeltaMag = 0.
 		self.useOpSimDates = True
 		self.observable = True
 		self.appmag_failed = 0
+		self.eclipseDepth_failed = 0
 		self.incl_failed = 0
 		self.period_failed = 0
 		self.radius_failed = 0
@@ -174,7 +176,9 @@ class EclipsingBinary(object):
 		}
 
 
-		self.magLims = [15.8, 24.] #lower and upper limits on the magnitude detection assumed for LSST: 15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
+		self.magLims = np.array([15.8, 24.]) #lower and upper limits on the magnitude detection assumed for LSST: 15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
+
+		self.eclipseDepthLim = 1. #depth / error
 
 		#set within the "driver" code, for gatspy
 		self.LSS = dict()
@@ -272,7 +276,8 @@ class EclipsingBinary(object):
 		return a*0.49*q**(2./3.)/(0.6*q**(2./3.) + np.log(1. + q**(1./3.)))
 
 
-	def setLightCurve(self, filt, t_vis=30., X=1.):
+	def setLightCurve(self, filt, t_vis=30., X=1., useDates=[None], useT0=None):
+		
 		def getSig2Rand(filt, magnitude, m_5 = [None]):
 			#returns 2 sigma random error based on the pass band (y-values may be wonky - need to check for seeing and 
 			# against others)
@@ -356,21 +361,26 @@ class EclipsingBinary(object):
 		# 		self.f_c, self.f_s, self.ld_1,  self.ld_2, self.R_1, self.R_2, self.inclination, self.sbratio, 
 		# 		self.shape_1, self.shape_2, self.grid_1,self.grid_2)
 
+		t_zero = self.t_zero
+		if (useT0 != None):
+			t_zero = useT0
+		dates = self.obsDates[filt]
+		if (useDates[0] != None):
+			dates = useDates
 		if (np.isfinite(ldc_1[0]) and np.isfinite(ldc_2[0])):
-			lc = ellc.lc(self.obsDates[filt], ldc_1=ldc_1, ldc_2=ldc_2, 
-				t_zero=self.t_zero, period=self.period, a=self.a, q=self.q,
+			lc = ellc.lc(dates, ldc_1=ldc_1, ldc_2=ldc_2, 
+				t_zero=t_zero, period=self.period, a=self.a, q=self.q,
 				f_c=self.f_c, f_s=self.f_s, ld_1=self.ld_1,  ld_2=self.ld_2,
 				radius_1=self.R_1, radius_2=self.R_2, incl=self.inclination, sbratio=self.sbratio, 
 				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2, light_3=self.light_3[filt]) 
 		else:
 			print(f"WARNING: nan's in ldc filter={filt}, ldc_1={ldc_1}, T1={T1}, logg1={g1}, ldc_2={ldc_2}, T2={T2}, logg2={g2}, [M/H]={MH}")
-			lc = ellc.lc(self.obsDates[filt], 
-				t_zero=self.t_zero, period=self.period, a=self.a, q=self.q,
+			lc = ellc.lc(dates, 
+				t_zero=t_zero, period=self.period, a=self.a, q=self.q,
 				f_c=self.f_c, f_s=self.f_s, 
 				radius_1=self.R_1, radius_2=self.R_2, incl=self.inclination, sbratio=self.sbratio,
 				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2, light_3=self.light_3[filt])
 
-		#print('have lc', filt, lc)
 		lc = lc/np.max(lc) #maybe there's a better normalization?
 
 		if (min(lc) > 0):
@@ -392,9 +402,13 @@ class EclipsingBinary(object):
 			# print( (self.appMagMean[filt] - 2.5*np.log10(lc)) - self.appMag[filt])
 			# raise
 
-			m_5 = [None]
+			m_5 = [None]				
 			if (self.useOpSimDates):
-				m_5 = self.m_5[filt]
+				if (self.m_5):
+					m_5 = self.m_5[filt]
+				else:
+					m_5 = np.full(len(useDates), np.mean(self.OpSim.m_5[self.OpSimi][filt]))
+
 			#Ivezic 2008, https://arxiv.org/pdf/0805.2366.pdf , Table 2
 			sigma2_rand = getSig2Rand(filt, self.appMag[filt], m_5 = m_5)   #random photometric error
 			self.appMagObsErr[filt] = ((self.sigma_sys**2.) + (sigma2_rand))**(1./2.)
@@ -403,6 +417,7 @@ class EclipsingBinary(object):
 			self.appMagObs[filt] = np.array([np.random.normal(loc=x, scale=sig) for (x,sig) in zip(self.appMag[filt], self.appMagObsErr[filt])])
 
 			self.deltaMag[filt] = abs(min(self.appMagObs[filt]) - max(self.appMagObs[filt]))
+			self.eclipseDepthFrac[filt] = abs(self.deltaMag[filt]/np.mean(self.appMagObsErr[filt]))
 
 	def preCheckIfObservable(self):
 		
@@ -436,13 +451,14 @@ class EclipsingBinary(object):
 		if (self.verbose):
 				print("precheck observable", self.observable, self.radius_failed, self.period_failed, self.incl_failed)
 	
-			
 
 	def magCheckIfObservable(self):
 
 		if (self.appMagMean['r_'] <= self.magLims[0] or self.appMagMean['r_'] >= self.magLims[1]): #15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
 			self.appmag_failed = 1
 			self.observable = False
+
+			#print("checking mag", self.appMagMean['r_'], self.observable)
 
 		if (self.verbose):
 			print("mag observable", self.observable)
@@ -481,6 +497,7 @@ class EclipsingBinary(object):
 			self.appMagObsErr[f] = [None]
 			self.deltaMag[f] = 0.
 			self.obsDates[f] = [None]
+			self.eclipseDepthFrac[f] = 0.
 		self.appMagMean['r_'] = self.TRILEGALrmag #for binaries that don't pass the preCheck
 
 		self.maxDeltaMag = 0.
@@ -637,6 +654,11 @@ class EclipsingBinary(object):
 		if (self.obsDates[filt][0] != None): 
 			#print("calling light curve", filt)
 			self.setLightCurve(filt)
+
+			if (filt == 'r_'):
+				if (self.eclipseDepthFrac[filt] < self.eclipseDepthLim):
+					self.eclipseDepth_failed = 1
+					self.observable = False
 
 	def outputLCtoFile(self, fname):
 		obs = dict()
