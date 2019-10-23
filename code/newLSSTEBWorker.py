@@ -77,6 +77,9 @@ class LSSTEBWorker(object):
 		self.Galaxy = None
 		self.mTol = 0.001 #tolerance on the mass to draw from the trilegal sample
 
+		self.magLims = np.array([15.8, 24.]) #lower and upper limits on the magnitude detection assumed for LSST: 15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
+
+
 	def make_gatspy_plots(self, j):
 		EB = self.return_dict[j]
 
@@ -216,6 +219,7 @@ class LSSTEBWorker(object):
 
 	def getEB(self, line, OpSimi=0):
 		EB = EclipsingBinary()
+		EB.magLims = self.magLims
 
 		EB.Galaxy = self.Galaxy
 		
@@ -456,7 +460,7 @@ class LSSTEBWorker(object):
 			fb = fbFit(s['m_ini'].iloc[0]) #I think I should base this on the initial mass, since these binary fractions are for unevolved stars
 			xx = np.random.random()
 			if (xx < fb):
-				binary = makeBinaryFromGalaxy(s)
+				binary = self.makeBinaryFromGalaxy(s)
 
 				m1.append(binary['m1'])
 				rad1.append(binary['rad1'])

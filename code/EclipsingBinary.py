@@ -174,7 +174,7 @@ class EclipsingBinary(object):
 		}
 
 
-		self.magLims = [15.8, 24.] #lower and upper limits on the magnitude detection assumed for LSST: 15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
+		self.magLims = np.array([15.8, 24.]) #lower and upper limits on the magnitude detection assumed for LSST: 15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
 
 		#set within the "driver" code, for gatspy
 		self.LSS = dict()
@@ -436,13 +436,14 @@ class EclipsingBinary(object):
 		if (self.verbose):
 				print("precheck observable", self.observable, self.radius_failed, self.period_failed, self.incl_failed)
 	
-			
 
 	def magCheckIfObservable(self):
 
 		if (self.appMagMean['r_'] <= self.magLims[0] or self.appMagMean['r_'] >= self.magLims[1]): #15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
 			self.appmag_failed = 1
 			self.observable = False
+
+		#print("checking mag", self.appMagMean['r_'], self.magLims, self.observable)
 
 		if (self.verbose):
 			print("mag observable", self.observable)
