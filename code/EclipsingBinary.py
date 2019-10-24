@@ -178,7 +178,7 @@ class EclipsingBinary(object):
 
 		self.magLims = np.array([15.8, 24.]) #lower and upper limits on the magnitude detection assumed for LSST: 15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
 
-		self.eclipseDepthLim = 1. #depth / error
+		self.eclipseDepthLim = 3. #depth / error
 
 		#set within the "driver" code, for gatspy
 		self.LSS = dict()
@@ -417,7 +417,9 @@ class EclipsingBinary(object):
 			self.appMagObs[filt] = np.array([np.random.normal(loc=x, scale=sig) for (x,sig) in zip(self.appMag[filt], self.appMagObsErr[filt])])
 
 			self.deltaMag[filt] = abs(min(self.appMagObs[filt]) - max(self.appMagObs[filt]))
-			self.eclipseDepthFrac[filt] = abs(self.deltaMag[filt]/np.mean(self.appMagObsErr[filt]))
+			maxpos = np.argmax(self.appMagObs[filt])
+			#self.eclipseDepthFrac[filt] = abs(self.deltaMag[filt]/np.mean(self.appMagObsErr[filt]))
+			self.eclipseDepthFrac[filt] = abs(self.deltaMag[filt]/self.appMagObsErr[filt][maxpos])
 
 	def preCheckIfObservable(self):
 		
