@@ -286,15 +286,25 @@ if __name__ == "__main__":
 					rhObs += rhObs0/Nall*Nmult
 
 					#Rec
-					for f in filters:
-						key = f+'LSS_PERIOD'
-						if (f == 'all'):
+					recCombined = pd.DataFrame()
+					prsaRecCombined = pd.DataFrame()
+					for filt in filters:
+						key = filt+'LSS_PERIOD'
+						if (filt == 'all'):
 							key = 'LSM_PERIOD'
 						fullP = abs(data[key] - data['p'])/data['p']
 						halfP = abs(data[key] - 0.5*data['p'])/(0.5*data['p'])
 						twiceP = abs(data[key] - 2.*data['p'])/(2.*data['p'])
 						rec = data.loc[(data[key] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
+						prsaRec = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] >15.8) & (data['p'] < 1000) & (data['p'] >0.5) & (data['LSM_PERIOD'] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
 						Nrec = len(rec.index)
+
+						#I'd like to account for all filters here to have more accurate numbers
+						recCombined = recCombined.append(rec)
+						prsaRecCombined = prsaRecCombined.append(prsaRec)
+						if (filt == 'all'):
+							recCombined.drop_duplicates(inplace=True)
+							prsaRecCombined.drop_duplicates(inplace=True)
 
 						if (Nrec >= Nlim):
 							m1hRec0, m1b = np.histogram(rec["m1"], bins=mbins)
@@ -314,6 +324,7 @@ if __name__ == "__main__":
 
 							#for the mollweide
 							if (f == 'all'):
+								Nrec = len(recCombined.index)
 								rF = Nrec/Nall
 								rN = Nrec/Nall*Nmult
 								raN = Nmult
@@ -322,8 +333,7 @@ if __name__ == "__main__":
 								fioN = Nobs
 								firN = Nrec
 
-								prsaRec = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] >15.8) & (data['p'] < 1000) & (data['p'] >0.5) & (data['LSM_PERIOD'] != -999) & ( (fullP < Pcut) | (halfP < Pcut) | (twiceP < Pcut))]
-								NrecPrsa = len(prsaRec.index)
+								NrecPrsa = len(prsaRecCombined.index)
 								NrecPrsa = NrecPrsa/Nall*Nmult
 								NobsPrsa = NobsPrsa/Nall*Nmult
 								NallPrsa = NallPrsa/Nall*Nmult		
