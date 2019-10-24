@@ -416,9 +416,11 @@ class EclipsingBinary(object):
 			#now add the uncertainty onto the magnitude
 			self.appMagObs[filt] = np.array([np.random.normal(loc=x, scale=sig) for (x,sig) in zip(self.appMag[filt], self.appMagObsErr[filt])])
 
-			self.deltaMag[filt] = abs(min(self.appMagObs[filt]) - max(self.appMagObs[filt]))
-			maxpos = np.argmax(self.appMagObs[filt])
+			#self.deltaMag[filt] = abs(min(self.appMagObs[filt]) - max(self.appMagObs[filt]))
 			#self.eclipseDepthFrac[filt] = abs(self.deltaMag[filt]/np.mean(self.appMagObsErr[filt]))
+			maxpos = np.argmax(self.appMagObs[filt])
+			base = -2.5*np.log10(Fv) + self.Ared[filt] #AB magnitude 
+			self.deltaMag[filt] = abs(self.appMagObs[filt][maxpos] - base)
 			self.eclipseDepthFrac[filt] = abs(self.deltaMag[filt]/self.appMagObsErr[filt][maxpos])
 
 	def preCheckIfObservable(self):
