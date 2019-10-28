@@ -236,7 +236,7 @@ if __name__ == "__main__":
 
 			#write header, this will not contain the galaxy Nstars number
 			if (not append and not passed):
-				worker.writeOutputLine(None, OpSimi=i, header=True)
+				worker.writeOutputLine(OpSimi=i, header=True)
 				csvfile.flush()
 
 			if (passed):
@@ -248,7 +248,7 @@ if __name__ == "__main__":
 
 				#write header, this will  contain the galaxy Nstars number
 				if (not append):
-					worker.writeOutputLine(None, OpSimi=i, header=True)
+					worker.writeOutputLine(OpSimi=i, header=True)
 					csvfile.flush()
 
 				print(f'Nlines in gxDate={len(gxDat)} for ID={worker.OpSim.fieldID[i]}')
@@ -271,7 +271,7 @@ if __name__ == "__main__":
 					except:
 						print("WARNING: bad input line", line)
 			else:
-				worker.writeOutputLine(None, OpSimi=i, noRun=True)
+				worker.writeOutputLine(OpSimi=i, noRun=True)
 				csvfile.flush()
 	
 	
