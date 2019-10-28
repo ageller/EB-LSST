@@ -44,6 +44,7 @@ class LSSTEBClusterWorker(object):
 		self.filters = ['u_', 'g_', 'r_', 'i_', 'z_', 'y_']
 
 		self.OpSim = None
+		self.EB = None
 
 		self.n_bin = 100000
 		self.n_band = 2
@@ -54,8 +55,6 @@ class LSSTEBClusterWorker(object):
 		self.dbFile = '../input/db/baseline2018a.db' #for the OpSim database
 		self.filterFilesRoot = '../input/filters/'
 
-		#dictionaries -- could be handled by the multiprocessing manager, redefined in driver
-		self.return_dict = dict()
 
 		self.csvwriter = None #will hold the csvwriter object
 
@@ -84,7 +83,6 @@ class LSSTEBClusterWorker(object):
 		self.clusterAV = [None]
 
 	def make_gatspy_plots(self, j):
-		EB = self.return_dict[j]
 
 		#colors = ['C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9']
 		#print([ matplotlib.colors.to_hex(c) for c in colors])
@@ -92,18 +90,18 @@ class LSSTEBClusterWorker(object):
 
 		f, ax = plt.subplots(len(self.filters)+1, 2)
 
-		LSM = EB.LSM
-		period = EB.period
+		LSM = self.EB.LSM
+		period = self.EB.period
 		pds = np.linspace(0.2, 2.*period, 10000)
 		for ii,filt in enumerate(self.filters):
 
-			#drng = max(EB.obsDates[filt]) - min(EB.obsDates[filt])
+			#drng = max(self.EB.obsDates[filt]) - min(self.EB.obsDates[filt])
 
-			phase_obs = np.array([(tt % period)/period for tt in EB.obsDates[filt]])
-			scores = EB.LSSmodel[filt].score(pds)
-			mag_obs = EB.appMagObs[filt]
-			mag = EB.appMag[filt]
-			LSS = EB.LSS[filt]
+			phase_obs = np.array([(tt % period)/period for tt in self.EB.obsDates[filt]])
+			scores = self.EB.LSSmodel[filt].score(pds)
+			mag_obs = self.EB.appMagObs[filt]
+			mag = self.EB.appMag[filt]
+			LSS = self.EB.LSS[filt]
 
 			sx = np.argsort(phase_obs)
 			ax[ii][0].plot(phase_obs[sx], np.array(mag_obs)[sx], 'o', mfc='none', mec = colors[ii])
@@ -123,7 +121,7 @@ class LSSTEBClusterWorker(object):
 
 		if (self.doLSM):
 			plt.locator_params(axis='y', nticks=2)
-			P_multi = EB.LSMmodel.periodogram(pds)
+			P_multi = self.EB.LSMmodel.periodogram(pds)
 			ii = len(self.filters)
 			ax[ii][1].plot(pds, P_multi, color = colors[ii])
 			ax[ii][1].set_xlim(0, 2.*period)
@@ -140,10 +138,19 @@ class LSSTEBClusterWorker(object):
 		f.savefig("lc_gatspy_fig_"+str(self.seed).rjust(10,'0')+".png", bbox_inches='tight')
 
 
-	def run_ellc_gatspy(self, j):
-		#this is the general simulation - ellc light curves and gatspy periodograms
+	def run_ellc(self, j=0):
+		for i, filt in enumerate(self.filters):
 
-		EB = self.return_dict[j]
+			#observe the EB (get dates, create the light curve for this filter)
+			#print("checking observe", filt, self.EB.obsDates[filt][0])
+			self.EB.appMagObs[filt] = [0.]
+			self.EB.appMagObsErr[filt] = [0.]
+			self.EB.deltaMag[filt] = [0.]
+
+			self.EB.observe(filt)
+
+	def run_gatspy(self, j=0):
+		#this is the general simulation - ellc light curves and gatspy periodograms
 
 		#for the multiband gatspy fit
 		allObsDates = np.array([])
@@ -157,43 +164,36 @@ class LSSTEBClusterWorker(object):
 
 		for i, filt in enumerate(self.filters):
 
-			#observe the EB (get dates, create the light curve for this filter)
-			#print("checking observe", filt, EB.obsDates[filt][0])
-			EB.appMagObs[filt] = [0.]
-			EB.appMagObsErr[filt] = [0.]
-			EB.deltaMag[filt] = [0.]
-			EB.LSS[filt] = -999.
+			self.EB.LSS[filt] = -999.
 
-			EB.observe(filt)
-
-			if (EB.obsDates[filt][0] != None and min(EB.appMagObs[filt]) > 0):
+			if (self.EB.obsDates[filt][0] != None and min(self.EB.appMagObs[filt]) > 0):
 
 				#run gatspy for this filter
-				drng = max(EB.obsDates[filt]) - min(EB.obsDates[filt])
-				minNobs = min(minNobs, len(EB.obsDates[filt]))
-				#print("filter, nobs", filt, len(EB.obsDates[filt]))
-				if (self.useFast and len(EB.obsDates[filt]) > 50):
+				drng = max(self.EB.obsDates[filt]) - min(self.EB.obsDates[filt])
+				minNobs = min(minNobs, len(self.EB.obsDates[filt]))
+				#print("filter, nobs", filt, len(self.EB.obsDates[filt]))
+				if (self.useFast and len(self.EB.obsDates[filt]) > 50):
 					model = LombScargleFast(fit_period = True, silence_warnings=True, optimizer_kwds={"quiet": True})
 				else:
 					model = LombScargle(fit_period = True, optimizer_kwds={"quiet": True})
 				model.optimizer.period_range = (0.2, drng)
-				model.fit(EB.obsDates[filt], EB.appMagObs[filt], EB.appMagObsErr[filt])
-				EB.LSS[filt] = model.best_period
-				EB.LSSmodel[filt] = model
-				EB.maxDeltaMag = max(EB.deltaMag[filt], EB.maxDeltaMag)
+				model.fit(self.EB.obsDates[filt], self.EB.appMagObs[filt], self.EB.appMagObsErr[filt])
+				self.EB.LSS[filt] = model.best_period
+				self.EB.LSSmodel[filt] = model
+				self.EB.maxDeltaMag = max(self.EB.deltaMag[filt], self.EB.maxDeltaMag)
 
 				#to use for the multiband fit
-				allObsDates = np.append(allObsDates, EB.obsDates[filt])
-				allAppMagObs = np.append(allAppMagObs, EB.appMagObs[filt])
-				allAppMagObsErr = np.append(allAppMagObsErr, EB.appMagObsErr[filt])
-				allObsFilters = np.append(allObsFilters, np.full(len(EB.obsDates[filt]), filt))
+				allObsDates = np.append(allObsDates, self.EB.obsDates[filt])
+				allAppMagObs = np.append(allAppMagObs, self.EB.appMagObs[filt])
+				allAppMagObsErr = np.append(allAppMagObsErr, self.EB.appMagObsErr[filt])
+				allObsFilters = np.append(allObsFilters, np.full(len(self.EB.obsDates[filt]), filt))
 
 				if (self.verbose): 
 					print(j, 'filter = ', filt)  
-					print(j, 'obsDates = ', EB.obsDates[filt][0:10])
-					print(j, 'appMagObs = ', EB.appMagObs[filt][0:10])
-					print(j, 'delta_mag = ', EB.deltaMag[filt])
-					print(j, 'LSS = ',EB.LSS[filt])
+					print(j, 'obsDates = ', self.EB.obsDates[filt][0:10])
+					print(j, 'appMagObs = ', self.EB.appMagObs[filt][0:10])
+					print(j, 'delta_mag = ', self.EB.deltaMag[filt])
+					print(j, 'LSS = ',self.EB.LSS[filt])
 
 		if (len(allObsDates) > 0 and self.doLSM): 
 			drng = max(allObsDates) - min(allObsDates)
@@ -203,88 +203,85 @@ class LSSTEBClusterWorker(object):
 				model = LombScargleMultiband(Nterms_band=self.n_band, Nterms_base=self.n_base, fit_period = True, optimizer_kwds={"quiet": True})
 			model.optimizer.period_range = (0.2, drng)
 			model.fit(allObsDates, allAppMagObs, allAppMagObsErr, allObsFilters)
-			EB.LSM = model.best_period
-			EB.LSMmodel = model
+			self.EB.LSM = model.best_period
+			self.EB.LSMmodel = model
 			if (self.verbose): 
-				print(j, 'LSM =', EB.LSM)
-
-
-		#not sure if I need to do this...
-		self.return_dict[j] = EB
-
+				print(j, 'LSM =', self.EB.LSM)
 
 
 
 	def getEB(self, line, OpSimi=0):
-		EB = EclipsingBinary()
+		self.EB = EclipsingBinary()
 
-		# EB.seed = self.seed + i
-		EB.initializeSeed()
-		EB.filterFilesRoot = self.filterFilesRoot
-		EB.filters = self.filters
+		# self.EB.seed = self.seed + i
+		self.EB.initializeSeed()
+		self.EB.filterFilesRoot = self.filterFilesRoot
+		self.EB.filters = self.filters
 
 		#solar units
-		EB.m1 = line[0]
-		EB.m2 = line[1]
-		EB.r1 = line[4]
-		EB.r2 = line[5]
-		EB.L1 = line[6]
-		EB.L2 = line[7]
-		EB.T1 = line[17]
-		EB.T2 = line[18]
-		EB.k1 = line[19]
-		EB.k2 = line[20]
-		EB.period = 10.**line[2] #days
-		EB.eccentricity = line[3]
-		EB.inclination = line[12] *180./np.pi #degrees
-		EB.OMEGA = line[13] *180./np.pi #degrees
-		EB.omega = line[14] *180./np.pi #degrees
+		self.EB.m1 = line[0]
+		self.EB.m2 = line[1]
+		self.EB.r1 = line[4]
+		self.EB.r2 = line[5]
+		self.EB.L1 = line[6]
+		self.EB.L2 = line[7]
+		self.EB.T1 = line[17]
+		self.EB.T2 = line[18]
+		self.EB.k1 = line[19]
+		self.EB.k2 = line[20]
+		self.EB.period = 10.**line[2] #days
+		self.EB.eccentricity = line[3]
+		self.EB.inclination = line[12] *180./np.pi #degrees
+		self.EB.OMEGA = line[13] *180./np.pi #degrees
+		self.EB.omega = line[14] *180./np.pi #degrees
 
-		EB.dist = line[11] #kpc
-		EB.OpSimi = OpSimi
-		EB.RA = self.OpSim.RA[OpSimi]
-		EB.Dec = self.OpSim.Dec[OpSimi]
+		self.EB.dist = line[11] #kpc
+		self.EB.OpSimi = OpSimi
+		self.EB.RA = self.OpSim.RA[OpSimi]
+		self.EB.Dec = self.OpSim.Dec[OpSimi]
 
 		if (len(line) >= 16):
-			EB.AV = line[15]
+			self.EB.AV = line[15]
 		if (len(line) >= 17):
-			EB.M_H = line[16]
+			self.EB.M_H = line[16]
 
 
-		if (EB.AV == None):
-			EB.AV = self.clusterAV[OpSimi]
+		if (self.EB.AV == None):
+			self.EB.AV = self.clusterAV[OpSimi]
 
-		EB.t_zero = np.random.random() * EB.period
+		self.EB.t_zero = np.random.random() * self.EB.period
 
 		#for observations
-		EB.useOpSimDates = self.useOpSimDates
-		EB.years = self.years
-		EB.totaltime = self.totaltime 
-		EB.cadence= self.cadence 
-		EB.Nfilters = len(self.filters)
-		EB.verbose = self.verbose
+		self.EB.useOpSimDates = self.useOpSimDates
+		self.EB.years = self.years
+		self.EB.totaltime = self.totaltime 
+		self.EB.cadence= self.cadence 
+		self.EB.Nfilters = len(self.filters)
+		self.EB.verbose = self.verbose
 		if (self.useOpSimDates):
-			#print("sending OpSim to EB", self.OpSim.obsDates)
-			EB.OpSim = self.OpSim
-		EB.initialize()
+			#print("sending OpSim to self.EB", self.OpSim.obsDates)
+			self.EB.OpSim = self.OpSim
+		self.EB.initialize()
 
-		#some counters for how many EBs we could potentially observe with LSST
+		#some counters for how many self.EBs we could potentially observe with LSST
 		self.n_totalrun += 1
-		self.n_appmag_failed += EB.appmag_failed
-		self.n_incl_failed += EB.incl_failed
-		self.n_period_failed += EB.period_failed
-		self.n_radius_failed += EB.radius_failed
+		self.n_appmag_failed += self.EB.appmag_failed
+		self.n_incl_failed += self.EB.incl_failed
+		self.n_period_failed += self.EB.period_failed
+		self.n_radius_failed += self.EB.radius_failed
 			
-		return EB
 
 
-	def writeOutputLine(self, EB, OpSimi=0, header = False, noRun = False):
-		cols = ['p', 'm1', 'm2', 'r1', 'r2', 'k1', 'k2', 'e', 'i', 'd', 'nobs','Av','[M/H]','appMagMean_r', 'maxDeltaMag', 'deltaMag_r','mag_failure', 'incl_failure', 'period_failure', 'radius_failure', 'u_LSS_PERIOD', 'g_LSS_PERIOD', 'r_LSS_PERIOD', 'i_LSS_PERIOD', 'z_LSS_PERIOD', 'y_LSS_PERIOD','LSM_PERIOD']
+	def writeOutputLine(self, OpSimi=0, header = False, noRun = False):
+		cols = ['p', 'm1', 'm2', 'r1', 'r2', 'e', 'i', 'd', 'nobs','Av','[M/H]','appMagMean_r', 'maxDeltaMag','deltaMag_r','eclipseDepthFrac_r','mag_failure', 'incl_failure', 'period_failure', 'radius_failure', 'eclipseDepth_failure', 'u_LSS_PERIOD', 'g_LSS_PERIOD', 'r_LSS_PERIOD', 'i_LSS_PERIOD', 'z_LSS_PERIOD', 'y_LSS_PERIOD','LSM_PERIOD']
 		if (header):
 			if (self.useOpSimDates and self.OpSim != None):
 				print("writing header")
-				self.csvwriter.writerow(['OpSimID','OpSimRA','OpSimDec','NOpSimObs_u', 'NOpSimObs_g', 'NOpSimObs_r', 'NOpSimObs_i', 'NOpSimObs_z', 'NOpSimObs_y', 'clusterName', 'clusterMass', 'clusterDistance', 'clusterMetallicity','clusterAge', 'clusterRhm', 'clusterVdisp'])
-				self.csvwriter.writerow([self.OpSim.fieldID[OpSimi], self.OpSim.RA[OpSimi], self.OpSim.Dec[OpSimi], self.OpSim.NobsDates[OpSimi]['u_'], self.OpSim.NobsDates[OpSimi]['g_'], self.OpSim.NobsDates[OpSimi]['r_'], self.OpSim.NobsDates[OpSimi]['i_'], self.OpSim.NobsDates[OpSimi]['z_'], self.OpSim.NobsDates[OpSimi]['y_'], self.clusterName[OpSimi], self.clusterMass[OpSimi], self.clusterDistance[OpSimi], self.clusterMetallicity[OpSimi], self.clusterAge[OpSimi], self.clusterRhm[OpSimi], self.clusterVdisp[OpSimi]])
+				ng = 0
+				if (self.Galaxy != None):
+					ng = self.Galaxy.Nstars
+				self.csvwriter.writerow(['OpSimID','OpSimRA','OpSimDec','NstarsTRILEGAL', 'NOpSimObs_u', 'NOpSimObs_g', 'NOpSimObs_r', 'NOpSimObs_i', 'NOpSimObs_z', 'NOpSimObs_y'])
+				self.csvwriter.writerow([self.OpSim.fieldID[OpSimi], self.OpSim.RA[OpSimi], self.OpSim.Dec[OpSimi], ng, self.OpSim.NobsDates[OpSimi]['u_'], self.OpSim.NobsDates[OpSimi]['g_'], self.OpSim.NobsDates[OpSimi]['r_'], self.OpSim.NobsDates[OpSimi]['i_'], self.OpSim.NobsDates[OpSimi]['z_'], self.OpSim.NobsDates[OpSimi]['y_']])
 
 			output = cols
 
@@ -292,14 +289,16 @@ class LSSTEBClusterWorker(object):
 			output = [-1 for x in range(len(cols))]
 
 		else:
-			output = [EB.period, EB.m1, EB.m2, EB.r1, EB.r2, EB.k1, EB.k2, EB.eccentricity, EB.inclination, EB.dist, EB.nobs, EB.AV, EB.M_H, EB.appMagMean['r_'], EB.maxDeltaMag, EB.deltaMag['r_'],EB.appmag_failed, EB.incl_failed, EB.period_failed, EB.radius_failed]
+			output = [self.EB.period, self.EB.m1, self.EB.m2, self.EB.r1, self.EB.r2, self.EB.eccentricity, self.EB.inclination, self.EB.dist, self.EB.nobs, self.EB.AV, self.EB.M_H, self.EB.appMagMean['r_'], self.EB.maxDeltaMag, self.EB.deltaMag['r_'], self.EB.eclipseDepthFrac['r_'], self.EB.appmag_failed, self.EB.incl_failed, self.EB.period_failed, self.EB.radius_failed, self.EB.eclipseDepth_failed]
 
-			#this is for gatspt
+			#this is for gatspy
 			for filt in self.filters:
-				output.append(EB.LSS[filt]) 
-			output.append(EB.LSM) 
+				output.append(self.EB.LSS[filt]) 
+			output.append(self.EB.LSM) 
 
 		self.csvwriter.writerow(output)	
+
+
 
 	def sampleCluster(self, i):
 		"""
