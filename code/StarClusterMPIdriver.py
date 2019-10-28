@@ -286,7 +286,7 @@ if __name__ == "__main__":
 
 			#write header
 			if (not append):
-				worker.writeOutputLine(None, OpSimi=i, header=True)
+				worker.writeOutputLine(OpSimi=i, header=True)
 				csvfile.flush()
 
 			if (passed):
@@ -300,18 +300,18 @@ if __name__ == "__main__":
 				for j, line in enumerate(clusterDat):
 
 					#define the binary parameters
-					EB = worker.getEB(line, OpSimi=i)
+					worker.getEB(line, OpSimi=i)
 					print(f"RANK={rank}, OpSimi={i}, linej={j}, ID={worker.OpSim.fieldID[i]}, pb={EB.period}")
 	
-					if (EB.observable):
-						worker.return_dict[k] = EB
-						worker.run_ellc_gatspy(k)
-						EB = worker.return_dict[k]
+					if (worker.EB.observable):
+						worker.run_ellc(k)
+						if (worker.EB.observable):
+							worker.run_gatspy(k)
 	
-					worker.writeOutputLine(EB)
+					worker.writeOutputLine()
 					csvfile.flush()
 			else:
-				worker.writeOutputLine(None, OpSimi=i, noRun=True)
+				worker.writeOutputLine(OpSimi=i, noRun=True)
 				csvfile.flush()
 	
 	
