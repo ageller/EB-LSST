@@ -50,6 +50,7 @@ def apply_args(worker, args):
 		worker.seed = args.seed
 
 def file_len(fname):
+	i = -1
 	with open(fname) as f:
 		for i, l in enumerate(f):
 			pass
@@ -301,7 +302,7 @@ if __name__ == "__main__":
 
 					#define the binary parameters
 					worker.getEB(line, OpSimi=i)
-					print(f"RANK={rank}, OpSimi={i}, linej={j}, ID={worker.OpSim.fieldID[i]}, pb={EB.period}")
+					print(f"RANK={rank}, OpSimi={i}, linej={j}, ID={worker.OpSim.fieldID[i]}, pb={worker.EB.period}")
 	
 					if (worker.EB.observable):
 						worker.run_ellc(k)

@@ -277,11 +277,9 @@ class LSSTEBClusterWorker(object):
 		if (header):
 			if (self.useOpSimDates and self.OpSim != None):
 				print("writing header")
-				ng = 0
-				if (self.Galaxy != None):
-					ng = self.Galaxy.Nstars
-				self.csvwriter.writerow(['OpSimID','OpSimRA','OpSimDec','NstarsTRILEGAL', 'NOpSimObs_u', 'NOpSimObs_g', 'NOpSimObs_r', 'NOpSimObs_i', 'NOpSimObs_z', 'NOpSimObs_y'])
-				self.csvwriter.writerow([self.OpSim.fieldID[OpSimi], self.OpSim.RA[OpSimi], self.OpSim.Dec[OpSimi], ng, self.OpSim.NobsDates[OpSimi]['u_'], self.OpSim.NobsDates[OpSimi]['g_'], self.OpSim.NobsDates[OpSimi]['r_'], self.OpSim.NobsDates[OpSimi]['i_'], self.OpSim.NobsDates[OpSimi]['z_'], self.OpSim.NobsDates[OpSimi]['y_']])
+				self.csvwriter.writerow(['OpSimID','OpSimRA','OpSimDec','NOpSimObs_u', 'NOpSimObs_g', 'NOpSimObs_r', 'NOpSimObs_i', 'NOpSimObs_z', 'NOpSimObs_y', 'clusterName', 'clusterMass', 'clusterDistance', 'clusterMetallicity','clusterAge', 'clusterRhm', 'clusterVdisp'])
+				self.csvwriter.writerow([self.OpSim.fieldID[OpSimi], self.OpSim.RA[OpSimi], self.OpSim.Dec[OpSimi], self.OpSim.NobsDates[OpSimi]['u_'], self.OpSim.NobsDates[OpSimi]['g_'], self.OpSim.NobsDates[OpSimi]['r_'], self.OpSim.NobsDates[OpSimi]['i_'], self.OpSim.NobsDates[OpSimi]['z_'], self.OpSim.NobsDates[OpSimi]['y_'], self.clusterName[OpSimi], self.clusterMass[OpSimi], self.clusterDistance[OpSimi], self.clusterMetallicity[OpSimi], self.clusterAge[OpSimi], self.clusterRhm[OpSimi], self.clusterVdisp[OpSimi]])
+
 
 			output = cols
 
