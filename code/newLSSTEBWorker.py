@@ -326,12 +326,18 @@ class LSSTEBWorker(object):
 		teff1 = 10.**s['logTe'].iloc[0]
 		logg1 = s['logg'].iloc[0]
 		rmag = s['r_mag'].iloc[0]
+		m2 = None
+		rad2 = None
+		lum2 = None
+		teff2 = None
+		logg2 = None
 
 		m2Use = s['Mact'].iloc[0]*getq()
 		done = False
 		mTolUse = self.mTol
 		counter = 0.
-		while (not done):
+		maxCount = 100
+		while (not done) and (counter < maxCount):
 			df_sort = self.Galaxy.model.loc[ (self.Galaxy.model['Mact'] - m2Use).abs() < mTolUse]
 			if (len(df_sort) > 0):
 				done = True
@@ -346,8 +352,9 @@ class LSSTEBWorker(object):
 				mTolUse *=2
 				nWarn += 1
 				maxTol = np.max([mTolUse, maxTol])
-			if (counter > 100):
+			if (counter > maxCount):
 				print('WARNING: did not reach tolerance, will probably die...')
+				done = True
 			counter += 1
 		if (maxTol > 0.1):
 			print(f'WARNING: had to increase mass tolerance {nWarn} times. Max tolerance = {maxTol}.')
@@ -430,35 +437,37 @@ class LSSTEBWorker(object):
 		Av = [] 
 		MH = []
 
-		while len(m1) < self.n_bin:
+		Ntrial = 0 #for safety
+		while (len(m1) < self.n_bin) and (Ntrial < 100*self.n_bin):
+			Ntrial += 1
 			s = self.Galaxy.model.sample()
 			fb = fbFit(s['m_ini'].iloc[0]) #I think I should base this on the initial mass, since these binary fractions are for unevolved stars
 			xx = np.random.random()
 			if (xx < fb):
 				binary = self.makeBinaryFromGalaxy(s)
+				if (binary['m2'] != None):
+					m1.append(binary['m1'])
+					rad1.append(binary['rad1'])
+					lum1.append(binary['lum1'])
+					teff1.append(binary['teff1'])
+					logg1.append(binary['logg1'])
 
-				m1.append(binary['m1'])
-				rad1.append(binary['rad1'])
-				lum1.append(binary['lum1'])
-				teff1.append(binary['teff1'])
-				logg1.append(binary['logg1'])
+					m2.append(binary['m2'])
+					rad2.append(binary['rad2'])
+					lum2.append(binary['lum2'])
+					teff2.append(binary['teff2'])
+					logg2.append(binary['logg2'])
 
-				m2.append(binary['m2'])
-				rad2.append(binary['rad2'])
-				lum2.append(binary['lum2'])
-				teff2.append(binary['teff2'])
-				logg2.append(binary['logg2'])
+					logp.append(binary['logp'])
+					ecc.append(binary['ecc'])
+					inc.append(binary['inc'])
+					omega.append(binary['omega'])
+					OMEGA.append(binary['OMEGA'])
 
-				logp.append(binary['logp'])
-				ecc.append(binary['ecc'])
-				inc.append(binary['inc'])
-				omega.append(binary['omega'])
-				OMEGA.append(binary['OMEGA'])
-
-				rmag.append(binary['rmag'])
-				dist.append(binary['dist'])
-				Av.append(binary['Av'])
-				MH.append(binary['MH'])
+					rmag.append(binary['rmag'])
+					dist.append(binary['dist'])
+					Av.append(binary['Av'])
+					MH.append(binary['MH'])
 
 
 		m1 = np.array(m1)
