@@ -608,18 +608,18 @@ class EclipsingBinary(object):
 			self.SEDsingle = SED()
 			self.SEDsingle.filters = self.filters
 			self.SEDsingle.filterFilesRoot = self.filterFilesRoot
-			self.SEDsingle.T = 10.**s['logTe'].iloc[0]*units.K
-			self.SEDsingle.R = getRad(s['logg'].iloc[0], s['Mact'].iloc[0])*units.solRad
-			self.SEDsingle.L = 10.**s['logL'].iloc[0]*units.solLum
-			self.SEDsingle.logg = s['logg'].iloc[0]
-			self.SEDsingle.M_H = s['[M/H]'].iloc[0]
-			self.SEDsingle.EBV = s['Av'].iloc[0]/self.RV #could use this to account for reddening in SED
+			self.SEDsingle.T = 10.**s['logTe']*units.K
+			self.SEDsingle.R = getRad(s['logg'], s['Mact'])*units.solRad
+			self.SEDsingle.L = 10.**s['logL']*units.solLum
+			self.SEDsingle.logg = s['logg']
+			self.SEDsingle.M_H = s['[M/H]']
+			self.SEDsingle.EBV = s['Av']/self.RV #could use this to account for reddening in SED
 			self.SEDsingle.initialize()
 
 			#one option for getting the extinction
 			Lconst = self.SED.getLconst()
 			for f in self.filters:
-				Fv3[f] += self.SEDsingle.getFvAB(10.**s['logDist'].iloc[0]*units.kpc, f, Lconst = Lconst)
+				Fv3[f] += self.SEDsingle.getFvAB(10.**s['logDist']*units.kpc, f, Lconst = Lconst)
 
 
 		for f in self.filters:
