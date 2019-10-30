@@ -314,13 +314,13 @@ if __name__ == "__main__":
 							dhRec0, db = np.histogram(rec["d"], bins=dbins)
 							maghRec0, magb = np.histogram(rec["appMagMean_r"], bins=magbins)
 							rhRec0, rb = np.histogram(rec["r2"]/rec["r1"], bins=rbins)
-							m1hRec[f] += m1hRec0/Nall*Nmult
-							qhRec[f] += qhRec0/Nall*Nmult
-							ehRec[f] += ehRec0/Nall*Nmult
-							lphRec[f] += lphRec0/Nall*Nmult
-							dhRec[f] += dhRec0/Nall*Nmult
-							maghRec[f] += maghRec0/Nall*Nmult
-							rhRec[f] += rhRec0/Nall*Nmult
+							m1hRec[filt] += m1hRec0/Nall*Nmult
+							qhRec[filt] += qhRec0/Nall*Nmult
+							ehRec[filt] += ehRec0/Nall*Nmult
+							lphRec[filt] += lphRec0/Nall*Nmult
+							dhRec[filt] += dhRec0/Nall*Nmult
+							maghRec[filt] += maghRec0/Nall*Nmult
+							rhRec[filt] += rhRec0/Nall*Nmult
 
 							#for the mollweide
 							if (f == 'all'):
