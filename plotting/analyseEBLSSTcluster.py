@@ -264,9 +264,9 @@ if __name__ == "__main__":
 				m1val = m1b[:-1] + dm1/2.
 				fb = np.sum(m1hAll0/len(data.index)*fbFit(m1val))
 				#account for the hard-soft boundary
-				Phs = getPhs(header['clusterVdisp']).to(units.day).value
-				fb *= RagNormal(np.log10(Phs, cdf = True)
-				print("fb = ", fb)
+				Phs = getPhs(header['clusterVdisp'].iloc[0]*units.km/units.s).to(units.day).value
+				fb *= RagNormal(np.log10(Phs), cdf = True)
+				print("fb, Phs = ", fb, Phs)
 				Nmult *= fb
 
 							
