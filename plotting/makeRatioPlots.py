@@ -69,6 +69,7 @@ def plotHist(histAll, histObs, histRec, bin_edges, xtitle, fname):
 	ax1.legend(handles=[lAll, lObs, lRec, lObsAll, lRecAll, lRecObs], loc='lower right')
 
 	f.subplots_adjust(hspace=0)
+	print(fname)
 	f.savefig(fname+'_ratio.pdf',format='pdf', bbox_inches = 'tight')
 
 
@@ -94,4 +95,4 @@ if __name__ == "__main__":
 	plotHist(data['histAll'].values, data['histObs'].values, data['allhistRec'].values, data['binEdges'].values, r'r$_2$/r$_1$', 'EBLSST_rhist_final')
 
 	data = pd.read_csv('EBLSST_maghist.csv')
-	plotHist(data['histAll'].values, data['histObs'].values, data['allhistRec'].values, data['binEdges'].values, r'$r_$ [mag]', 'EBLSST_maghist_final')
+	plotHist(data['histAll'].values, data['histObs'].values, data['allhistRec'].values, data['binEdges'].values, r'$r$_ [mag]', 'EBLSST_maghist_final')
