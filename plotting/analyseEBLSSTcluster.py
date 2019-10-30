@@ -266,7 +266,7 @@ if __name__ == "__main__":
 				#account for the hard-soft boundary
 				Phs = getPhs(header['clusterVdisp'].iloc[0]*units.km/units.s).to(units.day).value
 				fb *= RagNormal(np.log10(Phs), cdf = True)
-				print("fb, Phs = ", fb, Phs)
+				print("fb, Nbins, log10(Phs) = ", fb, len(data.index), np.log10(Phs))
 				Nmult *= fb
 
 							
