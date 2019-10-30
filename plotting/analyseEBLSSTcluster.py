@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 import os
 from astropy.coordinates import SkyCoord
-from astropy import units
+from astropy import units, constants
 from astropy.modeling import models, fitting
 import scipy.stats
 from scipy.integrate import quad
@@ -27,6 +27,11 @@ def file_len(fname):
 			pass
 	return i + 1
 
+def getPhs(sigma, m1=1*units.solMass, m2=1*units.solMass, m3=0.5*units.solMass):
+	Phs = np.pi*constants.G/np.sqrt(2.)*(m1*m2/m3)**(3./2.)*(m1 + m2)**(-0.5)*sigma**(-3.)
+	return Phs.decompose().to(units.day)
+
+#similar to field, but limiting by the hard-soft boundary
 def fitRagfb():
 	x = [0.05, 0.1, 1, 8, 15]  #estimates of midpoints in bins, and using this: https://sites.uni.edu/morgans/astro/course/Notes/section2/spectralmasses.html
 	y = [0.20, 0.35, 0.50, 0.70, 0.75]
@@ -36,10 +41,14 @@ def fitRagfb():
 
 	return fit
 
-def RagNormal(x):
+def RagNormal(x, cdf = False):
 	mean = 5.03
 	std = 2.28
+	if (cdf):
+		return scipy.stats.norm.cdf(x,mean,std)
+
 	return scipy.stats.norm.pdf(x,mean,std)
+
 
 def saveHist(histAll, histObs, histRec, bin_edges, xtitle, fname, filters = ['u_', 'g_', 'r_', 'i_', 'z_', 'y_','all']):
 	c1 = '#0294A5'  #turqoise
@@ -119,6 +128,9 @@ if __name__ == "__main__":
 
 	#cutoff in percent error for "recovered"
 	Pcut = 0.1
+
+	#assumed mean stellar mass
+	mMean = 0.5
 
 	#minimum number of lines to consider in file
 	Nlim = 3
@@ -203,8 +215,7 @@ if __name__ == "__main__":
 	######################
 	#NEED TO ACCOUNT FOR THE BINARY FRACTION when combining histograms
 	#####################
-	# Also, this weights those near the galactic plane sooo highly (and these are usually poorly recovered), that the resulting histograms are VERY noisy (since we're basically just looking at a few fields new to galactic plane)
-			Nmult = header['NstarsTRILEGAL'][0]
+			Nmult = header['clusterMass'][0]/mMean
 			#Nmult = 1.
 
 			RA.append(header['OpSimRA'])
@@ -252,7 +263,10 @@ if __name__ == "__main__":
 				dm1 = np.diff(m1b)
 				m1val = m1b[:-1] + dm1/2.
 				fb = np.sum(m1hAll0/len(data.index)*fbFit(m1val))
-				#print("fb = ", fb)
+				#account for the hard-soft boundary
+				Phs = getPhs(header['clusterVdisp']).to(units.day).value
+				fb *= RagNormal(np.log10(Phs, cdf = True)
+				print("fb = ", fb)
 				Nmult *= fb
 
 							
@@ -323,7 +337,7 @@ if __name__ == "__main__":
 							rhRec[filt] += rhRec0/Nall*Nmult
 
 							#for the mollweide
-							if (f == 'all'):
+							if (filt == 'all'):
 								Nrec = len(recCombined.index)
 								rF = Nrec/Nall
 								rN = Nrec/Nall*Nmult
