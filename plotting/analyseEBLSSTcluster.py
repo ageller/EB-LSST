@@ -323,7 +323,7 @@ if __name__ == "__main__":
 							rhRec[filt] += rhRec0/Nall*Nmult
 
 							#for the mollweide
-							if (filt == 'all'):
+							if (f == 'all'):
 								Nrec = len(recCombined.index)
 								rF = Nrec/Nall
 								rN = Nrec/Nall*Nmult
