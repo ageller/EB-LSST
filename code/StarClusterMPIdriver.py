@@ -256,6 +256,7 @@ if __name__ == "__main__":
 	ofile = worker.ofile
 	k = 0
 	for i in range(len(worker.clusterName)):
+		worker.n_bin = args.n_bin
 		worker.clusterName[i] = worker.clusterName[i].replace(' ','_')
 		nme = worker.clusterName[i]
 		if (nme not in finishedIDs and worker.clusterName[i] != -1):
