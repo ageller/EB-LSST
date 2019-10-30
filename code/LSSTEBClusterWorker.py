@@ -342,6 +342,7 @@ class LSSTEBClusterWorker(object):
 			self.clusterAV = np.array([None for x in range(len(self.clusterName))])
 		
 		while (self.clusterAV[OpSimi] == None and count < 100):
+			count += 1
 			self.clusterAV[OpSimi] = extinction.get_AV_infinity(self.OpSim.RA[OpSimi], self.OpSim.Dec[OpSimi], frame='icrs')
 			if (self.clusterAV[OpSimi] == None):
 				print("WARNING: No AV found", self.OpSim.RA[OpSimi], self.OpSim.Dec[OpSimi], self.clusterAV[OpSimi], count)
