@@ -359,7 +359,11 @@ class LSSTEBWorker(object):
 		if (maxTol > 0.1):
 			print(f'WARNING: had to increase mass tolerance {nWarn} times. Max tolerance = {maxTol}.')
 		logp = getlogp()
-		ecc = getecc()
+		#some accounting for tides
+		if (logp <= 0):
+			ecc = 0.
+		else:
+			ecc = getecc()
 		
 		dist = 10.**s['logDist'].iloc[0]
 		Av = s['Av'].iloc[0] #is this measure OK?
