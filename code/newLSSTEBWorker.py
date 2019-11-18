@@ -360,7 +360,7 @@ class LSSTEBWorker(object):
 			print(f'WARNING: had to increase mass tolerance {nWarn} times. Max tolerance = {maxTol}.')
 		logp = getlogp()
 		#some accounting for tides
-		if (logp <= 0):
+		if (logp <= 1):
 			ecc = 0.
 		else:
 			ecc = getecc()
