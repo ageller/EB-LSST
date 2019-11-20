@@ -610,7 +610,7 @@ class EclipsingBinary(object):
 			self.SEDsingle.filters = self.filters
 			self.SEDsingle.filterFilesRoot = self.filterFilesRoot
 			self.SEDsingle.T = 10.**s['logTe']*units.K
-			self.SEDsingle.R = getRad(s['logg'], s['Mact'])*units.solRad
+			self.SEDsingle.R = self.getRad(s['logg'], s['Mact'])*units.solRad
 			self.SEDsingle.L = 10.**s['logL']*units.solLum
 			self.SEDsingle.logg = s['logg']
 			self.SEDsingle.M_H = s['[M/H]']
