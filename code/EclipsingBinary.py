@@ -618,7 +618,7 @@ class EclipsingBinary(object):
 			self.SEDsingle.initialize()
 
 			#one option for getting the extinction
-			Lconst = self.SED.getLconst()
+			Lconst = self.SEDsingle.getLconst()
 			for f in self.filters:
 				Fv3[f] += self.SEDsingle.getFvAB(10.**s['logDist']*units.kpc, f, Lconst = Lconst)
 
