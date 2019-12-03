@@ -1,6 +1,6 @@
 #########################
 #########################
-# Need to account for limit in input period
+# Need to account for limit in input period (done)
 #########################
 #########################
 
@@ -112,7 +112,7 @@ if __name__ == "__main__":
 	fbFit= fitRagfb()
 	print(fbFit)
 		
-	#to normalize
+	#to normalize for the difference in period
 	intAll, err = quad(RagNormal, -20, 20)
 	intCut, err = quad(RagNormal, -20, np.log10(365*10.))
 	intNorm = intCut/intAll
@@ -223,7 +223,7 @@ if __name__ == "__main__":
 			NallPrsa = 0.
 			NobsPrsa = 0.
 			NrecPrsa = 0.
-			Nall = len(data.index)/intNorm ###is this correct? (and the only place I need to normalize?)
+			Nall = len(data.index)/intNorm ###is this correct? (and the only place I need to normalize?) -- I think yes (the observed binary distribution should be cut at a period of the survey duration)
 			prsa = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] > 15.8) & (data['p'] < 1000) & (data['p'] > 0.5)]
 
 			NallPrsa = len(prsa.index)
@@ -393,6 +393,14 @@ if __name__ == "__main__":
 	cbar.set_label(r'log10(N) recovered')
 	f.savefig('mollweide_N.pdf',format='pdf', bbox_inches = 'tight')
 
+	#save it as a file if needed later
+	df = pd.DataFrame()
+	df['RA'] = RA
+	df['Dec'] = Dec
+	df['recFrac'] = recFrac
+	df['recN'] = recN
+	df.to_csv('mollweide_Npct.csv', index=False)
+
 	if (doIndividualPlots):
 		fmass.savefig('massPDFall.pdf',format='pdf', bbox_inches = 'tight')
 		fqrat.savefig('qPDFall.pdf',format='pdf', bbox_inches = 'tight')
@@ -418,4 +426,16 @@ if __name__ == "__main__":
 	print("total recovered in Prsa 15.8<r<19.5 P<1000d sample (raw, log):",np.sum(recNPrsa), np.log10(np.sum(recNPrsa)))
 	print("Prsa 15.8<r<19.5 P<1000d rec/obs*100:",np.sum(recNPrsa)/np.sum(obsNPrsa)*100.)
 
+	#save the numbers to a file
+	df = pd.DataFrame()
+	df['fileN'] = fileN
+	df['fileObsN'] = fileObsN
+	df['fileRecN'] = fileRecN
+	df['rawN'] = rawN
+	df['obsN'] = obsN
+	df['recN'] = recN
+	df['allNPrsa'] = allNPrsa
+	df['obsNPrsa'] = obsNPrsa
+	df['recNPrsa'] = recNPrsa
+	df.to_csv('numbers.csv', index=False)
 
