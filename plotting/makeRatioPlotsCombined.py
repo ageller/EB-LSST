@@ -108,7 +108,7 @@ def plotHist(histAll, histObs, allhistRec, bin_edges, histAllOD, histObsOD, allh
 
 	ax3.set_ylabel('Ratio', fontsize=16)
 	ax3.set_yscale('log')
-	ax3.set_ylim(10**-4,1)
+	ax3.set_ylim(0.5e-5,1)
 	ax3.set_xlabel(xtitle, fontsize=16)
 	ax3.set_xlim(xlim[0],xlim[1])
 

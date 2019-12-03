@@ -134,7 +134,7 @@ if __name__ == "__main__":
 
 	#bins for all the histograms
 	mbins = np.arange(0,10, 0.1, dtype='float')
-	qbins = np.arange(0,1, 0.05, dtype='float')
+	qbins = np.arange(0,2, 0.05, dtype='float')
 	ebins = np.arange(0, 1.05, 0.05, dtype='float')
 	lpbins = np.arange(-2, 10, 0.2, dtype='float')
 	dbins = np.arange(0, 40, 1, dtype='float')
