@@ -133,13 +133,12 @@ if __name__ == "__main__":
 		frad, axrad = plt.subplots()
 
 	#bins for all the histograms
-	Nbins = 25
 	mbins = np.arange(0,10, 0.1, dtype='float')
-	qbins = np.arange(0,1, 0.1, dtype='float')
+	qbins = np.arange(0,1, 0.05, dtype='float')
 	ebins = np.arange(0, 1.05, 0.05, dtype='float')
-	lpbins = np.arange(-2, 10, 0.5, dtype='float')
+	lpbins = np.arange(-2, 10, 0.2, dtype='float')
 	dbins = np.arange(0, 40, 1, dtype='float')
-	magbins = np.arange(11, 25, 1, dtype='float')
+	magbins = np.arange(11, 25, 0.5, dtype='float')
 	rbins = np.arange(0, 100, 0.2, dtype='float')
 
 	#blanks for the histograms
