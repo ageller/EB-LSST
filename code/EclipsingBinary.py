@@ -58,6 +58,9 @@ class EclipsingBinary(object):
 		self.Galaxy = None
 		self.SEDsingle = None
 
+		#for star cluster crowding model
+		self.clusterCrowding = None
+
 		#from https://www.lsst.org/scientists/keynumbers
 		#in nm
 		self.wavelength = {
@@ -591,7 +594,14 @@ class EclipsingBinary(object):
 		if (self.useOpSimDates and self.observable and self.OpSim.fieldID[0] == None):
 			self.OpSim.setFieldID(self.RA, self.Dec)
 
+		if (self.observable and self.clusterCrowding != None):
+			self.clusterCrowding.getCrowding()
+			for f in self.filters:
+				self.light_3[f] = self.clusterCrowding.backgroundFlux[f]/(self.Fv1[f] + self.Fv2[f])
+				print("cluster light_3", self.light_3)
+				
 		#if it's observable, get the contribution of the third light
+		#this could be improved using my new crowding class
 		if (self.Galaxy != None):
 			nCrowd = int(np.random.poisson(self.Galaxy.starsPerResEl))
 			if (self.observable and nCrowd >= 1):

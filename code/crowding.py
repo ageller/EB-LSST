@@ -34,11 +34,10 @@ class crowding(object):
 
 		#optional inputs
 		self.rPlummer = None #pc
-		self.Mcl = None #mSun
-		self.meanMass = 0.5 #mSun
+		self.Ncl = None #Ncluster stars
 		self.Nsing = None
-		self.xBinary = 0.
-		self.yBinary = 0.
+		self.xBinary = None
+		self.yBinary = None
 		self.random_seed = 1234
 
 		#best not to change these
@@ -73,9 +72,10 @@ class crowding(object):
 
 		if (self.rPlummer != None):
 			#draw from a Plummer star clusters distribution
-			Nstars = int(round(self.Mcl/self.meanMass))
+			if (self.xBinary == None):
+				d2D, self.xBinary, self.yBinary, self.zBinary = getd2D([rPlummer])
 
-			d2d, x, y, z = getd2D(np.ones(int(np.round(Nstars)))*self.rPlummer)
+			d2d, x, y, z = getd2D(np.ones(int(np.round(self.Ncl)))*self.rPlummer)
 			dpc = ((self.xBinary - x)**2. + (self.yBinary - y)**2.)**0.5
 			dAng =  np.array(np.arctan2(dpc, self.dist))*180./np.pi*3600.
 
@@ -165,6 +165,6 @@ class crowding(object):
 			self.backgroundMag[f] = -2.5*np.log10(self.backgroundFlux[f]) + Ared
 
 	def getCrowding(self):
+		print("getting crowding ... ")
 		self.generateSingles()
-		self.integrateFlux()
-				
+		self.integrateFlux()				

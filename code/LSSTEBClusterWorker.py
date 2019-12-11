@@ -20,6 +20,7 @@ from vespa_update import extinction
 #my code
 from EclipsingBinary import EclipsingBinary
 from OpSim import OpSim
+from crowding import crowding
 
 #Andrew's code
 from getClusterBinaries import getClusterBinaries
@@ -55,6 +56,7 @@ class LSSTEBClusterWorker(object):
 		self.dbFile = '../input/db/baseline2018a.db' #for the OpSim database
 		self.filterFilesRoot = '../input/filters/'
 
+		self.doCrowding = True
 
 		self.csvwriter = None #will hold the csvwriter object
 
@@ -81,6 +83,8 @@ class LSSTEBClusterWorker(object):
 		self.clusterVdisp = None
 
 		self.clusterAV = [None]
+
+
 
 	def make_gatspy_plots(self, j):
 
@@ -159,7 +163,7 @@ class LSSTEBClusterWorker(object):
 		allObsFilters = np.array([])
 		minNobs = 1e10
 		if (self.verbose):
-			print("in run_ellc_gatspy")
+			print("in run_gatspy")
 
 
 		for i, filt in enumerate(self.filters):
@@ -271,6 +275,16 @@ class LSSTEBClusterWorker(object):
 		self.n_radius_failed += self.EB.radius_failed
 			
 
+		#set up the crowding class
+		if (self.doCrowding):
+			self.EB.clusterCrowding = crowding()
+			self.EB.clusterCrowding.age = self.clusterAge[OpSimi]                     
+			self.EB.clusterCrowding.FeH = self.clusterMetallicity[OpSimi]
+			self.EB.clusterCrowding.dist = self.clusterDistance[OpSimi]
+			self.EB.clusterCrowding.Mcl = self.clusterMass[OpSimi]
+			self.EB.clusterCrowding.rPlummer = self.clusterRhm[OpSimi]*(2**(2./3.) - 1.)**0.5
+			self.EB.clusterCrowding.AV = self.clusterAV[OpSimi]
+			self.EB.clusterCrowding.random_seed = 1111
 
 	def writeOutputLine(self, OpSimi=0, header = False, noRun = False):
 		cols = ['p', 'm1', 'm2', 'r1', 'r2', 'e', 'i', 'd', 'nobs','Av','[M/H]','appMagMean_r', 'maxDeltaMag','deltaMag_r','eclipseDepthFrac_r','mag_failure', 'incl_failure', 'period_failure', 'radius_failure', 'eclipseDepth_failure', 'u_LSS_PERIOD', 'g_LSS_PERIOD', 'r_LSS_PERIOD', 'i_LSS_PERIOD', 'z_LSS_PERIOD', 'y_LSS_PERIOD','LSM_PERIOD']
