@@ -249,6 +249,7 @@ class EclipsingBinary(object):
 		return np.log10(m) + 4.*np.log10(T) - np.log10(L) - 10.6071
 	
 	def getLum(self, m):
+		#https://en.wikipedia.org/wiki/Mass%E2%80%93luminosity_relation
 		#(not needed with Katie's model, but included here in case needed later)
 		#use stellar mass to return stellar luminosity (not necessary, read out by Katie's work)
 		if (m<0.43):

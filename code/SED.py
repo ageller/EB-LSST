@@ -58,7 +58,7 @@ class SED(object):
 
 	def intspec(self):
 		nu = self.specModel.nu
-		dnu = np.ediff1d(nu)*-1. #because it goes in the oposite direction
+		dnu = np.ediff1d(nu)*-1. #because it goes in the opposite direction
 		fnu = np.sum(self.specModel.fnu[:-1] *dnu)
 		return fnu
 
@@ -113,6 +113,7 @@ class SED(object):
 	def getLconst(self):
 		#to account for differences between blackbody and true stellar atmosphere, if true (bolometric) luminosity is known (seems unecessary)
 		LB = self.getL()
+		#print("Lconst", LB, self.L)
 		return self.L/LB
 
 	def getFvAB(self, dist, filt, Lconst = 1.):
@@ -148,12 +149,12 @@ class SED(object):
 		# print("T, Lconst", T, self.Lconst)
 		fBv = fBf/f * self.R**2./dist**2. * Lconst
 
-		#print(f, fBf, fBv)
+		# print(f, fBf, fBv, self.R**2./dist**2., Lconst)
 
-		# mAB = -2.5*np.log10(fBv/(3631.*units.Jansky))
+		# mAB = -2.5*np.log10(fBv)
 		# print("mAB =", mAB)
 
-		return fBv
+		return fBv.decompose()
 
 	def initialize(self):
 		self.readFilters()

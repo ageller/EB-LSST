@@ -49,19 +49,17 @@ class getClusterBinaries(object):
 		self.OMEGA = None
 		self.random_seed = 0
 
-		# in case we also want singles
-		self.Nsing = 0
-		self.initialSingles = None
-		self.evolvedSingles = None
-
 		# BSE dictionary copied from cosmic's documentation (unchanged): https://cosmic-popsynth.github.io
-		self.BSEDict = {'xi': 0.5, 'bhflag': 1, 'neta': 0.5, 'windflag': 3, 'wdflag': 0, 'alpha1': 1.0, \
-		'pts1': 0.001, 'pts3': 0.02, 'pts2': 0.01, 'epsnov': 0.001, 'hewind': 1.0, 'ck': -1000, 'bwind': 0.0, 'lambdaf': 1.0, \
-		'mxns': 3.0, 'beta': -1.0, 'tflag': 1, 'acc2': 1.5, 'nsflag': 3, 'ceflag': 0, 'eddfac': 1.0, 'merger': 0, 'ifflag': 0, \
-		'bconst': -3000, 'sigma': 265.0, 'gamma': -2.0, 'ppsn': 1,\
-		 'natal_kick_array' : [-100.0,-100.0,-100.0,-100.0,-100.0,-100.0], 'bhsigmafrac' : 1.0, 'polar_kick_angle' : 90,\
-		  'qcrit_array' : [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0], 'cekickflag' : 0, \
-		  'cehestarflag' : 0, 'cemergeflag' : 0, 'ecsnp' : 2.5, 'ecsn_mlow' : 1.6, 'aic' : 1, 'sigmadiv' :-20.0}
+		# self.BSEDict = {'xi': 0.5, 'bhflag': 1, 'neta': 0.5, 'windflag': 3, 'wdflag': 0, 'alpha1': 1.0, \
+		# 'pts1': 0.001, 'pts3': 0.02, 'pts2': 0.01, 'epsnov': 0.001, 'hewind': 1.0, 'ck': -1000, 'bwind': 0.0, 'lambdaf': 1.0, \
+		# 'mxns': 3.0, 'beta': -1.0, 'tflag': 1, 'acc2': 1.5, 'nsflag': 3, 'ceflag': 0, 'eddfac': 1.0, 'merger': 0, 'ifflag': 0, \
+		# 'bconst': -3000, 'sigma': 265.0, 'gamma': -2.0, 'ppsn': 1,\
+		#  'natal_kick_array' : [-100.0,-100.0,-100.0,-100.0,-100.0,-100.0], 'bhsigmafrac' : 1.0, 'polar_kick_angle' : 90,\
+		#   'qcrit_array' : [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0], 'cekickflag' : 0, \
+		#   'cehestarflag' : 0, 'cemergeflag' : 0, 'ecsnp' : 2.5, 'ecsn_mlow' : 1.6, 'aic' : 1, 'sigmadiv' :-20.0}
+
+		self.BSEDict = {'xi': 1.0, 'bhflag': 1, 'neta': 0.5, 'windflag': 3, 'wdflag': 1, 'alpha1': 1.0, 'pts1': 0.001, 'pts3': 0.02, 'pts2': 0.01, 'epsnov': 0.001, 'hewind': 0.5, 'ck': -1000, 'bwind': 0.0, 'lambdaf': 0.5, 'mxns': 2.5, 'beta': 0.125, 'tflag': 1, 'acc2': 1.5, 'nsflag': 3, 'ceflag': 0, 'eddfac': 1.0, 'ifflag': 0, 'bconst': -3000, 'sigma': 265.0, 'gamma': -1.0, 'pisn': 45.0, 'natal_kick_array' : [-100.0,-100.0,-100.0,-100.0,-100.0,-100.0], 'bhsigmafrac' : 1.0, 'polar_kick_angle' : 90, 'qcrit_array' : [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0], 'cekickflag' : 2, 'cehestarflag' : 0, 'cemergeflag' : 0, 'ecsn' : 2.5, 'ecsn_mlow' : 1.4, 'aic' : 1, 'ussn' : 0, 'sigmadiv' :-20.0, 'qcflag' : 2, 'eddlimflag' : 0, 'fprimc_array' : [2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0], 'bhspinflag' : 0, 'bhspinmag' : 0.0, 'rejuv_fac' : 1.0, 'rejuvflag' : 0, 'htpmb' : 1, 'ST_cr' : 1, 'ST_tide' : 0, 'bdecayfac' : 1}
+
 # # Method to read in globular and open cluster files - same as before
 # 	def cluster_readin(self, cluster_file_path):
 # 		Clusters = pd.read_csv(self.cluster_file_path, sep = ' ', header = 0, names = names_clusters)
@@ -91,42 +89,6 @@ class getClusterBinaries(object):
 
 		#print("hard-soft boundary", Phs, np.log10(Phs))
 		self.period_hardsoft = np.round(np.log10(Phs),decimals=1)#rounding to 2 decimal places for cosmic
-
-
-	# create "singles" from wide binaries with 0Msun companions
-	def Initial_Single_Sample(self):
-		"""
-
-		Creates and evolves a set of "single" = wide binaries with 0Msun comparions with given 
-		age (to evolve to), number of stars, and  metallicity.
-
-		"""
-		# Initial (input) binares -- using sampler method from cosmic #1234 - random seed
-		print("initial single input:",self.random_seed, self.age, self.Z, self.Nsing)
-		# InitialSingles, sampled_mass, n_sampled = InitialBinaryTable.sampler('multidim',\
-		# 	[0,12], [0,12],self.random_seed,1, 'delta_burst', self.age, self.Z, self.Nsing)
-		InitialSingles, sampled_mass, n_sampled = InitialBinaryTable.sampler('independent', \
-			[0,12], [0,12], primary_model='kroupa93', ecc_model='uniform', SFH_model='delta_burst', \
-			component_age=self.age, met=self.Z, size=self.Nsing)
-
-		#change the periods and secondary masses
-		for i, row in InitialSingles.iterrows():
-			InitialSingles.at[i,'mass2_binary'] = 0
-			InitialSingles.at[i,'porb'] = 1e10
-
-		#print(InitialSingles)		
-
-		self.InitialSingles = InitialSingles
-
-	# Evolving hard binaries from our initial binary table above
-	def EvolveSingles(self):
-
-		"""Takes Initial (hard) binaries from above and evolves them"""
-		bpp, bcm, initC  = Evolve.evolve(initialbinarytable = self.InitialSingles, BSEDict = self.BSEDict)
-		##################
-		#we need to grab only the final values at the age of the cluster, and those that are still in binaries
-		###############
-		self.SinglesEvolved = bcm.loc[(bcm['tphys'] == self.age)]
 
 
 	# New sampler function - only pulls initial binaries, want them to be hard binaries so we set maximum period cutoff with porb_hi and porb_lo
@@ -176,6 +138,7 @@ class getClusterBinaries(object):
 		if (self.dist != None):
 			distArray = np.ones(Nvals)*self.dist
 
+		print('!!!!! CHECK THIS: new COSMIC does not give values in the log!')
 		output = np.array([self.bcmEvolved['mass_1'].values, self.bcmEvolved['mass_2'].values, \
 			np.log10(self.bcmEvolved['porb'].values), self.bcmEvolved['ecc'].values, \
 			10.**self.bcmEvolved['rad_1'].values, 10.**self.bcmEvolved['rad_2'].values,\
