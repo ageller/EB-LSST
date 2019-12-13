@@ -21,6 +21,7 @@ from vespa_update import extinction
 from EclipsingBinary import EclipsingBinary
 from OpSim import OpSim
 from crowding import crowding
+from TRILEGAL import TRILEGAL
 
 #Andrew's code
 from getClusterBinaries import getClusterBinaries
@@ -43,6 +44,7 @@ class LSSTEBClusterWorker(object):
 		self.cadence = 3.
 
 		self.filters = ['u_', 'g_', 'r_', 'i_', 'z_', 'y_']
+		self.seeing = 0.5 #arcsec
 
 		self.OpSim = None
 		self.EB = None
@@ -84,7 +86,10 @@ class LSSTEBClusterWorker(object):
 
 		self.clusterAV = [None]
 
-
+		#galaxy field info
+		self.Galaxy = None
+		self.galDir = ''
+		self.mTol = 0.001 #tolerance on the mass to draw from the trilegal sample
 
 	def make_gatspy_plots(self, j):
 
@@ -212,7 +217,16 @@ class LSSTEBClusterWorker(object):
 			if (self.verbose): 
 				print(j, 'LSM =', self.EB.LSM)
 
-
+	def getGalaxy(self, OpSimi, deleteModel = True, downloadModel = True):
+		self.Galaxy = TRILEGAL()
+		self.Galaxy.RA = self.OpSim.RA[OpSimi]
+		self.Galaxy.Dec = self.OpSim.Dec[OpSimi]
+		self.Galaxy.fieldID = self.OpSim.fieldID[OpSimi]
+		self.Galaxy.tmpdir = self.galDir
+		self.Galaxy.tmpfname = 'TRILEGAL_model_fID'+str(int(self.OpSim.fieldID[OpSimi]))+'.h5'
+		self.Galaxy.deleteModel = deleteModel
+		self.Galaxy.seeing = self.seeing
+		self.Galaxy.setModel(download = downloadModel)
 
 	def getEB(self, line, OpSimi=0):
 		self.EB = EclipsingBinary()
@@ -265,6 +279,19 @@ class LSSTEBClusterWorker(object):
 		if (self.useOpSimDates):
 			#print("sending OpSim to self.EB", self.OpSim.obsDates)
 			self.EB.OpSim = self.OpSim
+
+		#set up the crowding class
+		if (self.doCrowding):
+			self.EB.crowding = crowding()
+			self.EB.crowding.age = self.clusterAge[OpSimi]                     
+			self.EB.crowding.FeH = self.clusterMetallicity[OpSimi]
+			self.EB.crowding.dist = self.clusterDistance[OpSimi]
+			self.EB.crowding.Mcl = self.clusterMass[OpSimi]
+			self.EB.crowding.rPlummer = self.clusterRhm[OpSimi]*(2**(2./3.) - 1.)**0.5
+			self.EB.crowding.AV = self.clusterAV[OpSimi]
+			self.EB.crowding.random_seed = 1111
+
+
 		self.EB.initialize()
 
 		#some counters for how many self.EBs we could potentially observe with LSST
@@ -275,16 +302,7 @@ class LSSTEBClusterWorker(object):
 		self.n_radius_failed += self.EB.radius_failed
 			
 
-		#set up the crowding class
-		if (self.doCrowding):
-			self.EB.clusterCrowding = crowding()
-			self.EB.clusterCrowding.age = self.clusterAge[OpSimi]                     
-			self.EB.clusterCrowding.FeH = self.clusterMetallicity[OpSimi]
-			self.EB.clusterCrowding.dist = self.clusterDistance[OpSimi]
-			self.EB.clusterCrowding.Mcl = self.clusterMass[OpSimi]
-			self.EB.clusterCrowding.rPlummer = self.clusterRhm[OpSimi]*(2**(2./3.) - 1.)**0.5
-			self.EB.clusterCrowding.AV = self.clusterAV[OpSimi]
-			self.EB.clusterCrowding.random_seed = 1111
+
 
 	def writeOutputLine(self, OpSimi=0, header = False, noRun = False):
 		cols = ['p', 'm1', 'm2', 'r1', 'r2', 'e', 'i', 'd', 'nobs','Av','[M/H]','appMagMean_r', 'maxDeltaMag','deltaMag_r','eclipseDepthFrac_r','mag_failure', 'incl_failure', 'period_failure', 'radius_failure', 'eclipseDepth_failure', 'u_LSS_PERIOD', 'g_LSS_PERIOD', 'r_LSS_PERIOD', 'i_LSS_PERIOD', 'z_LSS_PERIOD', 'y_LSS_PERIOD','LSM_PERIOD']

@@ -32,7 +32,8 @@ class TRILEGAL(object):
 		self.fieldID = None
 		self.Nstars = 0
 
-		self.resEl = np.pi*(0.5/2./3600.)**2. #square degrees, assumed 0.5 arcsec seeing
+		self.seeing = 0.5
+		self.resEl = 0. #calculated below based on seeing
 		self.starsPerResEl = 0.
 
 		self.shuffle = True
@@ -65,6 +66,7 @@ class TRILEGAL(object):
 		surfaceDensity = self.Nstars/self.area
 
 		#stars/resolution element
+		self.resEl = np.pi*(self.seeing/2./3600.)**2. 
 		self.starsPerResEl = np.array(surfaceDensity*self.resEl)
 
 		#add the distance

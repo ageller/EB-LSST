@@ -118,9 +118,12 @@ if __name__ == "__main__":
 	sendbuf = np.empty((size, nVals*nClustersPerCore), dtype='float64')
 	recvbuf = np.empty(nVals*nClustersPerCore, dtype='float64')
 
+	galModelDir = 'TRILEGALmodels'
 	if (rank == root):
 		if not os.path.exists('output_files'):
 			os.makedirs('output_files')
+		if not os.path.exists(galModelDir):
+			os.makedirs(galModelDir)
 
 		OpS = OpSim()
 		OpS.dbFile = '/projects/p30137/ageller/EBLSST/input/db/baseline2018a.db' #for the OpSim database	
@@ -253,6 +256,14 @@ if __name__ == "__main__":
 	worker.OpSim = OpS
 	#worker.OpSim.verbose = True
 
+	galDir = os.path.join(galModelDir, str(rank))
+	if not os.path.exists(galDir):
+		os.makedirs(galDir)
+	worker.galDir = galDir
+
+	#add a delay here to help with the get_trilegal pileup?
+	time.sleep(5*rank)
+
 	ofile = worker.ofile
 	k = 0
 	for i in range(len(worker.clusterName)):
@@ -293,6 +304,7 @@ if __name__ == "__main__":
 
 			if (passed):
 				#run through ellc and gatspy
+				worker.getGalaxy(i)
 
 				#get the output from Andrew's cluster code
 				clusterDat = worker.sampleCluster(i)

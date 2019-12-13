@@ -44,6 +44,7 @@ class LSSTEBWorker(object):
 		self.cadence = 3.
 
 		self.filters = ['u_', 'g_', 'r_', 'i_', 'z_', 'y_']
+		self.seeing = 0.5 #arcsec
 
 		self.OpSim = None
 		self.EB = None
@@ -66,6 +67,7 @@ class LSSTEBWorker(object):
 		self.seed = None
 
 		self.Galaxy = None
+		self.galDir = ''
 		self.mTol = 0.001 #tolerance on the mass to draw from the trilegal sample
 
 		self.magLims = np.array([15.8, 24.]) #lower and upper limits on the magnitude detection assumed for LSST: 15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
@@ -290,6 +292,7 @@ class LSSTEBWorker(object):
 		self.Galaxy.tmpdir = self.galDir
 		self.Galaxy.tmpfname = 'TRILEGAL_model_fID'+str(int(self.OpSim.fieldID[OpSimi]))+'.h5'
 		self.Galaxy.deleteModel = deleteModel
+		self.Galaxy.seeing = self.seeing
 		self.Galaxy.setModel(download = downloadModel)
 
 

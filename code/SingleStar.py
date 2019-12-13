@@ -108,12 +108,20 @@ class SingleStar(object):
 		logTeff = 3.762 + 0.25*np.log10(L) - 0.5*np.log10(R) 
 		return 10.**logTeff
 
+	#Some approximate function for deriving stellar parameters
+	def getRad(self, logg, m):
+		#g = GM/r**2
+		g = 10.**logg * units.cm/units.s**2.
+		r = ((constants.G*m*units.Msun/g)**0.5).decompose().to(units.Rsun).value
+		return r
+
 	def getlogg(self,m, L, T):
 		#use stellar mass, luminosity, and effective temperature to get log(gravity)
 		return np.log10(m) + 4.*np.log10(T) - np.log10(L) - 10.6071
 	
 	def initialize(self):
-		if (self.T == None): self.T = self.getTeff(self.L, self.r)
+		if (self.R == None): self.R = self.getRad(self.logg, self.m)
+		if (self.T == None): self.T = self.getTeff(self.L, self.R)
 		if (self.logg == None): self.logg = self.getlogg(self.m, self.L, self.T)  
 		#one option for getting the extinction
 		if (self.AV == None):

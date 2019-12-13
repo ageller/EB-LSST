@@ -101,7 +101,7 @@ class getClusterBinaries(object):
 		"""
 		# Initial (input) binares -- using sampler method from cosmic #1234 - random seed
 		print("initial binary input:",self.random_seed, self.age, self.Z, self.Nbin, self.sigma, 	self.period_hardsoft)
-		InitialBinaries, sampled_mass, n_sampled = InitialBinaryTable.sampler('multidim',\
+		InitialBinaries, mass_singles, mass_binaries, n_singles, n_binaries = InitialBinaryTable.sampler('multidim',\
 		 [0,12], [0,12],self.random_seed,1, 'delta_burst', self.age, self.Z, self.Nbin, porb_lo = 0.15, porb_hi = self.period_hardsoft)
 
 		self.InitialBinaries = InitialBinaries

@@ -59,7 +59,7 @@ class EclipsingBinary(object):
 		self.SEDsingle = None
 
 		#for star cluster crowding model
-		self.clusterCrowding = None
+		self.crowding = None
 
 		#from https://www.lsst.org/scientists/keynumbers
 		#in nm
@@ -594,51 +594,15 @@ class EclipsingBinary(object):
 		if (self.useOpSimDates and self.observable and self.OpSim.fieldID[0] == None):
 			self.OpSim.setFieldID(self.RA, self.Dec)
 
-		if (self.observable and self.clusterCrowding != None):
-			self.clusterCrowding.getCrowding()
+		#this now covers the galaxy and the cluster, if available
+		if (self.observable and self.crowding != None):
+			self.crowding.getCrowding()
 			for f in self.filters:
-				self.light_3[f] = self.clusterCrowding.backgroundFlux[f]/(self.Fv1[f] + self.Fv2[f])
-				print("cluster light_3", self.light_3)
+				self.light_3[f] = self.crowding.backgroundFlux[f]/(self.Fv1[f] + self.Fv2[f])
+				print("crowding light_3", self.light_3)
 				
-		#if it's observable, get the contribution of the third light
-		#this could be improved using my new crowding class
-		if (self.Galaxy != None):
-			nCrowd = int(np.random.poisson(self.Galaxy.starsPerResEl))
-			if (self.observable and nCrowd >= 1):
-				self.getGalaxylight_3(nCrowd)
-
-	def getGalaxylight_3(self, nCrowd):
-		Fv3 = {}
-		for f in self.filters:
-			Fv3[f] = 0.
-			#if there is already a light_3 defined, then I need to add this onto the previous light 3 value
-			if (self.light_3[f] > 0):
-				Fv3[f] = self.light_3[f]*(self.Fv1[f] + self.Fv2[f])
-
-		crowd = self.Galaxy.model.sample(nCrowd)
-		for index, s in crowd.iterrows():
-			self.SEDsingle = SED()
-			self.SEDsingle.filters = self.filters
-			self.SEDsingle.filterFilesRoot = self.filterFilesRoot
-			self.SEDsingle.T = 10.**s['logTe']*units.K
-			self.SEDsingle.R = self.getRad(s['logg'], s['Mact'])*units.solRad
-			self.SEDsingle.L = 10.**s['logL']*units.solLum
-			self.SEDsingle.logg = s['logg']
-			self.SEDsingle.M_H = s['[M/H]']
-			self.SEDsingle.EBV = s['Av']/self.RV #could use this to account for reddening in SED
-			self.SEDsingle.initialize()
-
-			#one option for getting the extinction
-			Lconst = self.SEDsingle.getLconst()
-			for f in self.filters:
-				Fv3[f] += self.SEDsingle.getFvAB(10.**s['logDist']*units.kpc, f, Lconst = Lconst)
 
 
-		for f in self.filters:
-			self.light_3[f] = Fv3[f]/(self.Fv1[f] + self.Fv2[f])
-
-		print("3rd light : ",self.light_3)
-		
 
 	def observe(self, filt):
 
