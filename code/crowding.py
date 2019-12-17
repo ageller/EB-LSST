@@ -234,4 +234,7 @@ class crowding(object):
 			self.generateGalaxySingles()
 
 		if (self.nCrowd > 0):
-			self.integrateFlux()				
+			self.integrateFlux()	
+
+		print('crowding Ncluster, NGalaxy', self.nCrowdCluster, self.nCrowdGalaxy)
+		print('crowding mag', self.backgroundMag)			
