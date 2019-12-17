@@ -373,7 +373,7 @@ class EclipsingBinary(object):
 			dates = useDates
 		if (light_3 == None):
 			light_3 = self.light_3[filt]
-		print('using light_3', filt, light_3)
+		#print('using light_3', filt, light_3)
 		if (np.isfinite(ldc_1[0]) and np.isfinite(ldc_2[0])):
 			lc = ellc.lc(dates, ldc_1=ldc_1, ldc_2=ldc_2, 
 				t_zero=t_zero, period=self.period, a=self.a, q=self.q,
