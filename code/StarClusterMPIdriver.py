@@ -265,7 +265,6 @@ if __name__ == "__main__":
 	time.sleep(5*rank)
 
 	ofile = worker.ofile
-	k = 0
 	for i in range(len(worker.clusterName)):
 		worker.n_bin = args.n_bin
 		worker.clusterName[i] = worker.clusterName[i].replace(' ','_')
@@ -318,9 +317,9 @@ if __name__ == "__main__":
 					print(f"RANK={rank}, OpSimi={i}, linej={j}, ID={worker.OpSim.fieldID[i]}, pb={worker.EB.period}")
 	
 					if (worker.EB.observable):
-						worker.run_ellc(k)
+						worker.run_ellc()
 						if (worker.EB.observable):
-							worker.run_gatspy(k)
+							worker.run_gatspy()
 	
 					worker.writeOutputLine()
 					csvfile.flush()
@@ -330,6 +329,8 @@ if __name__ == "__main__":
 	
 	
 			csvfile.close()
+
+		worker.Galaxy = None
 
 		
 

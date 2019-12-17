@@ -280,7 +280,7 @@ class EclipsingBinary(object):
 		return a*0.49*q**(2./3.)/(0.6*q**(2./3.) + np.log(1. + q**(1./3.)))
 
 
-	def setLightCurve(self, filt, t_vis=30., X=1., useDates=[None], useT0=None):
+	def setLightCurve(self, filt, t_vis=30., X=1., useDates=[None], useT0=None, light_3=None):
 		
 		def getSig2Rand(filt, magnitude, m_5 = [None]):
 			#returns 2 sigma random error based on the pass band (y-values may be wonky - need to check for seeing and 
@@ -371,19 +371,24 @@ class EclipsingBinary(object):
 		dates = self.obsDates[filt]
 		if (useDates[0] != None):
 			dates = useDates
+		if (light_3 == None):
+			light_3 = self.light_3[filt]
+		print('using light_3', filt, light_3)
 		if (np.isfinite(ldc_1[0]) and np.isfinite(ldc_2[0])):
 			lc = ellc.lc(dates, ldc_1=ldc_1, ldc_2=ldc_2, 
 				t_zero=t_zero, period=self.period, a=self.a, q=self.q,
 				f_c=self.f_c, f_s=self.f_s, ld_1=self.ld_1,  ld_2=self.ld_2,
 				radius_1=self.R_1, radius_2=self.R_2, incl=self.inclination, sbratio=self.sbratio, 
-				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2, light_3=self.light_3[filt]) 
+				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2, light_3=light_3) 
+
 		else:
 			print(f"WARNING: nan's in ldc filter={filt}, ldc_1={ldc_1}, T1={T1}, logg1={g1}, ldc_2={ldc_2}, T2={T2}, logg2={g2}, [M/H]={MH}")
 			lc = ellc.lc(dates, 
 				t_zero=t_zero, period=self.period, a=self.a, q=self.q,
 				f_c=self.f_c, f_s=self.f_s, 
 				radius_1=self.R_1, radius_2=self.R_2, incl=self.inclination, sbratio=self.sbratio,
-				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2, light_3=self.light_3[filt])
+				shape_1=self.shape_1, shape_2=self.shape_2, grid_1=self.grid_1,grid_2=self.grid_2, light_3=light_3)
+
 
 		lc = lc/np.max(lc) #maybe there's a better normalization?
 
@@ -599,12 +604,11 @@ class EclipsingBinary(object):
 			self.crowding.getCrowding()
 			for f in self.filters:
 				self.light_3[f] = self.crowding.backgroundFlux[f]/(self.Fv1[f] + self.Fv2[f])
-				print("crowding light_3", self.light_3)
 				
 
 
 
-	def observe(self, filt):
+	def observe(self, filt, light_3=None):
 
 		#get the observation dates
 		if (self.useOpSimDates):
@@ -633,7 +637,7 @@ class EclipsingBinary(object):
 		#get the light curve, and related information
 		if (self.obsDates[filt][0] != None): 
 			#print("calling light curve", filt)
-			self.setLightCurve(filt)
+			self.setLightCurve(filt, light_3=light_3)
 
 			if (filt == 'r_'):
 				if (self.eclipseDepthFrac[filt] < self.eclipseDepthLim):

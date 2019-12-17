@@ -4,13 +4,13 @@ from dust_extinction.parameter_averages import F04
 
 from SingleStar import SingleStar, getSingleStars
 
-def getd2D(rPlummer):
+def getd2D(rPlummer, Nvals = 1):
 
-	X1 = np.random.random(len(rPlummer))
-	X2 = np.random.random(len(rPlummer))
-	X3 = np.random.random(len(rPlummer))
+	X1 = np.random.random(Nvals)
+	X2 = np.random.random(Nvals)
+	X3 = np.random.random(Nvals)
 	zeta = (X1**(-2/3.) - 1.)**(-0.5)
-	r = zeta*rPlummer
+	r = zeta*np.ones(Nvals)*rPlummer
 	#this is a 3D r; we need to make this 2D
 	z = 2.*r*X2 - r
 	x = (r**2. - z**2.)**0.5*np.cos(X3*2.*np.pi)
@@ -27,12 +27,12 @@ class crowding(object):
 	def __init__(self, *args,**kwargs):
 
 		#required inputs for cluster crowding
-		self.rPlummer = None #pc 
+		self.clusterRPlummer = None #pc 
 		self.clusterAge = None #Myr
 		self.clusterFeH = None
-		self.clusterDist = None #pc
+		self.clusterDist = None #kpc
 		self.clusterAV = None
-		self.Ncl = None #Ncluster stars
+		self.clusterNstars = None 
 
 		#required for galaxy crowding
 		self.Galaxy = None
@@ -40,7 +40,7 @@ class crowding(object):
 		#optional inputs
 		self.xBinary = None
 		self.yBinary = None
-		self.random_seed = 1234
+		self.random_seed = None
 
 		#best not to change these
 		self.seeing = 0.5
@@ -67,21 +67,22 @@ class crowding(object):
 		self.ygrid = None
 		self.fluxgrid = None
 		self.nCrowd = 0
+		self.nCrowdGalaxy = 0
+		self.nCrowdCluster = 0
 		self.AV = 0
 
 	def generateClusterSingles(self):
 
 		#draw random positions and sort by distance
-		np.random.seed(seed = self.random_seed)
 		nCrowd = 0
 
 		#draw from a Plummer star clusters distribution
 		if (self.xBinary == None):
-			d2D, self.xBinary, self.yBinary, self.zBinary = getd2D([self.rPlummer])
+			d2D, self.xBinary, self.yBinary, self.zBinary = getd2D(self.clusterRPlummer)
 
-		d2d, x, y, z = getd2D(np.ones(int(np.round(self.Ncl)))*self.rPlummer)
+		d2d, x, y, z = getd2D(self.clusterRPlummer, int(np.round(self.clusterNstars)) )
 		dpc = ((self.xBinary - x)**2. + (self.yBinary - y)**2.)**0.5
-		dAng = np.array(np.arctan2(dpc, self.clusterDist))*180./np.pi*3600.
+		dAng = np.array(np.arctan2(dpc, self.clusterDist*1000.))*180./np.pi*3600.
 
 		#take only those within the limits
 		use = np.where(dAng < self.dLim*self.seeing)
@@ -92,16 +93,16 @@ class crowding(object):
 		#sort by distance from the center
 		d = np.array((xSingles**2. + ySingles**2. + zSingles**2.)**0.5)
 		srt = np.argsort(d)
-		xSinglesAng = np.arctan2(xSingles[srt] - self.xBinary, self.clusterDist)*180./np.pi*3600.
-		ySinglesAng = np.arctan2(ySingles[srt] - self.yBinary, self.clusterDist)*180./np.pi*3600.
+		xSinglesAng = np.arctan2(xSingles[srt] - self.xBinary, self.clusterDist*1000.)*180./np.pi*3600.
+		ySinglesAng = np.arctan2(ySingles[srt] - self.yBinary, self.clusterDist*1000.)*180./np.pi*3600.
 
-		nCrowd = len(xSinglesAng)
+		self.nCrowdCluster = len(xSinglesAng)
 
-		self.nCrowd += nCrowd
+		self.nCrowd += self.nCrowdCluster
 
-		if (nCrowd > 0):
+		if (self.nCrowdCluster > 0):
 			#generate single stars with COSMIC (actually wide binaries)
-			sampler = getSingleStars(self.clusterAge, self.clusterFeH, nCrowd)
+			sampler = getSingleStars(self.clusterAge, self.clusterFeH, self.nCrowdCluster)
 			sampler.random_seed = self.random_seed
 			sampler.Initial_Single_Sample()
 			sampler.EvolveSingles()
@@ -111,33 +112,36 @@ class crowding(object):
 			singles['xAng'] = xSinglesAng
 			singles['yAng'] = ySinglesAng
 
-			singles['M_H'] = np.ones(nCrowd)*self.clusterFeH
-			singles['dist'] = np.ones(nCrowd)*self.clusterDist/1000. #kpc
-			singles['AV'] = np.ones(nCrowd)*self.clusterAV
+			singles['M_H'] = np.ones(self.nCrowdCluster)*self.clusterFeH
+			singles['dist'] = np.ones(self.nCrowdCluster)*self.clusterDist #kpc
+			singles['AV'] = np.ones(self.nCrowdCluster)*self.clusterAV
 			self.clusterSingles = self.getSinglesFlux(singles)
 
-	def generateGalaxySingles(self, nCrowd):
+	def generateGalaxySingles(self):
 
-		nCrowd = int(np.random.poisson(self.Galaxy.starsPerResEl*self.dLim**2.))
-		self.nCrowd += nCrowd
+		self.nCrowdGalaxy = int(np.random.poisson(self.Galaxy.starsPerResEl*self.dLim**2.))
 
-		singles = pd.dataFrame()
+		self.nCrowd += self.nCrowdGalaxy
 
-		#take a uniform distribution 
-		singles['xAng'] = np.random.random(size = nCrowd)*self.dLim*self.seeing - self.dLim*self.seeing/2.
-		singles['yAng'] = np.random.random(size = nCrowd)*self.dLim*self.seeing - self.dLim*self.seeing/2.
+		if (self.nCrowdGalaxy > 0):
 
-		crowd = self.Galaxy.model.sample(nCrowd)
-		singles['M_H'] = crowd['[M/H]']
-		singles['dist'] = 10.**crowd['logDist'] #kpc
-		singles['AV'] = crowd['AV']
-		singles['mass_1'] = crowd['Mact']
-		singles['logg'] = crowd['logg']
-		singles['rad_1'] = self.getRad(crowd['logg'], crowd['Mact'])
-		singles['lumin_1'] = 10.**crowd['logL']
-		singles['teff_1'] = 10.**crowd['logTe']
+			singles = pd.dataFrame()
 
-		self.galaxySingles = self.getSinglesFlux(singles)	
+			#take a uniform distribution 
+			singles['xAng'] = np.random.random(size = self.nCrowdGalaxy)*self.dLim*self.seeing - self.dLim*self.seeing/2.
+			singles['yAng'] = np.random.random(size = self.nCrowdGalaxy)*self.dLim*self.seeing - self.dLim*self.seeing/2.
+
+			crowd = self.Galaxy.model.sample(self.nCrowdGalaxy)
+			singles['M_H'] = crowd['[M/H]']
+			singles['dist'] = 10.**crowd['logDist'] #kpc
+			singles['AV'] = crowd['AV']
+			singles['mass_1'] = crowd['Mact']
+			singles['logg'] = crowd['logg']
+			singles['rad_1'] = self.getRad(crowd['logg'], crowd['Mact'])
+			singles['lumin_1'] = 10.**crowd['logL']
+			singles['teff_1'] = 10.**crowd['logTe']
+
+			self.galaxySingles = self.getSinglesFlux(singles)	
 
 	def getSinglesFlux(self, singles):
 		#get the fluxes
@@ -216,17 +220,18 @@ class crowding(object):
 		print("getting crowding ... ")
 		self.nCrowd = 0
 
+		if (self.random_seed is not None):
+			np.random.seed(seed = self.random_seed)
+
 		for f in self.filters:
 			self.backgroundFlux[f] = 0.
 			self.backgroundMag[f] = 999.
 
-		if (self.rPlummer != None):
+		if (self.clusterRPlummer != None):
 			self.generateClusterSingles()
 
 		if (self.Galaxy != None):
-			nCrowd = int(np.random.poisson(self.Galaxy.starsPerResEl))
-			if (nCrowd >= 1):
-				self.getGalaxylight_3(nCrowd)
+			self.generateGalaxySingles()
 
 		if (self.nCrowd > 0):
 			self.integrateFlux()				

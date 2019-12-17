@@ -204,7 +204,6 @@ if __name__ == "__main__":
 
 
 	ofile = worker.ofile
-	k = 0
 	for i in range(len(fields[0])):
 		worker.n_bin = args.n_bin
 		if (worker.OpSim.fieldID[i] not in finishedIDs and worker.OpSim.fieldID[i] != -1):
@@ -262,9 +261,9 @@ if __name__ == "__main__":
 						print(f"RANK={rank}, OpSimi={i}, linej={j}, ID={worker.OpSim.fieldID[i]}, pb={worker.EB.period}")
 		
 						if (worker.EB.observable):
-							worker.run_ellc(k)
+							worker.run_ellc()
 							if (worker.EB.observable):
-								worker.run_gatspy(k)
+								worker.run_gatspy()
 		
 						worker.writeOutputLine()
 						csvfile.flush()

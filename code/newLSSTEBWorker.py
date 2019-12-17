@@ -23,6 +23,7 @@ from vespa_update import extinction
 #my code
 from EclipsingBinary import EclipsingBinary
 from OpSim import OpSim
+from crowding import crowding
 from TRILEGAL import TRILEGAL
 
 
@@ -57,6 +58,8 @@ class LSSTEBWorker(object):
 		self.ofile = 'output_file.csv' #output file name
 		self.dbFile = '../input/db/baseline2018a.db' #for the OpSim database
 		self.filterFilesRoot = '../input/filters/'
+
+		self.doCrowding = True
 
 		self.csvwriter = None #will hold the csvwriter object
 
@@ -130,7 +133,7 @@ class LSSTEBWorker(object):
 		f.savefig("lc_gatspy_fig_"+str(self.seed).rjust(10,'0')+".png", bbox_inches='tight')
 
 
-	def run_ellc(self, j=0):
+	def run_ellc(self, light_3=None):
 		for i, filt in enumerate(self.filters):
 
 			#observe the EB (get dates, create the light curve for this filter)
@@ -139,9 +142,13 @@ class LSSTEBWorker(object):
 			self.EB.appMagObsErr[filt] = [0.]
 			self.EB.deltaMag[filt] = [0.]
 
-			self.EB.observe(filt)
+			uselight_3 = None
+			if (light_3 is not None):
+				uselight_3 = light_3[filt]
 
-	def run_gatspy(self, j=0):
+			self.EB.observe(filt, light_3=uselight_3)
+
+	def run_gatspy(self):
 		#this is the general simulation - ellc light curves and gatspy periodograms
 
 		#for the multiband gatspy fit
@@ -181,11 +188,11 @@ class LSSTEBWorker(object):
 				allObsFilters = np.append(allObsFilters, np.full(len(self.EB.obsDates[filt]), filt))
 
 				if (self.verbose): 
-					print(j, 'filter = ', filt)  
-					print(j, 'obsDates = ', self.EB.obsDates[filt][0:10])
-					print(j, 'appMagObs = ', self.EB.appMagObs[filt][0:10])
-					print(j, 'delta_mag = ', self.EB.deltaMag[filt])
-					print(j, 'LSS = ',self.EB.LSS[filt])
+					print('filter = ', filt)  
+					print('obsDates = ', self.EB.obsDates[filt][0:10])
+					print('appMagObs = ', self.EB.appMagObs[filt][0:10])
+					print('delta_mag = ', self.EB.deltaMag[filt])
+					print('LSS = ',self.EB.LSS[filt])
 
 		if (len(allObsDates) > 0 and self.doLSM): 
 			drng = max(allObsDates) - min(allObsDates)
@@ -198,7 +205,7 @@ class LSSTEBWorker(object):
 			self.EB.LSM = model.best_period
 			self.EB.LSMmodel = model
 			if (self.verbose): 
-				print(j, 'LSM =', self.EB.LSM)
+				print('LSM =', self.EB.LSM)
 
 
 
@@ -253,6 +260,12 @@ class LSSTEBWorker(object):
 		if (self.useOpSimDates):
 			#print("sending OpSim to EB", self.OpSim.obsDates)
 			self.EB.OpSim = self.OpSim
+
+		#set up the crowding class
+		if (self.doCrowding):
+			self.EB.crowding = crowding()
+			self.EB.crowding.Galaxy = self.Galaxy
+
 
 		self.EB.initialize()
 			
@@ -506,6 +519,7 @@ class LSSTEBWorker(object):
 	def initialize(self, OpSimi=0):
 		if (self.seed == None):
 			np.random.seed()
+			self.seed = np.random.randint(0,100000)
 		else:
 			np.random.seed(seed = self.seed)
 

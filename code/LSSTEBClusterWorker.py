@@ -83,6 +83,7 @@ class LSSTEBClusterWorker(object):
 		self.clusterAge = None
 		self.clusterRhm = None
 		self.clusterVdisp = None
+		self.meanMass = 0.5 #[mSun] mean mass of cluster star 
 
 		self.clusterAV = [None]
 
@@ -147,7 +148,7 @@ class LSSTEBClusterWorker(object):
 		f.savefig("lc_gatspy_fig_"+str(self.seed).rjust(10,'0')+".png", bbox_inches='tight')
 
 
-	def run_ellc(self, j=0):
+	def run_ellc(self, light_3=None):
 		for i, filt in enumerate(self.filters):
 
 			#observe the EB (get dates, create the light curve for this filter)
@@ -156,9 +157,13 @@ class LSSTEBClusterWorker(object):
 			self.EB.appMagObsErr[filt] = [0.]
 			self.EB.deltaMag[filt] = [0.]
 
-			self.EB.observe(filt)
+			uselight_3 = None
+			if (light_3 is not None):
+				uselight_3 = light_3[filt]
 
-	def run_gatspy(self, j=0):
+			self.EB.observe(filt, light_3=uselight_3)
+
+	def run_gatspy(self):
 		#this is the general simulation - ellc light curves and gatspy periodograms
 
 		#for the multiband gatspy fit
@@ -198,11 +203,11 @@ class LSSTEBClusterWorker(object):
 				allObsFilters = np.append(allObsFilters, np.full(len(self.EB.obsDates[filt]), filt))
 
 				if (self.verbose): 
-					print(j, 'filter = ', filt)  
-					print(j, 'obsDates = ', self.EB.obsDates[filt][0:10])
-					print(j, 'appMagObs = ', self.EB.appMagObs[filt][0:10])
-					print(j, 'delta_mag = ', self.EB.deltaMag[filt])
-					print(j, 'LSS = ',self.EB.LSS[filt])
+					print('filter = ', filt)  
+					print('obsDates = ', self.EB.obsDates[filt][0:10])
+					print('appMagObs = ', self.EB.appMagObs[filt][0:10])
+					print('delta_mag = ', self.EB.deltaMag[filt])
+					print('LSS = ',self.EB.LSS[filt])
 
 		if (len(allObsDates) > 0 and self.doLSM): 
 			drng = max(allObsDates) - min(allObsDates)
@@ -215,7 +220,7 @@ class LSSTEBClusterWorker(object):
 			self.EB.LSM = model.best_period
 			self.EB.LSMmodel = model
 			if (self.verbose): 
-				print(j, 'LSM =', self.EB.LSM)
+				print('LSM =', self.EB.LSM)
 
 	def getGalaxy(self, OpSimi, deleteModel = True, downloadModel = True):
 		self.Galaxy = TRILEGAL()
@@ -283,13 +288,13 @@ class LSSTEBClusterWorker(object):
 		#set up the crowding class
 		if (self.doCrowding):
 			self.EB.crowding = crowding()
-			self.EB.crowding.age = self.clusterAge[OpSimi]                     
-			self.EB.crowding.FeH = self.clusterMetallicity[OpSimi]
-			self.EB.crowding.dist = self.clusterDistance[OpSimi]
-			self.EB.crowding.Mcl = self.clusterMass[OpSimi]
-			self.EB.crowding.rPlummer = self.clusterRhm[OpSimi]*(2**(2./3.) - 1.)**0.5
-			self.EB.crowding.AV = self.clusterAV[OpSimi]
-			self.EB.crowding.random_seed = 1111
+			self.EB.crowding.clusterAge = self.clusterAge[OpSimi]                     
+			self.EB.crowding.clusterFeH = self.clusterMetallicity[OpSimi]
+			self.EB.crowding.clusterDist = self.clusterDistance[OpSimi]
+			self.EB.crowding.clusterNstars = self.clusterMass[OpSimi]/self.meanMass
+			self.EB.crowding.clusterRPlummer = self.clusterRhm[OpSimi]*(2**(2./3.) - 1.)**0.5
+			self.EB.crowding.clusterAV = self.clusterAV[OpSimi]
+			self.EB.crowding.Galaxy = self.Galaxy
 
 
 		self.EB.initialize()
@@ -353,17 +358,18 @@ class LSSTEBClusterWorker(object):
 		EB.M_H = line[16]
 		"""
 		print("sampling cluster", self.clusterName[i])
-		sampler = getClusterBinaries(self.clusterAge[i], self.clusterMetallicity[i], self.clusterVdisp[i], self.n_bin)
-		sampler.random_seed = self.seed
-		sampler.dist = self.clusterDistance[i]
-		sampler.runAll()
+		self.clusterSampler = getClusterBinaries(self.clusterAge[i], self.clusterMetallicity[i], self.clusterVdisp[i], self.n_bin)
+		self.clusterSampler.random_seed = self.seed
+		self.clusterSampler.dist = self.clusterDistance[i]
+		self.clusterSampler.runAll()
 
-		return sampler.output
+		return self.clusterSampler.output
 
 
 	def initialize(self, OpSimi=0):
 		if (self.seed == None):
 			np.random.seed()
+			self.seed = np.random.randint(0,100000)
 		else:
 			np.random.seed(seed = self.seed)
 

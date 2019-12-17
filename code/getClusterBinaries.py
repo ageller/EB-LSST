@@ -99,8 +99,7 @@ class getClusterBinaries(object):
 		age (to evolve to), number of binaries, metallicity, and velocity dispersion.
 
 		"""
-		# Initial (input) binares -- using sampler method from cosmic #1234 - random seed
-		print("initial binary input:",self.random_seed, self.age, self.Z, self.Nbin, self.sigma, 	self.period_hardsoft)
+		print("initial binary input:",self.random_seed, self.age, self.Z, self.Nbin, self.sigma, self.period_hardsoft)
 		InitialBinaries, mass_singles, mass_binaries, n_singles, n_binaries = InitialBinaryTable.sampler('multidim',\
 		 [0,12], [0,12],self.random_seed,1, 'delta_burst', self.age, self.Z, self.Nbin, porb_lo = 0.15, porb_hi = self.period_hardsoft)
 
@@ -119,7 +118,8 @@ class getClusterBinaries(object):
 		#we need to grab only the final values at the age of the cluster, and those that are still in binaries
 		###############
 		self.bcmEvolved = self.bcm.loc[(self.bcm['tphys'] == self.age) & (self.bcm['bin_state'] == 0) & (self.bcm['mass_1'] > 0) & (self.bcm['mass_2'] > 0)]
-
+		#reset index?
+		self.bcmEvolved.reset_index(drop=True, inplace=True)
 
 	# Method to generate final output array of arrays from Aaron
 	def EB_output(self):
@@ -138,17 +138,17 @@ class getClusterBinaries(object):
 		if (self.dist != None):
 			distArray = np.ones(Nvals)*self.dist
 
-		print('!!!!! CHECK THIS: new COSMIC does not give values in the log!')
 		output = np.array([self.bcmEvolved['mass_1'].values, self.bcmEvolved['mass_2'].values, \
 			np.log10(self.bcmEvolved['porb'].values), self.bcmEvolved['ecc'].values, \
-			10.**self.bcmEvolved['rad_1'].values, 10.**self.bcmEvolved['rad_2'].values,\
-			10.**self.bcmEvolved['lumin_1'].values, 10.**self.bcmEvolved['lumin_2'].values, \
+			self.bcmEvolved['rad_1'].values, self.bcmEvolved['rad_2'].values,\
+			self.bcmEvolved['lumin_1'].values, self.bcmEvolved['lumin_2'].values, \
 			noneArray, noneArray, noneArray, distArray, \
 			self.inc, self.OMEGA, self.omega, \
 			noneArray, np.ones(Nvals)*self.Z, \
-			10.**self.bcmEvolved['teff_1'], 10.**self.bcmEvolved['teff_2'], \
+			self.bcmEvolved['teff_1'], self.bcmEvolved['teff_2'], \
 			self.bcmEvolved['kstar_1'], self.bcmEvolved['kstar_2']])
 
+		#print(self.bcmEvolved)
 		#print('original output array: ',output)
 
 
