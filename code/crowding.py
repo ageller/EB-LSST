@@ -236,5 +236,5 @@ class crowding(object):
 		if (self.nCrowd > 0):
 			self.integrateFlux()	
 
-		print('crowding Ncluster, NGalaxy', self.nCrowdCluster, self.nCrowdGalaxy)
+		print('crowding Ncluster, Ngalaxy', self.nCrowdCluster, self.nCrowdGalaxy)
 		print('crowding mag', self.backgroundMag)			
