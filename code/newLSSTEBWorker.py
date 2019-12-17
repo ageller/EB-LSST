@@ -165,7 +165,7 @@ class LSSTEBWorker(object):
 
 			self.EB.LSS[filt] = -999.
 
-			if (self.EB.obsDates[filt][0] != None and min(self.EB.appMagObs[filt]) > 0):
+			if (self.EB.obsDates[filt][0] is not None and min(self.EB.appMagObs[filt]) > 0):
 
 				#run gatspy for this filter
 				drng = max(self.EB.obsDates[filt]) - min(self.EB.obsDates[filt])
@@ -273,10 +273,10 @@ class LSSTEBWorker(object):
 	def writeOutputLine(self, OpSimi=0, header = False, noRun = False):
 		cols = ['p', 'm1', 'm2', 'r1', 'r2', 'e', 'i', 'd', 'nobs','Av','[M/H]','appMagMean_r', 'maxDeltaMag','deltaMag_r','eclipseDepthFrac_r','mag_failure', 'incl_failure', 'period_failure', 'radius_failure', 'eclipseDepth_failure', 'u_LSS_PERIOD', 'g_LSS_PERIOD', 'r_LSS_PERIOD', 'i_LSS_PERIOD', 'z_LSS_PERIOD', 'y_LSS_PERIOD','LSM_PERIOD']
 		if (header):
-			if (self.useOpSimDates and self.OpSim != None):
+			if (self.useOpSimDates and self.OpSim is not None):
 				print("writing header")
 				ng = 0
-				if (self.Galaxy != None):
+				if (self.Galaxy is not None):
 					ng = self.Galaxy.Nstars
 				self.csvwriter.writerow(['OpSimID','OpSimRA','OpSimDec','NstarsTRILEGAL', 'NOpSimObs_u', 'NOpSimObs_g', 'NOpSimObs_r', 'NOpSimObs_i', 'NOpSimObs_z', 'NOpSimObs_y'])
 				self.csvwriter.writerow([self.OpSim.fieldID[OpSimi], self.OpSim.RA[OpSimi], self.OpSim.Dec[OpSimi], ng, self.OpSim.NobsDates[OpSimi]['u_'], self.OpSim.NobsDates[OpSimi]['g_'], self.OpSim.NobsDates[OpSimi]['r_'], self.OpSim.NobsDates[OpSimi]['i_'], self.OpSim.NobsDates[OpSimi]['z_'], self.OpSim.NobsDates[OpSimi]['y_']])
@@ -465,7 +465,7 @@ class LSSTEBWorker(object):
 			xx = np.random.random()
 			if (xx < fb):
 				binary = self.makeBinaryFromGalaxy(s)
-				if (binary['m2'] != None):
+				if (binary['m2'] is not None):
 					m1.append(binary['m1'])
 					rad1.append(binary['rad1'])
 					lum1.append(binary['lum1'])

@@ -24,7 +24,7 @@ def define_args():
 	args = parser.parse_args()
 	#to print out the options that were selected (probably some way to use this to quickly assign args)
 	opts = vars(args)
-	options = { k : opts[k] for k in opts if opts[k] != None }
+	options = { k : opts[k] for k in opts if opts[k] is not None }
 	print(options)
 
 	return args

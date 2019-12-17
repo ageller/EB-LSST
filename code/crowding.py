@@ -227,10 +227,10 @@ class crowding(object):
 			self.backgroundFlux[f] = 0.
 			self.backgroundMag[f] = 999.
 
-		if (self.clusterRPlummer != None):
+		if (self.clusterRPlummer is not None):
 			self.generateClusterSingles()
 
-		if (self.Galaxy != None):
+		if (self.Galaxy is not None):
 			self.generateGalaxySingles()
 
 		if (self.nCrowd > 0):

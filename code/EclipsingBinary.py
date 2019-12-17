@@ -366,10 +366,10 @@ class EclipsingBinary(object):
 		# 		self.shape_1, self.shape_2, self.grid_1,self.grid_2)
 
 		t_zero = self.t_zero
-		if (useT0 != None):
+		if (useT0 is not None):
 			t_zero = useT0
 		dates = self.obsDates[filt]
-		if (useDates[0] != None):
+		if (useDates[0] is not None):
 			dates = useDates
 		if (light_3 == None):
 			light_3 = self.light_3[filt]
@@ -449,7 +449,7 @@ class EclipsingBinary(object):
 			for filt in self.filters:
 				#print("check filt, totaltime, obs", filt, self.totaltime, self.OpSim.obsDates[self.OpSimi])
 				#print("check obs", filt, self.OpSim.obsDates[self.OpSimi][filt])
-				if (self.OpSim.obsDates[self.OpSimi][filt][0] != None):
+				if (self.OpSim.obsDates[self.OpSimi][filt][0] is not None):
 					self.totaltime = max(self.totaltime, (max(self.OpSim.obsDates[self.OpSimi][filt]) - min(self.OpSim.obsDates[self.OpSimi][filt])))
 
 		if (self.period >= self.totaltime):
@@ -600,7 +600,7 @@ class EclipsingBinary(object):
 			self.OpSim.setFieldID(self.RA, self.Dec)
 
 		#this now covers the galaxy and the cluster, if available
-		if (self.observable and self.crowding != None):
+		if (self.observable and self.crowding is not None):
 			self.crowding.getCrowding()
 			for f in self.filters:
 				self.light_3[f] = self.crowding.backgroundFlux[f]/(self.Fv1[f] + self.Fv2[f])
@@ -614,7 +614,7 @@ class EclipsingBinary(object):
 		if (self.useOpSimDates):
 			#print("using OpSimDates...")
 			#check if we already have the observing dates
-			if (self.OpSim != None):
+			if (self.OpSim is not None):
 				#print("have OpSim", self.OpSim.obsDates)
 				if (filt in self.OpSim.obsDates[self.OpSimi]):
 					self.obsDates[filt] = self.OpSim.obsDates[self.OpSimi][filt]
@@ -635,7 +635,7 @@ class EclipsingBinary(object):
 
 		self.nobs += len(self.obsDates[filt])
 		#get the light curve, and related information
-		if (self.obsDates[filt][0] != None): 
+		if (self.obsDates[filt][0] is not None): 
 			#print("calling light curve", filt)
 			self.setLightCurve(filt, light_3=light_3)
 

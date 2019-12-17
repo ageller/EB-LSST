@@ -135,7 +135,7 @@ class getClusterBinaries(object):
 
 		noneArray = np.array([None for x in range(Nvals)])
 		distArray = noneArray
-		if (self.dist != None):
+		if (self.dist is not None):
 			distArray = np.ones(Nvals)*self.dist
 
 		output = np.array([self.bcmEvolved['mass_1'].values, self.bcmEvolved['mass_2'].values, \

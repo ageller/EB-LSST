@@ -114,7 +114,7 @@ class OpSim(object):
 			#print("in setDates", i, filt, self.obsDates[i][filt])
 
 			self.NobsDates[i][filt] = 0
-			if (self.obsDates[i][filt][0] != None):
+			if (self.obsDates[i][filt][0] is not None):
 				self.NobsDates[i][filt] = len(self.obsDates[i][filt])
 			self.totalNobs[i] += self.NobsDates[i][filt]
 			if (self.verbose):

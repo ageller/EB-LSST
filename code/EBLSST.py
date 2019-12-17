@@ -453,7 +453,7 @@ class EclipsingBinary(object):
 			for filt in filters:
 				#print("check filt, totaltime, obs", filt, self.totaltime, self.OpSim.obsDates[self.OpSimi])
 				#print("check obs", filt, self.OpSim.obsDates[self.OpSimi][filt])
-				if (self.OpSim.obsDates[self.OpSimi][filt][0] != None):
+				if (self.OpSim.obsDates[self.OpSimi][filt][0] is not None):
 					self.totaltime = max(self.totaltime, (max(self.OpSim.obsDates[self.OpSimi][filt]) - min(self.OpSim.obsDates[self.OpSimi][filt])))
 
 		if (self.period >= self.totaltime):
@@ -567,7 +567,7 @@ class EclipsingBinary(object):
 		if (self.useOpSimDates):
 			#print("using OpSimDates...")
 			#check if we already have the observing dates
-			if (self.OpSim != None):
+			if (self.OpSim is not None):
 				#print("have OpSim", self.OpSim.obsDates)
 				if (filt in self.OpSim.obsDates[self.OpSimi]):
 					self.obsDates[filt] = self.OpSim.obsDates[self.OpSimi][filt]
@@ -702,7 +702,7 @@ class OpSim(object):
 			#print("in setDates", i, filt, self.obsDates[i][filt])
 
 			self.NobsDates[i][filt] = 0
-			if (self.obsDates[i][filt][0] != None):
+			if (self.obsDates[i][filt][0] is not None):
 				self.NobsDates[i][filt] = len(self.obsDates[i][filt])
 			self.totalNobs[i] += self.NobsDates[i][filt]
 			if (self.verbose):
@@ -1462,7 +1462,7 @@ class LSSTEBworker(object):
 			EB.observe(filt)
 			EB.LSS[filt] = -999.
 
-			if (EB.obsDates[filt][0] != None and min(EB.appMagObs[filt]) > 0):
+			if (EB.obsDates[filt][0] is not None and min(EB.appMagObs[filt]) > 0):
 
 				#run gatspy for this filter
 				drng = max(EB.obsDates[filt]) - min(EB.obsDates[filt])
@@ -1577,9 +1577,9 @@ class LSSTEBworker(object):
 		if (header):
 			#print(self.useOpSimDates, self.Galaxy, self.OpSim)
 			ng = 0
-			if (self.Galaxy != None):
+			if (self.Galaxy is not None):
 				ng = self.Galaxy.Nstars
-			if (self.useOpSimDates and self.OpSim != None):
+			if (self.useOpSimDates and self.OpSim is not None):
 				print("writing header")
 				self.csvwriter.writerow(['OpSimID','OpSimRA','OpSimDec','NstarsTRILEGAL', 'NOpSimObs_u', 'NOpSimObs_g', 'NOpSimObs_r', 'NOpSimObs_i', 'NOpSimObs_z', 'NOpSimObs_y'])
 				self.csvwriter.writerow([self.OpSim.fieldID[OpSimi], self.OpSim.RA[OpSimi], self.OpSim.Dec[OpSimi], ng, self.OpSim.NobsDates[OpSimi]['u_'], self.OpSim.NobsDates[OpSimi]['g_'], self.OpSim.NobsDates[OpSimi]['r_'], self.OpSim.NobsDates[OpSimi]['i_'], self.OpSim.NobsDates[OpSimi]['z_'], self.OpSim.NobsDates[OpSimi]['y_']])

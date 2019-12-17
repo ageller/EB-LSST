@@ -158,7 +158,7 @@ class LSSTEBworker(object):
 			EB.observe(filt)
 			EB.LSS[filt] = -999.
 
-			if (EB.obsDates[filt][0] != None and min(EB.appMagObs[filt]) > 0):
+			if (EB.obsDates[filt][0] is not None and min(EB.appMagObs[filt]) > 0):
 
 				#run gatspy for this filter
 				drng = max(EB.obsDates[filt]) - min(EB.obsDates[filt])
@@ -274,9 +274,9 @@ class LSSTEBworker(object):
 		if (header):
 			#print(self.useOpSimDates, self.Galaxy, self.OpSim)
 			ng = 0
-			if (self.Galaxy != None):
+			if (self.Galaxy is not None):
 				ng = self.Galaxy.Nstars
-			if (self.useOpSimDates and self.OpSim != None):
+			if (self.useOpSimDates and self.OpSim is not None):
 				print("writing header")
 				self.csvwriter.writerow(['OpSimID','OpSimRA','OpSimDec','NstarsTRILEGAL', 'NOpSimObs_u', 'NOpSimObs_g', 'NOpSimObs_r', 'NOpSimObs_i', 'NOpSimObs_z', 'NOpSimObs_y'])
 				self.csvwriter.writerow([self.OpSim.fieldID[OpSimi], self.OpSim.RA[OpSimi], self.OpSim.Dec[OpSimi], ng, self.OpSim.NobsDates[OpSimi]['u_'], self.OpSim.NobsDates[OpSimi]['g_'], self.OpSim.NobsDates[OpSimi]['r_'], self.OpSim.NobsDates[OpSimi]['i_'], self.OpSim.NobsDates[OpSimi]['z_'], self.OpSim.NobsDates[OpSimi]['y_']])
