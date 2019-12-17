@@ -251,7 +251,7 @@ class BreivikGalaxy(object):
 			gxFile = 'gxRealization_'+str(x)+'_'+str(self.popID)+'.dat'
 			np.savetxt(gxFile, binDat, delimiter = ',')     
 		
-		if (output == None):
+		if (output is None):
 			return pd.DataFrame(binDat, columns=['m1', 'm2', 'logp', 'ecc', 'r1', 'r2', 'L1', 'L2', 'xGX', 'yGX', 'zGX', 'dist_kpc', 'inc', 'OMEGA', 'omega'])
 		else:	
 			output.put(np.shape(binDat)) 

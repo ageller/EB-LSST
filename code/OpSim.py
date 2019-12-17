@@ -87,7 +87,7 @@ class OpSim(object):
 		if (len(OpSimdates) < 1):
 			return [None], [None]
 		else:
-			if (self.obsDist == None): #default, use the OpSim dates
+			if (self.obsDist is None): #default, use the OpSim dates
 				if (self.verbose):
 					print('OpSimdates =', OpSimdates)
 				dates = np.array([float(d) for d in date[OpSimdates] ])/86400. #converting seconds to days\

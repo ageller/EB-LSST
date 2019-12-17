@@ -308,7 +308,7 @@ class EclipsingBinary(object):
 			# against others)
 			#X = 1. #function of distance??
 			#t_vis = 30. #seconds
-			if (m_5[0] == None):
+			if (m_5[0] is None):
 				m_5 = self.sigmaDict[filt]['C_m'] + (0.50*(self.sigmaDict[filt]['m_sky'] - 21.)) + (2.50*np.log10(0.7/self.sigmaDict[filt]['seeing'])) + (1.25*np.log10(t_vis/30.)) - (self.sigmaDict[filt]['k_m']*(X-1.))
 			return (0.04 - self.sigmaDict[filt]['gamma'])*(10**(0.4*(magnitude - m_5))) + self.sigmaDict[filt]['gamma']*((10**(0.4*(magnitude - m_5)))**2)*(magnitude**2)
 
@@ -348,7 +348,7 @@ class EclipsingBinary(object):
 		self.deltaMag[filt] = [None]
 
 		#in case the user did not initialize
-		if (self.T1 == None):
+		if (self.T1 is None):
 			self.initialize()
 
 		#limb darkenning
@@ -466,7 +466,7 @@ class EclipsingBinary(object):
 			self.observable = False
 
 	def initializeSeed(self):
-		if (self.seed == None):
+		if (self.seed is None):
 			np.random.seed()
 		else:
 			np.random.seed(seed = self.seed)
@@ -517,7 +517,7 @@ class EclipsingBinary(object):
 		self.T12 = 10.**(3.762 + 0.25*logLb - 0.5*logRb)
 		#print(self.L1, self.L2, self.T1, self.T2, self.T12)
 
-		if (self.RA == None):
+		if (self.RA is None):
 			coord = SkyCoord(x=self.xGx, y=self.yGx, z=self.zGx, unit='pc', representation='cartesian', frame='galactocentric')
 			self.RA = coord.icrs.ra.to(units.deg).value
 			self.Dec = coord.icrs.dec.to(units.deg).value
@@ -526,7 +526,7 @@ class EclipsingBinary(object):
 		self.appMagMeanAll = 0.
 
 		#one option for getting the extinction
-		if (self.AV == None):
+		if (self.AV is None):
 			self.AV = vespa.stars.extinction.get_AV_infinity(self.RA, self.Dec, frame='icrs')
 		#ext = F04(Rv=self.RV)
 		ext = F04(Rv=self.RV)
@@ -558,7 +558,7 @@ class EclipsingBinary(object):
 
 		#if we're using OpSim, then get the field ID
 		#get the field ID number from OpSim where this binary would be observed
-		if (self.useOpSimDates and self.observable and self.OpSim.fieldID[0] == None):
+		if (self.useOpSimDates and self.observable and self.OpSim.fieldID[0] is None):
 			self.OpSim.setFieldID(self.RA, self.Dec)
 
 	def observe(self, filt):
@@ -674,7 +674,7 @@ class OpSim(object):
 		if (len(OpSimdates) < 1):
 			return [None], [None]
 		else:
-			if (self.obsDist == None): #default, use the OpSim dates
+			if (self.obsDist is None): #default, use the OpSim dates
 				if (self.verbose):
 					print('OpSimdates =', OpSimdates)
 				dates = np.array([float(d) for d in date[OpSimdates] ])/86400. #converting seconds to days\
@@ -1051,7 +1051,7 @@ class BreivikGalaxy(object):
 			gxFile = 'gxRealization_'+str(x)+'_'+str(self.popID)+'.dat'
 			np.savetxt(gxFile, binDat, delimiter = ',')     
 		
-		if (output == None):
+		if (output is None):
 			return pd.DataFrame(binDat, columns=['m1', 'm2', 'logp', 'ecc', 'r1', 'r2', 'L1', 'L2', 'xGX', 'yGX', 'zGX', 'dist_kpc', 'inc', 'OMEGA', 'omega'])
 		else:	
 			output.put(np.shape(binDat)) 
@@ -1532,7 +1532,7 @@ class LSSTEBworker(object):
 		EB.omega = line[14] *180./np.pi #degrees
 
 		EB.dist = line[11] #kpc
-		if (self.Galaxy == None):
+		if (self.Galaxy is None):
 			#pc
 			EB.xGx = line[8] 
 			EB.yGx = line[9] 
@@ -1738,13 +1738,13 @@ class LSSTEBworker(object):
 		return (np.vstack( (m1, m2, logp, ecc, r1, r2, L1, L2, x, x, x, d, inc, OMEGA, omega, Av, MH) ).T).squeeze()
 
 	def initialize(self, OpSimi=0):
-		if (self.seed == None):
+		if (self.seed is None):
 			np.random.seed()
 		else:
 			np.random.seed(seed = self.seed)
 
 
-		if (self.useOpSimDates and self.OpSim == None):
+		if (self.useOpSimDates and self.OpSim is None):
 			self.OpSim = OpSim()
 			#get the OpSim fields
 			self.OpSim.getAllOpSimFields()
@@ -1758,7 +1758,7 @@ class LSSTEBworker(object):
 				return False
 
 		#I need to move this up if I still want galaxy to get total number of stars, even if we're not observing it
-		if (self.Galaxy == None):
+		if (self.Galaxy is None):
 			self.Galaxy = TRILEGAL()
 			self.Galaxy.RA = self.OpSim.RA[OpSimi]
 			self.Galaxy.Dec = self.OpSim.Dec[OpSimi]
@@ -1767,13 +1767,13 @@ class LSSTEBworker(object):
 			self.Galaxy.tmpfname = 'TRILEGAL_model_fID'+str(int(self.OpSim.fieldID[OpSimi]))+'.h5'
 			self.Galaxy.setModel()	
 
-		if (self.Breivik == None):
+		if (self.Breivik is None):
 			self.Breivik = BreivikGalaxy()
 			self.Breivik.GalaxyFile = self.GalaxyFile
 			self.Breivik.GalaxyFileLogPrefix = self.GalaxyFileLogPrefix
 			self.Breivik.setKernel()
 
-		if (self.BreivikGal == None):
+		if (self.BreivikGal is None):
 			self.matchBreivikTRILEGAL()
 
 		return True

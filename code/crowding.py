@@ -77,7 +77,7 @@ class crowding(object):
 		nCrowd = 0
 
 		#draw from a Plummer star clusters distribution
-		if (self.xBinary == None):
+		if (self.xBinary is None):
 			d2D, self.xBinary, self.yBinary, self.zBinary = getd2D(self.clusterRPlummer)
 
 		d2d, x, y, z = getd2D(self.clusterRPlummer, int(np.round(self.clusterNstars)) )

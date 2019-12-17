@@ -229,7 +229,7 @@ class LSSTEBworker(object):
 		EB.omega = line[14] *180./np.pi #degrees
 
 		EB.dist = line[11] #kpc
-		if (self.Galaxy == None):
+		if (self.Galaxy is None):
 			#pc
 			EB.xGx = line[8] 
 			EB.yGx = line[9] 
@@ -435,13 +435,13 @@ class LSSTEBworker(object):
 		return (np.vstack( (m1, m2, logp, ecc, r1, r2, L1, L2, x, x, x, d, inc, OMEGA, omega, Av, MH) ).T).squeeze()
 
 	def initialize(self, OpSimi=0):
-		if (self.seed == None):
+		if (self.seed is None):
 			np.random.seed()
 		else:
 			np.random.seed(seed = self.seed)
 
 
-		if (self.useOpSimDates and self.OpSim == None):
+		if (self.useOpSimDates and self.OpSim is None):
 			self.OpSim = OpSim()
 			#get the OpSim fields
 			self.OpSim.getAllOpSimFields()
@@ -455,7 +455,7 @@ class LSSTEBworker(object):
 				return False
 
 		#I need to move this up if I still want galaxy to get total number of stars, even if we're not observing it
-		if (self.Galaxy == None):
+		if (self.Galaxy is None):
 			self.Galaxy = TRILEGAL()
 			self.Galaxy.RA = self.OpSim.RA[OpSimi]
 			self.Galaxy.Dec = self.OpSim.Dec[OpSimi]
@@ -464,13 +464,13 @@ class LSSTEBworker(object):
 			self.Galaxy.tmpfname = 'TRILEGAL_model_fID'+str(int(self.OpSim.fieldID[OpSimi]))+'.h5'
 			self.Galaxy.setModel()	
 
-		if (self.Breivik == None):
+		if (self.Breivik is None):
 			self.Breivik = BreivikGalaxy()
 			self.Breivik.GalaxyFile = self.GalaxyFile
 			self.Breivik.GalaxyFileLogPrefix = self.GalaxyFileLogPrefix
 			self.Breivik.setKernel()
 
-		if (self.BreivikGal == None):
+		if (self.BreivikGal is None):
 			self.matchBreivikTRILEGAL()
 
 		return True

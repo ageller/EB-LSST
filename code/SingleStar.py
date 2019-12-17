@@ -120,15 +120,15 @@ class SingleStar(object):
 		return np.log10(m) + 4.*np.log10(T) - np.log10(L) - 10.6071
 	
 	def initialize(self):
-		if (self.R == None): self.R = self.getRad(self.logg, self.m)
-		if (self.T == None): self.T = self.getTeff(self.L, self.R)
-		if (self.logg == None): self.logg = self.getlogg(self.m, self.L, self.T)  
+		if (self.R is None): self.R = self.getRad(self.logg, self.m)
+		if (self.T is None): self.T = self.getTeff(self.L, self.R)
+		if (self.logg is None): self.logg = self.getlogg(self.m, self.L, self.T)  
 		#one option for getting the extinction
-		if (self.AV == None):
+		if (self.AV is None):
 			count = 0
-			while (self.AV == None and count < 100):
+			while (self.AV is None and count < 100):
 				self.AV = extinction.get_AV_infinity(self.RA, self.Dec, frame='icrs')
-				if (self.AV == None):
+				if (self.AV is None):
 					print("WARNING: No AV found", self.RA, self.Dec, self.AV, count)
 					
 		#initialize the SED

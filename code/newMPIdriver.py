@@ -102,7 +102,7 @@ if __name__ == "__main__":
 	root = 0
 
 	args = define_args()
-	if (args.n_bin == None):
+	if (args.n_bin is None):
 		args.n_bin = 4
 
 	nfields = 5292 #total number of fields from OpSim
@@ -170,7 +170,7 @@ if __name__ == "__main__":
 	print(f"PYSYN_CDBS environ = {os.environ['PYSYN_CDBS']}")
 	#check for command-line arguments
 	apply_args(worker, args)	
-	if (worker.seed == None):
+	if (worker.seed is None):
 		worker.seed = 1234
 	worker.seed += rank
 

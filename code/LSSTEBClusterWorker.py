@@ -269,7 +269,7 @@ class LSSTEBClusterWorker(object):
 			self.EB.M_H = line[16]
 
 
-		if (self.EB.AV == None):
+		if (self.EB.AV is None):
 			self.EB.AV = self.clusterAV[OpSimi]
 
 		self.EB.t_zero = np.random.random() * self.EB.period
@@ -367,7 +367,7 @@ class LSSTEBClusterWorker(object):
 
 
 	def initialize(self, OpSimi=0):
-		if (self.seed == None):
+		if (self.seed is None):
 			np.random.seed()
 			self.seed = np.random.randint(0,100000)
 		else:
@@ -379,10 +379,10 @@ class LSSTEBClusterWorker(object):
 		if (len(self.clusterAV) < len(self.clusterName)):
 			self.clusterAV = np.array([None for x in range(len(self.clusterName))])
 		
-		while (self.clusterAV[OpSimi] == None and count < 100):
+		while (self.clusterAV[OpSimi] is None and count < 100):
 			count += 1
 			self.clusterAV[OpSimi] = extinction.get_AV_infinity(self.OpSim.RA[OpSimi], self.OpSim.Dec[OpSimi], frame='icrs')
-			if (self.clusterAV[OpSimi] == None):
+			if (self.clusterAV[OpSimi] is None):
 				print("WARNING: No AV found", self.OpSim.RA[OpSimi], self.OpSim.Dec[OpSimi], self.clusterAV[OpSimi], count)
 
 		self.OpSim.setDates(OpSimi, self.filters)

@@ -69,7 +69,7 @@ if __name__ == "__main__":
 	worker.dbFile = '/Users/ageller/WORK/LSST/onGitHub/EBLSST/input/db/minion_1016_sqlite.db' #for the OpSim database	
 	#check for command-line arguments
 	args = define_args()
-	if (args.n_bin == None):
+	if (args.n_bin is None):
 		args.n_bin = 2
 
 	apply_args(worker)

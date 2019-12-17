@@ -96,10 +96,10 @@ if __name__ == "__main__":
 	root = 0
 
 	args = define_args()
-	if (args.n_bin == None):
+	if (args.n_bin is None):
 		args.n_bin = 4
 
-	if (args.input_file == None):
+	if (args.input_file is None):
 		args.input_file = 'GCdataForEBLSST.csv'
 
 	#these tables should contain (at least) the cluster Name, Mass, Distance, Metallicity, Rhm, Age, and OpSim ID, RA, Dec
@@ -222,7 +222,7 @@ if __name__ == "__main__":
 	
 	#check for command-line arguments
 	apply_args(worker, args)	
-	if (worker.seed == None):
+	if (worker.seed is None):
 		worker.seed = 1234
 	worker.seed += rank
 

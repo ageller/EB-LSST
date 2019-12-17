@@ -287,7 +287,7 @@ class EclipsingBinary(object):
 			# against others)
 			#X = 1. #function of distance??
 			#t_vis = 30. #seconds
-			if (m_5[0] == None):
+			if (m_5[0] is None):
 				m_5 = self.sigmaDict[filt]['C_m'] + (0.50*(self.sigmaDict[filt]['m_sky'] - 21.)) + (2.50*np.log10(0.7/self.sigmaDict[filt]['seeing'])) + (1.25*np.log10(t_vis/30.)) - (self.sigmaDict[filt]['k_m']*(X-1.))
 			return (0.04 - self.sigmaDict[filt]['gamma'])*(10**(0.4*(magnitude - m_5))) + self.sigmaDict[filt]['gamma']*((10**(0.4*(magnitude - m_5)))**2)*(magnitude**2)
 
@@ -324,7 +324,7 @@ class EclipsingBinary(object):
 	
 
 		#in case the user did not initialize
-		if (self.T1 == None):
+		if (self.T1 is None):
 			self.initialize()
 
 		#limb darkenning
@@ -371,7 +371,7 @@ class EclipsingBinary(object):
 		dates = self.obsDates[filt]
 		if (useDates[0] is not None):
 			dates = useDates
-		if (light_3 == None):
+		if (light_3 is None):
 			light_3 = self.light_3[filt]
 		#print('using light_3', filt, light_3)
 		if (np.isfinite(ldc_1[0]) and np.isfinite(ldc_2[0])):
@@ -477,7 +477,7 @@ class EclipsingBinary(object):
 			print("mag observable", self.observable)
 			
 	def initializeSeed(self):
-		if (self.seed == None):
+		if (self.seed is None):
 			np.random.seed()
 		else:
 			np.random.seed(seed = self.seed)
@@ -497,7 +497,7 @@ class EclipsingBinary(object):
 		self.f_c = np.sqrt(self.eccentricity)*np.cos(self.omega*np.pi/180.)
 		self.f_s = np.sqrt(self.eccentricity)*np.sin(self.omega*np.pi/180.)
 
-		if (self.RA == None):
+		if (self.RA is None):
 			coord = SkyCoord(x=self.xGx, y=self.yGx, z=self.zGx, unit='pc', representation='cartesian', frame='galactocentric')
 			self.RA = coord.icrs.ra.to(units.deg).value
 			self.Dec = coord.icrs.dec.to(units.deg).value
@@ -517,19 +517,19 @@ class EclipsingBinary(object):
 
 		self.preCheckIfObservable()
 		if (self.observable):
-			if (self.T1 == None): self.T1 = self.getTeff(self.L1, self.r1)
-			if (self.T2 == None): self.T2 = self.getTeff(self.L2, self.r2)
-			if (self.g1 == None): self.g1 = self.getlogg(self.m1, self.L1, self.T1)
-			if (self.g2 == None): self.g2 = self.getlogg(self.m2, self.L2, self.T2)
+			if (self.T1 is None): self.T1 = self.getTeff(self.L1, self.r1)
+			if (self.T2 is None): self.T2 = self.getTeff(self.L2, self.r2)
+			if (self.g1 is None): self.g1 = self.getlogg(self.m1, self.L1, self.T1)
+			if (self.g2 is None): self.g2 = self.getlogg(self.m2, self.L2, self.T2)
 			self.sbratio = (self.L2/self.r2**2.)/(self.L1/self.r1**2.)
 
 			#one option for getting the extinction
-			if (self.AV == None):
+			if (self.AV is None):
 				count = 0
-				while (self.AV == None and count < 100):
+				while (self.AV is None and count < 100):
 					count += 1
 					self.AV = extinction.get_AV_infinity(self.RA, self.Dec, frame='icrs')
-					if (self.AV == None):
+					if (self.AV is None):
 						print("WARNING: No AV found", self.RA, self.Dec, self.AV, count)
 
 			self.SED1 = SED()
@@ -596,7 +596,7 @@ class EclipsingBinary(object):
 
 		#if we're using OpSim, then get the field ID
 		#get the field ID number from OpSim where this binary would be observed
-		if (self.useOpSimDates and self.observable and self.OpSim.fieldID[0] == None):
+		if (self.useOpSimDates and self.observable and self.OpSim.fieldID[0] is None):
 			self.OpSim.setFieldID(self.RA, self.Dec)
 
 		#this now covers the galaxy and the cluster, if available

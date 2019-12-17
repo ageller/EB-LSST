@@ -517,7 +517,7 @@ class LSSTEBWorker(object):
 		return output
 
 	def initialize(self, OpSimi=0):
-		if (self.seed == None):
+		if (self.seed is None):
 			np.random.seed()
 			self.seed = np.random.randint(0,100000)
 		else:
