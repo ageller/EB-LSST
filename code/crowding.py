@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from astropy import units
 from dust_extinction.parameter_averages import F04
 
