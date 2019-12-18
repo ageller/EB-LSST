@@ -89,7 +89,7 @@ class SingleStar(object):
 
 		#don't touch these
 		self.filters = ['u_', 'g_', 'r_', 'i_', 'z_', 'y_']
-		self.filterFilesRoot = '/Users/ageller/WORK/LSST/onGitHub/EBLSST/input/filters/'
+		self.filterFilesRoot = '../input/filters/'
 		self.RV = 3.1
 		#from https://www.lsst.org/scientists/keynumbers
 		#in nm

@@ -1,5 +1,6 @@
 #!/software/anaconda3.6/bin/python
 
+import time
 import csv
 import argparse
 import numpy as np

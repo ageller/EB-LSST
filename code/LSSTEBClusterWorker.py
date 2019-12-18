@@ -288,6 +288,7 @@ class LSSTEBClusterWorker(object):
 		#set up the crowding class
 		if (self.doCrowding):
 			self.EB.crowding = crowding()
+			self.EB.crowding.filterFilesRoot = self.filterFilesRoot
 			self.EB.crowding.clusterAge = self.clusterAge[OpSimi]                     
 			self.EB.crowding.clusterFeH = self.clusterMetallicity[OpSimi]
 			self.EB.crowding.clusterDist = self.clusterDistance[OpSimi]

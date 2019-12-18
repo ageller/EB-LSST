@@ -264,6 +264,7 @@ class LSSTEBWorker(object):
 		#set up the crowding class
 		if (self.doCrowding):
 			self.EB.crowding = crowding()
+			self.EB.crowding.filterFilesRoot = self.filterFilesRoot
 			self.EB.crowding.Galaxy = self.Galaxy
 
 

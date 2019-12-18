@@ -33,6 +33,9 @@ class crowding(object):
 		self.clusterDist = None #kpc
 		self.clusterAV = None
 		self.clusterNstars = None 
+		
+		#for SED
+		self.filterFilesRoot = '../input/filters/'
 
 		#required for galaxy crowding
 		self.Galaxy = None
@@ -152,6 +155,7 @@ class crowding(object):
 		for index, star in singles.iterrows():
 			#sample a random star
 			s = SingleStar()
+			s.filterFilesRoot = self.filterFilesRoot
 			s.M_H = star['M_H']
 			s.dist = star['dist']
 			s.m = star['mass_1']
