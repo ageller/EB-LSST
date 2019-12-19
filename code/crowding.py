@@ -129,7 +129,7 @@ class crowding(object):
 
 		if (self.nCrowdGalaxy > 0):
 
-			singles = pd.dataFrame()
+			singles = pd.DataFrame()
 
 			#take a uniform distribution 
 			singles['xAng'] = np.random.random(size = self.nCrowdGalaxy)*self.dLim*self.seeing - self.dLim*self.seeing/2.
