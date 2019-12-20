@@ -98,7 +98,7 @@ class crowding(object):
 		dAng = np.array(np.arctan2(dpc, self.clusterDist*1000.))*180./np.pi*3600.
 
 		#take only those within the limits
-		use = np.where(dAng < self.dLim*self.seeing/2.)
+		use = np.where(dAng < self.dLim*self.seeing)
 		xSingles = x[use]
 		ySingles = y[use]
 		zSingles = z[use]
@@ -132,7 +132,7 @@ class crowding(object):
 
 	def generateGalaxySingles(self):
 
-		self.nCrowdGalaxy = int(np.random.poisson(self.Galaxy.starsPerResEl*self.dLim**2.))
+		self.nCrowdGalaxy = int(np.random.poisson(self.Galaxy.starsPerResEl*(2.*self.dLim)**2.))
 
 		self.nCrowd += self.nCrowdGalaxy
 
@@ -141,8 +141,8 @@ class crowding(object):
 			singles = pd.DataFrame()
 
 			#take a uniform distribution 
-			singles['xAng'] = np.random.random(size = self.nCrowdGalaxy)*self.dLim*self.seeing - self.dLim*self.seeing/2.
-			singles['yAng'] = np.random.random(size = self.nCrowdGalaxy)*self.dLim*self.seeing - self.dLim*self.seeing/2.
+			singles['xAng'] = np.random.random(size = self.nCrowdGalaxy)*2.*self.dLim*self.seeing - self.dLim*self.seeing
+			singles['yAng'] = np.random.random(size = self.nCrowdGalaxy)*2.*self.dLim*self.seeing - self.dLim*self.seeing
 
 			crowd = self.Galaxy.model.sample(self.nCrowdGalaxy)
 			singles['M_H'] = crowd['[M/H]']
