@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from astropy import units
+from astropy import units, constants
 from dust_extinction.parameter_averages import F04
 
 from SingleStar import SingleStar, getSingleStars
@@ -23,6 +23,13 @@ def getd2D(rPlummer, Nvals = 1):
 def gauss2D(A, x1, mu1, s1, x2, mu2, s2):
 	#http://mathworld.wolfram.com/GaussianFunction.html
 	return A/(2.*np.pi*s1*s2)*np.exp(-((x1 - mu1)**2./(2.*s1**2.) + (x2 - mu2)**2./(2.*s2**2.)))
+
+#Some approximate function for deriving stellar parameters
+def getRad(logg, m):
+	#g = GM/r**2
+	g = 10.**logg * units.cm/units.s**2.
+	r = ((constants.G*m*units.Msun/g)**0.5).decompose().to(units.Rsun).value
+	return r
 
 class crowding(object):
 	def __init__(self, *args,**kwargs):
@@ -75,12 +82,7 @@ class crowding(object):
 		self.nCrowdCluster = 0
 		self.AV = 0
 
-	#Some approximate function for deriving stellar parameters
-	def getRad(self, logg, m):
-		#g = GM/r**2
-		g = 10.**logg * units.cm/units.s**2.
-		r = ((constants.G*m*units.Msun/g)**0.5).decompose().to(units.Rsun).value
-		return r
+
 
 	def generateClusterSingles(self):
 
@@ -148,7 +150,7 @@ class crowding(object):
 			singles['AV'] = crowd['Av']
 			singles['mass_1'] = crowd['Mact']
 			singles['logg'] = crowd['logg']
-			singles['rad_1'] = self.getRad(crowd['logg'], crowd['Mact'])
+			singles['rad_1'] = getRad(crowd['logg'], crowd['Mact'])
 			singles['lumin_1'] = 10.**crowd['logL']
 			singles['teff_1'] = 10.**crowd['logTe']
 
