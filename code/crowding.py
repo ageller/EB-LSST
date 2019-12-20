@@ -75,6 +75,13 @@ class crowding(object):
 		self.nCrowdCluster = 0
 		self.AV = 0
 
+	#Some approximate function for deriving stellar parameters
+	def getRad(self, logg, m):
+		#g = GM/r**2
+		g = 10.**logg * units.cm/units.s**2.
+		r = ((constants.G*m*units.Msun/g)**0.5).decompose().to(units.Rsun).value
+		return r
+
 	def generateClusterSingles(self):
 
 		#draw random positions and sort by distance
@@ -138,7 +145,7 @@ class crowding(object):
 			crowd = self.Galaxy.model.sample(self.nCrowdGalaxy)
 			singles['M_H'] = crowd['[M/H]']
 			singles['dist'] = 10.**crowd['logDist'] #kpc
-			singles['AV'] = crowd['AV']
+			singles['AV'] = crowd['Av']
 			singles['mass_1'] = crowd['Mact']
 			singles['logg'] = crowd['logg']
 			singles['rad_1'] = self.getRad(crowd['logg'], crowd['Mact'])
