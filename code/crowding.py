@@ -98,7 +98,7 @@ class crowding(object):
 		dAng = np.array(np.arctan2(dpc, self.clusterDist*1000.))*180./np.pi*3600.
 
 		#take only those within the limits
-		use = np.where(dAng < self.dLim*self.seeing)
+		use = np.where(dAng < self.dLim*self.seeing/2.)
 		xSingles = x[use]
 		ySingles = y[use]
 		zSingles = z[use]
