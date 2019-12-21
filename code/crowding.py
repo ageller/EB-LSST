@@ -145,14 +145,14 @@ class crowding(object):
 			singles['yAng'] = np.random.random(size = self.nCrowdGalaxy)*2.*self.dLim*self.seeing - self.dLim*self.seeing
 
 			crowd = self.Galaxy.model.sample(self.nCrowdGalaxy)
-			singles['M_H'] = crowd['[M/H]']
-			singles['dist'] = 10.**crowd['logDist'] #kpc
-			singles['AV'] = crowd['Av']
-			singles['mass_1'] = crowd['Mact']
-			singles['logg'] = crowd['logg']
-			singles['rad_1'] = getRad(crowd['logg'], crowd['Mact'])
-			singles['lumin_1'] = 10.**crowd['logL']
-			singles['teff_1'] = 10.**crowd['logTe']
+			singles['M_H'] = crowd['[M/H]'].iloc[0]
+			singles['dist'] = 10.**crowd['logDist'].iloc[0] #kpc
+			singles['AV'] = crowd['Av'].iloc[0]
+			singles['mass_1'] = crowd['Mact'].iloc[0]
+			singles['logg'] = crowd['logg'].iloc[0]
+			singles['rad_1'] = getRad(crowd['logg'].iloc[0], crowd['Mact'].iloc[0])
+			singles['lumin_1'] = 10.**crowd['logL'].iloc[0]
+			singles['teff_1'] = 10.**crowd['logTe'].iloc[0]
 
 			self.galaxySingles = self.getSinglesFlux(singles)	
 
