@@ -54,7 +54,7 @@ class TRILEGAL(object):
 			self.downloadModel()
 
 		self.model = pd.read_hdf(os.path.join(self.tmpdir,self.tmpfname))
-		self.Nstars = len(self.model) * (area0/self.area)**2.
+		self.Nstars = len(self.model) * (area0/self.area)
 
 		#check for crowding
 		#first see if we need to normalize this to the LSST FoV
