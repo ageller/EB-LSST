@@ -298,7 +298,7 @@ class LSSTEBWorker(object):
 		self.csvwriter.writerow(output)	
 
 
-	def getGalaxy(self, OpSimi, deleteModel = True, downloadModel = True, area0frac = 1.):
+	def getGalaxy(self, OpSimi, deleteModel = True, downloadModel = True, area0frac = None):
 		self.Galaxy = TRILEGAL()
 		self.Galaxy.RA = self.OpSim.RA[OpSimi]
 		self.Galaxy.Dec = self.OpSim.Dec[OpSimi]
@@ -307,7 +307,7 @@ class LSSTEBWorker(object):
 		self.Galaxy.tmpfname = 'TRILEGAL_model_fID'+str(int(self.OpSim.fieldID[OpSimi]))+'.h5'
 		self.Galaxy.deleteModel = deleteModel
 		self.Galaxy.seeing = self.seeing
-		self.Galaxy.area0frac = area0frac
+		if (area0frac is not None): self.Galaxy.area0frac = area0frac
 		self.Galaxy.setModel(download = downloadModel)
 
 
