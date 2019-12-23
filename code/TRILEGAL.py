@@ -16,6 +16,7 @@ os.environ['PATH'] = p2
 class TRILEGAL(object):
 	def __init__(self, *args,**kwargs):
 		self.area = np.pi*(3.5/2.)**2. #square degrees (LSST FoV)
+		self.area0frac = 1.
 		self.maglim = 26
 		self.sigma_AV = 0.1 #default
 		self.binaries = False
@@ -40,6 +41,7 @@ class TRILEGAL(object):
 
 	def downloadModel(self):
 		passed = False
+		self.area *= self.area0frac
 		while (not passed):
 			passed = trilegal_update.get_trilegal(self.tmpfname, self.RA, self.Dec, folder=self.tmpdir, galactic=False, \
 				filterset=self.filterset, area=self.area, maglim=self.maglim, binaries=self.binaries, \

@@ -145,14 +145,14 @@ class crowding(object):
 			singles['yAng'] = np.random.random(size = self.nCrowdGalaxy)*2.*self.dLim*self.seeing - self.dLim*self.seeing
 
 			crowd = self.Galaxy.model.sample(self.nCrowdGalaxy)
-			singles['M_H'] = crowd['[M/H]'].iloc[0]
-			singles['dist'] = 10.**crowd['logDist'].iloc[0] #kpc
-			singles['AV'] = crowd['Av'].iloc[0]
-			singles['mass_1'] = crowd['Mact'].iloc[0]
-			singles['logg'] = crowd['logg'].iloc[0]
-			singles['rad_1'] = getRad(crowd['logg'].iloc[0], crowd['Mact'].iloc[0])
-			singles['lumin_1'] = 10.**crowd['logL'].iloc[0]
-			singles['teff_1'] = 10.**crowd['logTe'].iloc[0]
+			singles['M_H'] = crowd['[M/H]'].to_numpy()
+			singles['dist'] = 10.**crowd['logDist'].to_numpy() #kpc
+			singles['AV'] = crowd['Av'].to_numpy()
+			singles['mass_1'] = crowd['Mact'].to_numpy()
+			singles['logg'] = crowd['logg'].to_numpy()
+			singles['rad_1'] = getRad(crowd['logg'].to_numpy(), crowd['Mact'].to_numpy())
+			singles['lumin_1'] = 10.**crowd['logL'].to_numpy()
+			singles['teff_1'] = 10.**crowd['logTe'].to_numpy()
 
 			self.galaxySingles = self.getSinglesFlux(singles)	
 
@@ -188,13 +188,19 @@ class crowding(object):
 
 		self.fluxgrid = {}
 
-		def sumFlux(singles):
+		def sumFlux(singles, i, j, x, y):
 			for index, star in singles.iterrows():
 				for f in self.filters:
 					amp = star['flux_'+f]
 					self.fluxgrid[f][i,j] += gauss2D(amp, x, star['xAng'], self.seeing, y, star['yAng'], self.seeing)
-					if ('AV' in star): 
-						self.AV += star['AV']
+
+		def sumAV(singles):
+			nvals = 0.
+			for index, star in singles.iterrows():
+				if ('AV' in star): 
+					self.AV += star['AV']
+					nvals += 1.
+			return nvals
 
 		#integrate up the flux in all the pixels within the seeing area
 		extent = int(np.ceil(self.seeing/2./self.pixel))
@@ -208,20 +214,25 @@ class crowding(object):
 
 		for i,x in enumerate(xvals):
 			for j,y in enumerate(yvals):
-				if (self.clusterSingles is not None): sumFlux(self.clusterSingles)
-				if (self.galaxySingles is not None): sumFlux(self.galaxySingles)
+				if (self.clusterSingles is not None): sumFlux(self.clusterSingles, i, j, x, y)
+				if (self.galaxySingles is not None): sumFlux(self.galaxySingles, i, j, x, y)
 
 
-		dx = xvals[1] - xvals[0]
-		dy = yvals[1] - yvals[0]
-		dA = dx*dy
+
 		ext = F04(Rv=self.RV)
 		if (self.clusterAV is not None):
 			self.AV = self.clusterAV
 		else:
-			#for the AV when it's just the field here, let's just take a mean
-			self.AV /= self.nCrowd
+			#in this case, let's just take a mean
+			self.AV = 0.
+			nvals = 0.
+			if (self.clusterSingles is not None): nvals += sumAV(self.clusterSingles)
+			if (self.galaxySingles is not None): nvals += sumAV(self.galaxySingles)
+			self.AV /= nvals
 
+		dx = xvals[1] - xvals[0]
+		dy = yvals[1] - yvals[0]
+		dA = dx*dy
 		for f in self.filters:
 			Ared = ext(self.wavelength[f]*units.nm)*self.AV
 

@@ -1,0 +1,11 @@
+--2019-12-23 15:27:08--  http://stev.oapd.inaf.it/cgi-bin/trilegal_1.6
+Resolving stev.oapd.inaf.it (stev.oapd.inaf.it)... 193.206.241.134
+Connecting to stev.oapd.inaf.it (stev.oapd.inaf.it)|193.206.241.134|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Saving to: ‘TRILEGALmodels/tmpfile’
+
+     0K .                                                      49.5M=0s
+
+2019-12-23 15:27:09 (49.5 MB/s) - ‘TRILEGALmodels/tmpfile’ saved [1971]
+
