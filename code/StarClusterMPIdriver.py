@@ -268,6 +268,7 @@ if __name__ == "__main__":
 	ofile = worker.ofile
 	for i in range(len(worker.clusterName)):
 		worker.n_bin = args.n_bin
+		#worker.doCrowding = False
 		worker.clusterName[i] = worker.clusterName[i].replace(' ','_')
 		nme = worker.clusterName[i]
 		if (nme not in finishedIDs and worker.clusterName[i] != -1):
@@ -304,7 +305,8 @@ if __name__ == "__main__":
 
 			if (passed):
 				#run through ellc and gatspy
-				worker.getGalaxy(i)
+				if (worker.doCrowding):
+					worker.getGalaxy(i)
 
 				#get the output from Andrew's cluster code
 				clusterDat = worker.sampleCluster(i)
