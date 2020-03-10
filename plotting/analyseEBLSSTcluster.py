@@ -19,6 +19,8 @@ matplotlib.use('Agg')
 
 doIndividualPlots = True
 
+directory = "../output_files/"
+
 from matplotlib import pyplot as plt
 def file_len(fname):
 	i = 0
@@ -203,15 +205,14 @@ if __name__ == "__main__":
 	recNPrsa = []
 
 	#Read in all the data and make the histograms
-	d = "../output_files/"
-	files = os.listdir(d)
+	files = os.listdir(directory)
 	IDs = []
 	for i, f in enumerate(files):
 		print(round(i/len(files),4), f)
-		fl = file_len(d+f)
+		fl = file_len(directory+f)
 		if (fl >= 4):
 			#read in the header
-			header = pd.read_csv(d+f, nrows=1)
+			header = pd.read_csv(directory+f, nrows=1)
 	######################
 	#NEED TO ACCOUNT FOR THE BINARY FRACTION when combining histograms
 	#####################
@@ -222,7 +223,7 @@ if __name__ == "__main__":
 			Dec.append(header['OpSimDec'])
 
 			#read in rest of the file
-			data = pd.read_csv(d+f, header = 2).fillna(-999)
+			data = pd.read_csv(directory+f, header = 2).fillna(-999)
 			rF = 0.
 			rN = 0.
 			Nrec = 0.
