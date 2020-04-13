@@ -124,9 +124,10 @@ if __name__ == "__main__":
 	print(fbFit)
 		
 	#to normalize
-	intAll, err = quad(RagNormal, -20, 20)
-	intCut, err = quad(RagNormal, -20, np.log10(365*10.))
-	intNorm = intCut/intAll
+	#intAll, err = quad(RagNormal, -20, 20)
+	#intCut, err = quad(RagNormal, -20, np.log10(365*10.))
+	#intNorm = intCut/intAll
+	intNorm = 1. #we don't need to do this normalization for clusters
 
 	#cutoff in percent error for "recovered"
 	Pcut = 0.1
@@ -239,7 +240,7 @@ if __name__ == "__main__":
 			Nall = len(data.index)/intNorm ###is this correct? (and the only place I need to normalize?)
 			prsa = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] > 15.8) & (data['p'] < 1000) & (data['p'] > 0.5)]
 
-			NallPrsa = len(prsa.index)
+			NallPrsa = len(prsa.index)/intNorm
 			if (Nall >= Nlim):
 				#create histograms
 				#All
