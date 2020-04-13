@@ -250,7 +250,7 @@ if __name__ == "__main__":
 					worker.writeOutputLine(OpSimi=i, header=True)
 					csvfile.flush()
 
-				print(f'Nlines in gxDate={len(gxDat)} for ID={worker.OpSim.fieldID[i]}')
+				print(f'Nlines in gxDat={len(gxDat)} for ID={worker.OpSim.fieldID[i]}')
 
 				for j, line in enumerate(gxDat):
 					line = gxDat[j]
