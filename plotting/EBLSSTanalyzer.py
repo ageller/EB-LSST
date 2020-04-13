@@ -27,7 +27,8 @@ class EBLSSTanalyzer(object):
 				mMean = 0.5,
 				filters = ['u_', 'g_', 'r_', 'i_', 'z_', 'y_', 'all'],
 				Pcut = 0.1,
-				Nlim = 1):
+				Nlim = 1,
+				onlyDWD = False):
 
 		self.directory = directory
 		self.plotsDirectory = plotsDirectory
@@ -37,7 +38,7 @@ class EBLSSTanalyzer(object):
 		self.filters = filters
 		self.Pcut = Pcut #cutoff in percent error for "recovered"
 		self.Nlim = Nlim #minimum number of lines to consider (for all, obs, rec, etc.)
-
+		self.onlyDWD = onlyDWD
 
 		self.outputNumbers = dict()
 		self.outputNumbers['RA'] = []
@@ -52,6 +53,9 @@ class EBLSSTanalyzer(object):
 		self.outputNumbers['allNPrsa'] = []
 		self.outputNumbers['obsNPrsa'] = []
 		self.outputNumbers['recNPrsa'] = []
+		self.outputNumbers['allNDWD'] = []
+		self.outputNumbers['obsNDWD'] = []
+		self.outputNumbers['recNDWD'] = []
 
 		self.outputHists = dict()
 
@@ -127,20 +131,22 @@ class EBLSSTanalyzer(object):
 		#ratio
 		#prepend some values at y of zero so that the step plots look correct
 		use = np.where(histAll > 0)[0]
-		b = bin_edges[use]
-		r = histObs[use]/histAll[use]
-		ax3.step(np.append(b[0] - 2*binHalf, b), np.append(0,r), color=c2, label='Observable/All')
-		ax3.plot(b - binHalf, r, 'o',color=c1, markersize=5, markeredgecolor=c2)
+		if (len(use) > 0):
+			b = bin_edges[use]
+			r = histObs[use]/histAll[use]
+			ax3.step(np.append(b[0] - 2*binHalf, b), np.append(0,r), color=c2, label='Observable/All')
+			ax3.plot(b - binHalf, r, 'o',color=c1, markersize=5, markeredgecolor=c2)
 
-		r = allhistRec[use]/histAll[use]
-		ax3.step(np.append(b[0] - 2*binHalf, b), np.append(0,r), color=c3, label='Recoverable/All')
-		ax3.plot(b - binHalf, r, 'o',color=c1, markersize=5, markeredgecolor=c3)
+			r = allhistRec[use]/histAll[use]
+			ax3.step(np.append(b[0] - 2*binHalf, b), np.append(0,r), color=c3, label='Recoverable/All')
+			ax3.plot(b - binHalf, r, 'o',color=c1, markersize=5, markeredgecolor=c3)
 
-		use = np.where(histObs > 0)[0]
-		b = bin_edges[use]
-		r =  allhistRec[use]/histObs[use]
-		ax3.step(np.append(b[0] - 2*binHalf, b), np.append(0,r), color=c3, label='Recoverable/Observable')
-		ax3.plot(b - binHalf, r, 'o',color=c2, markersize=5, markeredgecolor=c3)
+			use = np.where(histObs > 0)[0]
+			if (len(use) > 0):
+				b = bin_edges[use]
+				r =  allhistRec[use]/histObs[use]
+				ax3.step(np.append(b[0] - 2*binHalf, b), np.append(0,r), color=c3, label='Recoverable/Observable')
+				ax3.plot(b - binHalf, r, 'o',color=c2, markersize=5, markeredgecolor=c3)
 		#ax3.step(bin_edges[use], histRec[use]/histObs[use], color=c2, linestyle='--', dashes=(3, 3), linewidth=4)
 
 		ax3.set_ylabel('Ratio')
@@ -375,11 +381,6 @@ class EBLSSTanalyzer(object):
 		fbFit = self.fitRagfb()
 		print(fbFit)
 			
-		#to normalize for the difference in period
-		intAll, err = quad(self.RagNormal, -20, 20)
-		intCut, err = quad(self.RagNormal, -20, np.log10(365*10.))
-		intNorm = intCut/intAll
-
 		if (self.doIndividualPlots):
 			fmass, axmass = plt.subplots()
 			fqrat, axqrat = plt.subplots()
@@ -393,7 +394,7 @@ class EBLSSTanalyzer(object):
 		mbins = np.arange(0,10, 0.1, dtype='float')
 		qbins = np.arange(0,1, 0.1, dtype='float')
 		ebins = np.arange(0, 1.05, 0.05, dtype='float')
-		lpbins = np.arange(-2, 10, 0.5, dtype='float')
+		lpbins = np.arange(-3, 10, 0.5, dtype='float')
 		dbins = np.arange(0, 40, 1, dtype='float')
 		magbins = np.arange(11, 25, 1, dtype='float')
 		rbins = np.arange(0, 100, 0.2, dtype='float')
@@ -459,139 +460,196 @@ class EBLSSTanalyzer(object):
 				#Nmult = 1.
 
 
+				#to normalize for the difference in period, since I limit this for the field for computational efficiency (but not for clusters, which I allow to extend to the hard-soft boundary)
+				intNorm = 1.
+				if (not self.cluster):
+					intAll, err = quad(self.RagNormal, -20, 3650.)
+					intCut, err = quad(self.RagNormal, -20, 20)
+					intNorm = intCut/intAll
 
-				#read in rest of the file
-				data = pd.read_csv(os.path.join(self.directory,f), header = 2).fillna(-999)
+
 				rF = 0.
 				rN = 0.
-				Nrec = 0.
-				Nobs = 0.
+				raN = 0.
 				raN = 0.
 				obN = 0.
 				fiN = 0.
 				fioN = 0.
 				firN = 0.
+				Nall = 0.
+				Nrec = 0.
+				Nobs = 0.
 				NallPrsa = 0.
 				NobsPrsa = 0.
 				NrecPrsa = 0.
-				Nall = len(data.index)/intNorm ###is this correct? (and the only place I need to normalize?) -- I think yes (the observed binary distribution should be cut at a period of the survey duration)
-				prsa = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] > 15.8) & (data['p'] < 1000) & (data['p'] > 0.5)]
+				NallDWD = 0.
+				NobsDWD = 0.
+				NrecDWD = 0.
 
-				NallPrsa = len(prsa.index)
-				if (Nall >= self.Nlim):
-					#create histograms
-					#All
-					m1hAll0, m1b = np.histogram(data["m1"], bins=mbins)
-					qhAll0, qb = np.histogram(data["m2"]/data["m1"], bins=qbins)
-					ehAll0, eb = np.histogram(data["e"], bins=ebins)
-					lphAll0, lpb = np.histogram(np.ma.log10(data["p"].values).filled(-999), bins=lpbins)
-					dhAll0, db = np.histogram(data["d"], bins=dbins)
-					maghAll0, magb = np.histogram(data["appMagMean_r"], bins=magbins)
-					rhAll0, rb = np.histogram(data["r2"]/data["r1"], bins=rbins)
+				#read in rest of the file
+				data = pd.read_csv(os.path.join(self.directory,f), header = 2).fillna(-999)
+				if (data['m1'][0] != -1): #these are files that were not even run
+					data['r1'].replace(0., 1e-10, inplace = True)
+					data['r2'].replace(0., 1e-10, inplace = True)
+					data['m1'].replace(0., 1e-10, inplace = True)
+					data['m2'].replace(0., 1e-10, inplace = True)
+					logg1 = np.log10((constants.G*data['m1'].values*units.solMass/(data['r1'].values*units.solRad)**2.).decompose().to(units.cm/units.s**2.).value)
+					logg2 = np.log10((constants.G*data['m2'].values*units.solMass/(data['r2'].values*units.solRad)**2.).decompose().to(units.cm/units.s**2.).value)
+					data['logg1'] = logg1
+					data['logg2'] = logg2
 
-					if (self.doIndividualPlots):
-						axmass.step(m1b[0:-1], m1hAll0/np.sum(m1hAll0), color='black', alpha=0.1)
-						axqrat.step(qb[0:-1], qhAll0/np.sum(qhAll0), color='black', alpha=0.1)
-						axecc.step(eb[0:-1], ehAll0/np.sum(ehAll0), color='black', alpha=0.1)
-						axlper.step(lpb[0:-1], lphAll0/np.sum(lphAll0), color='black', alpha=0.1)
-						axdist.step(db[0:-1], dhAll0/np.sum(dhAll0), color='black', alpha=0.1)
-						axmag.step(magb[0:-1], maghAll0/np.sum(maghAll0), color='black', alpha=0.1)
-						axrad.step(rb[0:-1], rhAll0/np.sum(rhAll0), color='black', alpha=0.1)
+					Nall = len(data.index)/intNorm  #saving this in case we want to limit the entire analysis to DWDs, but still want the full sample size for the cumulative numbers
 
-					#account for the binary fraction, as a function of mass
-					dm1 = np.diff(m1b)
-					m1val = m1b[:-1] + dm1/2.
-					fb = np.sum(m1hAll0/len(data.index)*fbFit(m1val))
-					if (self.cluster):
-						#account for the hard-soft boundary
-						Phs = self.getPhs(header['clusterVdisp'].iloc[0]*units.km/units.s).to(units.day).value
-						fb *= self.RagNormal(np.log10(Phs), cdf = True)
-						print("fb, Nbins, log10(Phs) = ", fb, len(data.index), np.log10(Phs))
-					Nmult *= fb
+					if (self.onlyDWD):
+						data = data.loc[(data['logg1'] > 6) & (data['logg1'] < 10) & (data['logg2'] > 6) & (data['logg2'] < 10)]
 
-								
-					m1hAll += m1hAll0/Nall*Nmult
-					qhAll += qhAll0/Nall*Nmult
-					ehAll += ehAll0/Nall*Nmult
-					lphAll += lphAll0/Nall*Nmult
-					dhAll += dhAll0/Nall*Nmult
-					maghAll += maghAll0/Nall*Nmult
-					rhAll += rhAll0/Nall*Nmult
+					prsa = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] > 15.8) & (data['p'] < 1000) & (data['p'] > 0.5)]
+					DWD = data.loc[(data['logg1'] > 6) & (data['logg1'] < 10) & (data['logg2'] > 6) & (data['logg2'] < 10)]
 
-					#Obs
-					obs = data.loc[data['LSM_PERIOD'] != -999]
-					Nobs = len(obs.index)
-					prsaObs = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] > 15.8) & (data['p'] < 1000) & (data['p'] >0.5) & (data['LSM_PERIOD'] != -999)]
-					NobsPrsa = len(prsaObs.index)
-					if (Nobs >= self.Nlim):
-						m1hObs0, m1b = np.histogram(obs["m1"], bins=mbins)
-						qhObs0, qb = np.histogram(obs["m2"]/obs["m1"], bins=qbins)
-						ehObs0, eb = np.histogram(obs["e"], bins=ebins)
-						lphObs0, lpb = np.histogram(np.ma.log10(obs["p"].values).filled(-999), bins=lpbins)
-						dhObs0, db = np.histogram(obs["d"], bins=dbins)
-						maghObs0, magb = np.histogram(obs["appMagMean_r"], bins=magbins)
-						rhObs0, rb = np.histogram(obs["r2"]/obs["r1"], bins=rbins)
-						m1hObs += m1hObs0/Nall*Nmult
-						qhObs += qhObs0/Nall*Nmult
-						ehObs += ehObs0/Nall*Nmult
-						lphObs += lphObs0/Nall*Nmult
-						dhObs += dhObs0/Nall*Nmult
-						maghObs += maghObs0/Nall*Nmult
-						rhObs += rhObs0/Nall*Nmult
+###is this correct? (and the only place I need to normalize?) -- I think yes (the observed binary distribution should be cut at a period of the survey duration)
+					NallPrsa = len(prsa.index)/intNorm
+					NallDWD = len(DWD.index)/intNorm
 
-						#Rec
-						recCombined = pd.DataFrame()
-						prsaRecCombined = pd.DataFrame()
-						for filt in self.filters:
-							key = filt+'LSS_PERIOD'
-							if (filt == 'all'):
-								key = 'LSM_PERIOD'
-							fullP = abs(data[key] - data['p'])/data['p']
-							halfP = abs(data[key] - 0.5*data['p'])/(0.5*data['p'])
-							twiceP = abs(data[key] - 2.*data['p'])/(2.*data['p'])
-							rec = data.loc[(data[key] != -999) & ( (fullP < self.Pcut) | (halfP < self.Pcut) | (twiceP < self.Pcut))]
-							prsaRec = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] >15.8) & (data['p'] < 1000) & (data['p'] >0.5) & (data['LSM_PERIOD'] != -999) & ( (fullP < self.Pcut) | (halfP < self.Pcut) | (twiceP < self.Pcut))]
-							Nrec = len(rec.index)
 
-							#I'd like to account for all filters here to have more accurate numbers
-							recCombined = recCombined.append(rec)
-							prsaRecCombined = prsaRecCombined.append(prsaRec)
-							if (filt == 'all'):
+
+					if (len(data.index) >= self.Nlim):
+						#create histograms
+						#All
+						m1hAll0, m1b = np.histogram(data["m1"], bins=mbins)
+						qhAll0, qb = np.histogram(data["m2"]/data["m1"], bins=qbins)
+						ehAll0, eb = np.histogram(data["e"], bins=ebins)
+						lphAll0, lpb = np.histogram(np.ma.log10(data["p"].values).filled(-999), bins=lpbins)
+						dhAll0, db = np.histogram(data["d"], bins=dbins)
+						maghAll0, magb = np.histogram(data["appMagMean_r"], bins=magbins)
+						rhAll0, rb = np.histogram(data["r2"]/data["r1"], bins=rbins)
+
+						if (self.doIndividualPlots):
+							axmass.step(m1b[0:-1], m1hAll0/np.sum(m1hAll0), color='black', alpha=0.1)
+							axqrat.step(qb[0:-1], qhAll0/np.sum(qhAll0), color='black', alpha=0.1)
+							axecc.step(eb[0:-1], ehAll0/np.sum(ehAll0), color='black', alpha=0.1)
+							axlper.step(lpb[0:-1], lphAll0/np.sum(lphAll0), color='black', alpha=0.1)
+							axdist.step(db[0:-1], dhAll0/np.sum(dhAll0), color='black', alpha=0.1)
+							axmag.step(magb[0:-1], maghAll0/np.sum(maghAll0), color='black', alpha=0.1)
+							axrad.step(rb[0:-1], rhAll0/np.sum(rhAll0), color='black', alpha=0.1)
+
+						#account for the binary fraction, as a function of mass
+						dm1 = np.diff(m1b)
+						m1val = m1b[:-1] + dm1/2.
+						fb = np.sum(m1hAll0/len(data.index)*fbFit(m1val))
+						if (self.cluster):
+							#account for the hard-soft boundary
+							Phs = self.getPhs(header['clusterVdisp'].iloc[0]*units.km/units.s).to(units.day).value
+							fb *= self.RagNormal(np.log10(Phs), cdf = True)
+							print("   fb, Nbins, log10(Phs) = ", fb, len(data.index), np.log10(Phs))
+						Nmult *= fb
+
+									
+						m1hAll += m1hAll0/Nall*Nmult
+						qhAll += qhAll0/Nall*Nmult
+						ehAll += ehAll0/Nall*Nmult
+						lphAll += lphAll0/Nall*Nmult
+						dhAll += dhAll0/Nall*Nmult
+						maghAll += maghAll0/Nall*Nmult
+						rhAll += rhAll0/Nall*Nmult
+
+						#Obs
+						#I want to account for all filters here too (maybe not necessary; if LSM is != -999 then they are all filled in, I think)...
+						obs = data.loc[(data['u_LSS_PERIOD'] != -999) | (data['g_LSS_PERIOD'] != -999) | (data['r_LSS_PERIOD'] != -999) | (data['i_LSS_PERIOD'] != -999) | (data['z_LSS_PERIOD'] != -999) | (data['y_LSS_PERIOD'] != -999) | (data['LSM_PERIOD'] != -999)]
+						prsaObs = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] > 15.8) & (data['p'] < 1000) & (data['p'] >0.5) & ((data['u_LSS_PERIOD'] != -999) | (data['g_LSS_PERIOD'] != -999) | (data['r_LSS_PERIOD'] != -999) | (data['i_LSS_PERIOD'] != -999) | (data['z_LSS_PERIOD'] != -999) | (data['y_LSS_PERIOD'] != -999) | (data['LSM_PERIOD'] != -999))]
+						DWDObs = data.loc[(data['logg1'] > 6) & (data['logg1'] < 10) & (data['logg2'] > 6) & (data['logg2'] < 10) & ((data['u_LSS_PERIOD'] != -999) | (data['g_LSS_PERIOD'] != -999) | (data['r_LSS_PERIOD'] != -999) | (data['i_LSS_PERIOD'] != -999) | (data['z_LSS_PERIOD'] != -999) | (data['y_LSS_PERIOD'] != -999) | (data['LSM_PERIOD'] != -999))]
+
+						Nobs = len(obs.index)
+						NobsPrsa = len(prsaObs.index)
+						NobsDWD = len(DWDObs.index)
+						if (Nobs >= self.Nlim):
+							m1hObs0, m1b = np.histogram(obs["m1"], bins=mbins)
+							qhObs0, qb = np.histogram(obs["m2"]/obs["m1"], bins=qbins)
+							ehObs0, eb = np.histogram(obs["e"], bins=ebins)
+							lphObs0, lpb = np.histogram(np.ma.log10(obs["p"].values).filled(-999), bins=lpbins)
+							dhObs0, db = np.histogram(obs["d"], bins=dbins)
+							maghObs0, magb = np.histogram(obs["appMagMean_r"], bins=magbins)
+							rhObs0, rb = np.histogram(obs["r2"]/obs["r1"], bins=rbins)
+							m1hObs += m1hObs0/Nall*Nmult
+							qhObs += qhObs0/Nall*Nmult
+							ehObs += ehObs0/Nall*Nmult
+							lphObs += lphObs0/Nall*Nmult
+							dhObs += dhObs0/Nall*Nmult
+							maghObs += maghObs0/Nall*Nmult
+							rhObs += rhObs0/Nall*Nmult
+
+							#Rec
+							recCombined = pd.DataFrame()
+							prsaRecCombined = pd.DataFrame()
+							DWDRecCombined = pd.DataFrame()
+							for filt in self.filters:
+								key = filt+'LSS_PERIOD'
+								if (filt == 'all'):
+									key = 'LSM_PERIOD'
+								fullP = abs(data[key] - data['p'])/data['p']
+								halfP = abs(data[key] - 0.5*data['p'])/(0.5*data['p'])
+								twiceP = abs(data[key] - 2.*data['p'])/(2.*data['p'])
+								rec = data.loc[(data[key] != -999) & ( (fullP < self.Pcut) | (halfP < self.Pcut) | (twiceP < self.Pcut))]
+								prsaRec = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] >15.8) & (data['p'] < 1000) & (data['p'] >0.5) & (data['LSM_PERIOD'] != -999) & ( (fullP < self.Pcut) | (halfP < self.Pcut) | (twiceP < self.Pcut))]
+								DWDRec = data.loc[(data['logg1'] > 6) & (data['logg1'] < 10) & (data['logg2'] > 6) & (data['logg2'] < 10) & (data['LSM_PERIOD'] != -999) & ( (fullP < self.Pcut) | (halfP < self.Pcut) | (twiceP < self.Pcut))]
+
+								if (len(rec) >= self.Nlim and filt != 'all'):
+									m1hRec0, m1b = np.histogram(rec["m1"], bins=mbins)
+									qhRec0, qb = np.histogram(rec["m2"]/rec["m1"], bins=qbins)
+									ehRec0, eb = np.histogram(rec["e"], bins=ebins)
+									lphRec0, lpb = np.histogram(np.ma.log10(rec["p"].values).filled(-999), bins=lpbins)
+									dhRec0, db = np.histogram(rec["d"], bins=dbins)
+									maghRec0, magb = np.histogram(rec["appMagMean_r"], bins=magbins)
+									rhRec0, rb = np.histogram(rec["r2"]/rec["r1"], bins=rbins)
+									m1hRec[filt] += m1hRec0/Nall*Nmult
+									qhRec[filt] += qhRec0/Nall*Nmult
+									ehRec[filt] += ehRec0/Nall*Nmult
+									lphRec[filt] += lphRec0/Nall*Nmult
+									dhRec[filt] += dhRec0/Nall*Nmult
+									maghRec[filt] += maghRec0/Nall*Nmult
+									rhRec[filt] += rhRec0/Nall*Nmult
+
+								#I'd like to account for all filters here to have more accurate numbers
+								recCombined = recCombined.append(rec)
+								prsaRecCombined = prsaRecCombined.append(prsaRec)
+								DWDRecCombined = DWDRecCombined.append(DWDRec)
 								recCombined.drop_duplicates(inplace=True)
 								prsaRecCombined.drop_duplicates(inplace=True)
-
-							if (Nrec >= self.Nlim):
-								m1hRec0, m1b = np.histogram(rec["m1"], bins=mbins)
-								qhRec0, qb = np.histogram(rec["m2"]/rec["m1"], bins=qbins)
-								ehRec0, eb = np.histogram(rec["e"], bins=ebins)
-								lphRec0, lpb = np.histogram(np.ma.log10(rec["p"].values).filled(-999), bins=lpbins)
-								dhRec0, db = np.histogram(rec["d"], bins=dbins)
-								maghRec0, magb = np.histogram(rec["appMagMean_r"], bins=magbins)
-								rhRec0, rb = np.histogram(rec["r2"]/rec["r1"], bins=rbins)
-								m1hRec[filt] += m1hRec0/Nall*Nmult
-								qhRec[filt] += qhRec0/Nall*Nmult
-								ehRec[filt] += ehRec0/Nall*Nmult
-								lphRec[filt] += lphRec0/Nall*Nmult
-								dhRec[filt] += dhRec0/Nall*Nmult
-								maghRec[filt] += maghRec0/Nall*Nmult
-								rhRec[filt] += rhRec0/Nall*Nmult
-
-								#for the mollweide
-								if (filt == 'all'):
+								DWDRecCombined.drop_duplicates(inplace=True)
+								if (len(recCombined) >= self.Nlim and filt == 'all'):
 									Nrec = len(recCombined.index)
-									rF = Nrec/Nall
-									rN = Nrec/Nall*Nmult
-									raN = Nmult
-									obN = Nobs/Nall*Nmult
-									fiN = Nall
-									fioN = Nobs
-									firN = Nrec
-
 									NrecPrsa = len(prsaRecCombined.index)
-									NrecPrsa = NrecPrsa/Nall*Nmult
-									NobsPrsa = NobsPrsa/Nall*Nmult
-									NallPrsa = NallPrsa/Nall*Nmult		
+									NrecDWD = len(DWDRecCombined.index)
 
+									m1hRec0, m1b = np.histogram(recCombined["m1"], bins=mbins)
+									qhRec0, qb = np.histogram(recCombined["m2"]/rec["m1"], bins=qbins)
+									ehRec0, eb = np.histogram(recCombined["e"], bins=ebins)
+									lphRec0, lpb = np.histogram(np.ma.log10(recCombined["p"].values).filled(-999), bins=lpbins)
+									dhRec0, db = np.histogram(recCombined["d"], bins=dbins)
+									maghRec0, magb = np.histogram(recCombined["appMagMean_r"], bins=magbins)
+									rhRec0, rb = np.histogram(recCombined["r2"]/recCombined["r1"], bins=rbins)
+									m1hRec[filt] += m1hRec0/Nall*Nmult
+									qhRec[filt] += qhRec0/Nall*Nmult
+									ehRec[filt] += ehRec0/Nall*Nmult
+									lphRec[filt] += lphRec0/Nall*Nmult
+									dhRec[filt] += dhRec0/Nall*Nmult
+									maghRec[filt] += maghRec0/Nall*Nmult
+									rhRec[filt] += rhRec0/Nall*Nmult
+
+					rF = Nrec/Nall
+					rN = Nrec/Nall*Nmult
+					raN = Nmult
+					obN = Nobs/Nall*Nmult
+					fiN = Nall
+					fioN = Nobs
+					firN = Nrec
+
+					NrecPrsa = NrecPrsa/Nall*Nmult
+					NobsPrsa = NobsPrsa/Nall*Nmult
+					NallPrsa = NallPrsa/Nall*Nmult		
+
+					NrecDWD = NrecDWD/Nall*Nmult
+					NobsDWD = NobsDWD/Nall*Nmult
+					NallDWD = NallDWD/Nall*Nmult	
 
 
 
@@ -610,7 +668,10 @@ class EBLSSTanalyzer(object):
 				self.outputNumbers['allNPrsa'].append(NallPrsa)
 				self.outputNumbers['obsNPrsa'].append(NobsPrsa)
 				self.outputNumbers['recNPrsa'].append(NrecPrsa)
-				#print(np.sum(lphRec), np.sum(recN), np.sum(lphRec)/np.sum(recN), np.sum(lphRec0), Nrec, np.sum(lphRec0)/Nrec, np.sum(lphObs), np.sum(obsN), np.sum(lphObs)/np.sum(obsN))
+
+				self.outputNumbers['allNDWD'].append(NallDWD)
+				self.outputNumbers['obsNDWD'].append(NobsDWD)
+				self.outputNumbers['recNDWD'].append(NrecDWD)
 
 
 
@@ -669,14 +730,18 @@ class EBLSSTanalyzer(object):
 		if not os.path.exists(self.plotsDirectory):
 			os.makedirs(self.plotsDirectory)
 
+		suffix = ''
+		if (self.onlyDWD):
+			suffix = '_DWD'
+
 		#plot and save the histograms
-		self.saveHist(self.outputHists, 'm1', 'm1 (Msolar)', os.path.join(self.plotsDirectory,'EBLSST_m1hist'), xlim=[0,3])
-		self.saveHist(self.outputHists, 'q', 'q (m2/m1)', os.path.join(self.plotsDirectory,'EBLSST_qhist'), xlim=[0,1])
-		self.saveHist(self.outputHists, 'e', 'e', os.path.join(self.plotsDirectory,'EBLSST_ehist'), xlim=[0,1])
-		self.saveHist(self.outputHists, 'lp', 'log(P [days])', os.path.join(self.plotsDirectory,'EBLSST_lphist'), xlim=[-2,5])
-		self.saveHist(self.outputHists, 'd', 'd (kpc)', os.path.join(self.plotsDirectory,'EBLSST_dhist'), xlim=[0,25])
-		self.saveHist(self.outputHists, 'mag', 'mag', os.path.join(self.plotsDirectory,'EBLSST_maghist'), xlim=[12, 25])
-		self.saveHist(self.outputHists, 'r', 'r2/r1', os.path.join(self.plotsDirectory,'EBLSST_rhist'), xlim=[0,3])
+		self.saveHist(self.outputHists, 'm1', 'm1 (Msolar)', os.path.join(self.plotsDirectory,'EBLSST_m1hist'+suffix), xlim=[0,3])
+		self.saveHist(self.outputHists, 'q', 'q (m2/m1)', os.path.join(self.plotsDirectory,'EBLSST_qhist'+suffix), xlim=[0,1])
+		self.saveHist(self.outputHists, 'e', 'e', os.path.join(self.plotsDirectory,'EBLSST_ehist'+suffix), xlim=[0,1])
+		self.saveHist(self.outputHists, 'lp', 'log(P [days])', os.path.join(self.plotsDirectory,'EBLSST_lphist'+suffix), xlim=[-2,5])
+		self.saveHist(self.outputHists, 'd', 'd (kpc)', os.path.join(self.plotsDirectory,'EBLSST_dhist'+suffix), xlim=[0,25])
+		self.saveHist(self.outputHists, 'mag', 'mag', os.path.join(self.plotsDirectory,'EBLSST_maghist'+suffix), xlim=[12, 25])
+		self.saveHist(self.outputHists, 'r', 'r2/r1', os.path.join(self.plotsDirectory,'EBLSST_rhist'+suffix), xlim=[0,3])
 
 
 		#make the mollweide
@@ -696,7 +761,7 @@ class EBLSSTanalyzer(object):
 		mlw = ax.scatter(np.array(RAwrap).ravel()*np.pi/180., np.array(Decwrap).ravel()*np.pi/180., c=np.array(self.outputNumbers['recFrac'])*100., cmap='viridis_r', s = 4, vmin=0, vmax=0.07)
 		cbar = f.colorbar(mlw, shrink=0.7)
 		cbar.set_label(r'% recovered')
-		f.savefig(os.path.join(self.plotsDirectory,'mollweide_pct.pdf'),format='pdf', bbox_inches = 'tight')
+		f.savefig(os.path.join(self.plotsDirectory,'mollweide_pct'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
 		plt.close(f)
 
 		f, ax = plt.subplots(subplot_kw={'projection': "mollweide"}, figsize=(8,5))
@@ -709,17 +774,17 @@ class EBLSSTanalyzer(object):
 		mlw = ax.scatter(np.array(RAwrap).ravel()*np.pi/180., np.array(Decwrap).ravel()*np.pi/180., c=np.log10(np.array(self.outputNumbers['recN'])), cmap='viridis_r', s = 4, vmin=0, vmax=3.7)
 		cbar = f.colorbar(mlw, shrink=0.7)
 		cbar.set_label(r'log10(N) recovered')
-		f.savefig(os.path.join(self.plotsDirectory,'mollweide_N.pdf'),format='pdf', bbox_inches = 'tight')
+		f.savefig(os.path.join(self.plotsDirectory,'mollweide_N'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
 		plt.close(f)
 
 		if (self.doIndividualPlots):
-			self.individualPlots['fmass'].savefig(os.path.join(self.plotsDirectory,'massPDFall.pdf'),format='pdf', bbox_inches = 'tight')
-			self.individualPlots['fqrat'].savefig(os.path.join(self.plotsDirectory,'qPDFall.pdf'),format='pdf', bbox_inches = 'tight')
-			self.individualPlots['fecc'].savefig(os.path.join(self.plotsDirectory,'eccPDFall.pdf'),format='pdf', bbox_inches = 'tight')
-			self.individualPlots['flper'].savefig(os.path.join(self.plotsDirectory,'lperPDFall.pdf'),format='pdf', bbox_inches = 'tight')
-			self.individualPlots['fdist'].savefig(os.path.join(self.plotsDirectory,'distPDFall.pdf'),format='pdf', bbox_inches = 'tight')
-			self.individualPlots['fmag'].savefig(os.path.join(self.plotsDirectory,'magPDFall.pdf'),format='pdf', bbox_inches = 'tight')
-			self.individualPlots['frad'].savefig(os.path.join(self.plotsDirectory,'radPDFall.pdf'),format='pdf', bbox_inches = 'tight')
+			self.individualPlots['fmass'].savefig(os.path.join(self.plotsDirectory,'massPDFall'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
+			self.individualPlots['fqrat'].savefig(os.path.join(self.plotsDirectory,'qPDFall'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
+			self.individualPlots['fecc'].savefig(os.path.join(self.plotsDirectory,'eccPDFall'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
+			self.individualPlots['flper'].savefig(os.path.join(self.plotsDirectory,'lperPDFall'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
+			self.individualPlots['fdist'].savefig(os.path.join(self.plotsDirectory,'distPDFall'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
+			self.individualPlots['fmag'].savefig(os.path.join(self.plotsDirectory,'magPDFall'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
+			self.individualPlots['frad'].savefig(os.path.join(self.plotsDirectory,'radPDFall'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
 			plt.close(self.individualPlots['fmass'])
 			plt.close(self.individualPlots['fqrat'])
 			plt.close(self.individualPlots['fecc'])
@@ -743,19 +808,27 @@ class EBLSSTanalyzer(object):
 		print("total observable in Prsa 15.8<r<19.5 P<1000d sample (raw, log):",np.sum(self.outputNumbers['obsNPrsa']), np.log10(np.sum(self.outputNumbers['obsNPrsa'])))
 		print("total recovered in Prsa 15.8<r<19.5 P<1000d sample (raw, log):",np.sum(self.outputNumbers['recNPrsa']), np.log10(np.sum(self.outputNumbers['recNPrsa'])))
 		print("Prsa 15.8<r<19.5 P<1000d rec/obs*100:",np.sum(self.outputNumbers['recNPrsa'])/np.sum(self.outputNumbers['obsNPrsa'])*100.)
+		print("###################")
+		print("total in DWD sample (raw, log):",np.sum(self.outputNumbers['allNDWD']), np.log10(np.sum(self.outputNumbers['allNDWD'])))
+		print("total observable in DWD sample (raw, log):",np.sum(self.outputNumbers['obsNDWD']), np.log10(np.sum(self.outputNumbers['obsNDWD'])))
+		print("total recovered in DWD sample (raw, log):",np.sum(self.outputNumbers['recNDWD']), np.log10(np.sum(self.outputNumbers['recNDWD'])))
+		print("DWD rec/obs*100:",np.sum(self.outputNumbers['recNDWD'])/np.sum(self.outputNumbers['obsNDWD'])*100.)
 
 		#save the numbers to a file
 		df = pd.DataFrame(self.outputNumbers)
 		df.to_csv(os.path.join(self.plotsDirectory,'numbers.csv'), index=False)
 
 	def plotAllObsRecOtherRatio(self, d1, d2):
-		self.plotObsRecOtherRatio(d1, d2, 'm1', 'm1 (Msolar)', os.path.join(self.plotsDirectory,'EBLSST_m1hist'), xlim=[0,3])
-		self.plotObsRecOtherRatio(d1, d2, 'q', 'q (m2/m1)', os.path.join(self.plotsDirectory,'EBLSST_qhist'), xlim=[0,1])
-		self.plotObsRecOtherRatio(d1, d2, 'e', 'e', os.path.join(self.plotsDirectory,'EBLSST_ehist'), xlim=[0,1])
-		self.plotObsRecOtherRatio(d1, d2, 'lp', 'log(P [days])', os.path.join(self.plotsDirectory,'EBLSST_lphist'), xlim=[-2,5])
-		self.plotObsRecOtherRatio(d1, d2, 'd', 'd (kpc)', os.path.join(self.plotsDirectory,'EBLSST_dhist'), xlim=[0,25])
-		self.plotObsRecOtherRatio(d1, d2, 'mag', 'mag', os.path.join(self.plotsDirectory,'EBLSST_maghist'), xlim=[12, 25])
-		self.plotObsRecOtherRatio(d1, d2, 'r', 'r2/r1', os.path.join(self.plotsDirectory,'EBLSST_rhist'), xlim=[0,3])
+		suffix = ''
+		if (self.onlyDWD):
+			suffix = '_DWD'
+		self.plotObsRecOtherRatio(d1, d2, 'm1', 'm1 (Msolar)', os.path.join(self.plotsDirectory,'EBLSST_m1hist'+suffix), xlim=[0,3])
+		self.plotObsRecOtherRatio(d1, d2, 'q', 'q (m2/m1)', os.path.join(self.plotsDirectory,'EBLSST_qhist'+suffix), xlim=[0,1])
+		self.plotObsRecOtherRatio(d1, d2, 'e', 'e', os.path.join(self.plotsDirectory,'EBLSST_ehist'+suffix), xlim=[0,1])
+		self.plotObsRecOtherRatio(d1, d2, 'lp', 'log(P [days])', os.path.join(self.plotsDirectory,'EBLSST_lphist'+suffix), xlim=[-2,5])
+		self.plotObsRecOtherRatio(d1, d2, 'd', 'd (kpc)', os.path.join(self.plotsDirectory,'EBLSST_dhist'+suffix), xlim=[0,25])
+		self.plotObsRecOtherRatio(d1, d2, 'mag', 'mag', os.path.join(self.plotsDirectory,'EBLSST_maghist'+suffix), xlim=[12, 25])
+		self.plotObsRecOtherRatio(d1, d2, 'r', 'r2/r1', os.path.join(self.plotsDirectory,'EBLSST_rhist'+suffix), xlim=[0,3])
 
 	def run(self):
 		self.compileData()
