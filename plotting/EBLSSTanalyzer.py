@@ -501,10 +501,10 @@ class EBLSSTanalyzer(object):
 					Nall = len(data.index)/intNorm  #saving this in case we want to limit the entire analysis to DWDs, but still want the full sample size for the cumulative numbers
 
 					if (self.onlyDWD):
-						data = data.loc[(data['logg1'] > 6) & (data['logg1'] < 10) & (data['logg2'] > 6) & (data['logg2'] < 10)]
+						data = data.loc[(data['logg1'] > 6) & (data['logg1'] < 12) & (data['logg2'] > 6) & (data['logg2'] < 12)]
 
 					prsa = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] > 15.8) & (data['p'] < 1000) & (data['p'] > 0.5)]
-					DWD = data.loc[(data['logg1'] > 6) & (data['logg1'] < 10) & (data['logg2'] > 6) & (data['logg2'] < 10)]
+					DWD = data.loc[(data['logg1'] > 6) & (data['logg1'] < 12) & (data['logg2'] > 6) & (data['logg2'] < 12)]
 
 ###is this correct? (and the only place I need to normalize?) -- I think yes (the observed binary distribution should be cut at a period of the survey duration)
 					NallPrsa = len(prsa.index)/intNorm
@@ -556,7 +556,7 @@ class EBLSSTanalyzer(object):
 						#I want to account for all filters here too (maybe not necessary; if LSM is != -999 then they are all filled in, I think)...
 						obs = data.loc[(data['u_LSS_PERIOD'] != -999) | (data['g_LSS_PERIOD'] != -999) | (data['r_LSS_PERIOD'] != -999) | (data['i_LSS_PERIOD'] != -999) | (data['z_LSS_PERIOD'] != -999) | (data['y_LSS_PERIOD'] != -999) | (data['LSM_PERIOD'] != -999)]
 						prsaObs = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] > 15.8) & (data['p'] < 1000) & (data['p'] >0.5) & ((data['u_LSS_PERIOD'] != -999) | (data['g_LSS_PERIOD'] != -999) | (data['r_LSS_PERIOD'] != -999) | (data['i_LSS_PERIOD'] != -999) | (data['z_LSS_PERIOD'] != -999) | (data['y_LSS_PERIOD'] != -999) | (data['LSM_PERIOD'] != -999))]
-						DWDObs = data.loc[(data['logg1'] > 6) & (data['logg1'] < 10) & (data['logg2'] > 6) & (data['logg2'] < 10) & ((data['u_LSS_PERIOD'] != -999) | (data['g_LSS_PERIOD'] != -999) | (data['r_LSS_PERIOD'] != -999) | (data['i_LSS_PERIOD'] != -999) | (data['z_LSS_PERIOD'] != -999) | (data['y_LSS_PERIOD'] != -999) | (data['LSM_PERIOD'] != -999))]
+						DWDObs = data.loc[(data['logg1'] > 6) & (data['logg1'] < 12) & (data['logg2'] > 6) & (data['logg2'] < 12) & ((data['u_LSS_PERIOD'] != -999) | (data['g_LSS_PERIOD'] != -999) | (data['r_LSS_PERIOD'] != -999) | (data['i_LSS_PERIOD'] != -999) | (data['z_LSS_PERIOD'] != -999) | (data['y_LSS_PERIOD'] != -999) | (data['LSM_PERIOD'] != -999))]
 
 						Nobs = len(obs.index)
 						NobsPrsa = len(prsaObs.index)
@@ -590,7 +590,7 @@ class EBLSSTanalyzer(object):
 								twiceP = abs(data[key] - 2.*data['p'])/(2.*data['p'])
 								rec = data.loc[(data[key] != -999) & ( (fullP < self.Pcut) | (halfP < self.Pcut) | (twiceP < self.Pcut))]
 								prsaRec = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] >15.8) & (data['p'] < 1000) & (data['p'] >0.5) & (data['LSM_PERIOD'] != -999) & ( (fullP < self.Pcut) | (halfP < self.Pcut) | (twiceP < self.Pcut))]
-								DWDRec = data.loc[(data['logg1'] > 6) & (data['logg1'] < 10) & (data['logg2'] > 6) & (data['logg2'] < 10) & (data['LSM_PERIOD'] != -999) & ( (fullP < self.Pcut) | (halfP < self.Pcut) | (twiceP < self.Pcut))]
+								DWDRec = data.loc[(data['logg1'] > 6) & (data['logg1'] < 12) & (data['logg2'] > 6) & (data['logg2'] < 12) & (data['LSM_PERIOD'] != -999) & ( (fullP < self.Pcut) | (halfP < self.Pcut) | (twiceP < self.Pcut))]
 
 								if (len(rec) >= self.Nlim and filt != 'all'):
 									m1hRec0, m1b = np.histogram(rec["m1"], bins=mbins)
