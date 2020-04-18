@@ -20,7 +20,7 @@ NONMAG_COLS = ['Gc','logAge', '[M/H]', 'm_ini', 'logL', 'logTe', 'logg',
                'm-M0', 'Av', 'm2/m1', 'mbol', 'Mact'] #all the rest are mags
 
 def get_trilegal(filename,ra,dec,folder='.', galactic=False,
-                 filterset='kepler_2mass',area=1,maglim=27,binaries=False,
+                 filterset='kepler_2mass',area=1,maglim=27,maglimFilter=1, binaries=False,
                  trilegal_version='1.6',sigma_AV=0.1,convert_h5=True):
     """Runs get_trilegal perl script; optionally saves output into .h5 file
 
@@ -53,9 +53,11 @@ def get_trilegal(filename,ra,dec,folder='.', galactic=False,
         Area of TRILEGAL simulation [sq. deg]
 
     :param maglim: (optional)
-        Limiting magnitude in first mag (by default will be Kepler band)
-        If want to limit in different band, then you have to
-        got directly to the ``get_trilegal`` perl script.
+        Limiting magnitude in maglimFilter bandt mag (by default will be Kepler band)
+
+    :param maglimFilter: (optional)
+		the number of the filter to use for limitting the magnitude (default is 1; in lsst this is u)
+		added by AMG
 
     :param binaries: (optional)
         Whether to have TRILEGAL include binary stars.  Default ``False``.
@@ -89,9 +91,9 @@ def get_trilegal(filename,ra,dec,folder='.', galactic=False,
     else:
         outfile = '{}/{}'.format(folder,filename)
     AV = get_AV_infinity(l,b,frame='galactic')
-    cmd = 'get_trilegal %s %f %f %f %i %.3f %.2f %s 1 %.1f %s %s' % (trilegal_version,l,b,
+    cmd = 'get_trilegal %s %f %f %f %i %.3f %.2f %s %i %.1f %s %s' % (trilegal_version,l,b,
                                                                   area,binaries,AV,sigma_AV,
-                                                                  filterset,maglim,outfile,folder)
+                                                                  filterset,maglimFilter,maglim,outfile,folder)
     sp.Popen(cmd,shell=True).wait()
     if not os.path.exists(outfile):
         return False
