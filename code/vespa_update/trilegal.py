@@ -53,7 +53,7 @@ def get_trilegal(filename,ra,dec,folder='.', galactic=False,
         Area of TRILEGAL simulation [sq. deg]
 
     :param maglim: (optional)
-        Limiting magnitude in maglimFilter bandt mag (by default will be Kepler band)
+        Limiting magnitude in maglimFilter band mag (by default will be Kepler band)
 
     :param maglimFilter: (optional)
 		the number of the filter to use for limitting the magnitude (default is 1; in lsst this is u)
