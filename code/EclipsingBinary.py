@@ -179,7 +179,7 @@ class EclipsingBinary(object):
 		}
 
 
-		self.magLims = np.array([15.8, 24.]) #lower and upper limits on the magnitude detection assumed for LSST: 15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
+		self.magLims = np.array([15.8, 25.]) #lower and upper limits on the magnitude detection assumed for LSST: 15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
 
 		self.eclipseDepthLim = 3. #depth / error
 

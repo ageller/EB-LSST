@@ -17,8 +17,8 @@ class TRILEGAL(object):
 	def __init__(self, *args,**kwargs):
 		self.area = np.pi*(3.5/2.)**2. #square degrees (LSST FoV)
 		self.area0frac = 1.
-		self.maglim = 26
-		self.maglimFilter = 3
+		self.maglim = 25
+		self.maglimFilter = 3 #rband in LSST
 		self.sigma_AV = 0.1 #default
 		self.binaries = False
 		self.filterset = 'lsst' 

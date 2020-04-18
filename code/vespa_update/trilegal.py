@@ -115,7 +115,7 @@ def get_trilegal(filename,ra,dec,folder='.', galactic=False,
                                    'l':l,'b':b,'area':area,
                                    'AV':AV, 'sigma_AV':sigma_AV,
                                    'filterset':filterset,
-                                   'maglim':maglim,
+                                   'maglim':maglim,'maglimFilter':maglimFilter,
                                    'binaries':binaries}
         os.remove(outfile)
     return True
