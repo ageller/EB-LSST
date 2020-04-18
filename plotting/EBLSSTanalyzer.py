@@ -8,6 +8,7 @@ from astropy import units, constants
 from astropy.modeling import models, fitting
 import scipy.stats
 from scipy.integrate import quad
+import pickle
 
 #for Quest
 import matplotlib
@@ -39,6 +40,9 @@ class EBLSSTanalyzer(object):
 		self.Pcut = Pcut #cutoff in percent error for "recovered"
 		self.Nlim = Nlim #minimum number of lines to consider (for all, obs, rec, etc.)
 		self.onlyDWD = onlyDWD
+
+		self.m1xlim = [0.,3.]
+		self.m1bin = 0.1
 
 		self.outputNumbers = dict()
 		self.outputNumbers['RA'] = []
@@ -91,17 +95,21 @@ class EBLSSTanalyzer(object):
 
 
 
-	def plotObsRecRatio(self, d, key, xtitle, fname, xlim = None):
+	def plotObsRecRatio(self, d, key, xtitle, fname, xlim = None, ax = [None], showLegend = True,):
 		c1 = '#0294A5'  #turqoise
 		c2 = '#d95f02' #orange from color brewer
 		c3 = '#00353E' #slate
 		c4 = '#508201' #olive
-		f,(ax1, ax2, ax3) = plt.subplots(3,1,figsize=(5, 12), sharex=True)
 
-		histAll = d[key+'hAll']
-		histObs = d[key+'hObs'] 
-		allhistRec = d[key+'hRec']['all']
-		bin_edges = d[key+'b']
+		saveit = False
+		if (ax[0] is None):
+			saveit = True
+			f,ax = plt.subplots(3,1,figsize=(5, 12), sharex=True)
+
+		histAll = d[key+'hAllCDF']
+		histObs = d[key+'hObsCDF'] 
+		allhistRec = d[key+'hRecCDF']['all']
+		bin_edges = d[key+'bCDF']
 
 		binHalf = (bin_edges[1] - bin_edges[0])/2.
 
@@ -115,18 +123,27 @@ class EBLSSTanalyzer(object):
 			cdfObs.append(np.sum(histObs[:i])/np.sum(histObs))
 		for i in range(len(allhistRec)):
 			cdfRec.append(np.sum(allhistRec[:i])/np.sum(allhistRec))
-		ax1.step(bin_edges, cdfAll, color=c1, label='All')
-		ax1.step(bin_edges, cdfObs, color=c2, label='Observable')
-		ax1.step(bin_edges, cdfRec, color=c3, label='Recoverable')
-		ax1.set_ylabel('CDF')
+		ax[0].step(bin_edges, cdfAll, color=c1, label='All')
+		ax[0].step(bin_edges, cdfObs, color=c2, label='Observable')
+		ax[0].step(bin_edges, cdfRec, color=c3, label='Recoverable')
+		if (saveit):
+			ax[0].set_ylabel('CDF')
 
+
+		histAll = d[key+'hAll']
+		histObs = d[key+'hObs'] 
+		allhistRec = d[key+'hRec']['all']
+		bin_edges = d[key+'b']
+
+		binHalf = (bin_edges[1] - bin_edges[0])/2.
 
 		#PDF
-		ax2.step(bin_edges, histAll/np.sum(histAll), color=c1, label='All')
-		ax2.step(bin_edges, histObs/np.sum(histObs), color=c2, label='Observable')
-		ax2.step(bin_edges, allhistRec/np.sum(allhistRec), color=c3, label='Recoverable')
-		ax2.set_ylabel('PDF')
-		ax2.set_yscale('log')
+		ax[1].step(bin_edges, histAll/np.sum(histAll), color=c1, label='All')
+		ax[1].step(bin_edges, histObs/np.sum(histObs), color=c2, label='Observable')
+		ax[1].step(bin_edges, allhistRec/np.sum(allhistRec), color=c3, label='Recoverable')
+		ax[1].set_yscale('log')
+		if (saveit):
+			ax[1].set_ylabel('PDF')
 
 		#ratio
 		#prepend some values at y of zero so that the step plots look correct
@@ -134,65 +151,72 @@ class EBLSSTanalyzer(object):
 		if (len(use) > 0):
 			b = bin_edges[use]
 			r = histObs[use]/histAll[use]
-			ax3.step(np.append(b[0] - 2*binHalf, b), np.append(0,r), color=c2, label='Observable/All')
-			ax3.plot(b - binHalf, r, 'o',color=c1, markersize=5, markeredgecolor=c2)
+			ax[2].step(np.append(b[0] - 2*binHalf, b), np.append(0,r), color=c2, label='Observable/All')
+			ax[2].plot(b - binHalf, r, 'o',color=c1, markersize=5, markeredgecolor=c2)
 
 			r = allhistRec[use]/histAll[use]
-			ax3.step(np.append(b[0] - 2*binHalf, b), np.append(0,r), color=c3, label='Recoverable/All')
-			ax3.plot(b - binHalf, r, 'o',color=c1, markersize=5, markeredgecolor=c3)
+			ax[2].step(np.append(b[0] - 2*binHalf, b), np.append(0,r), color=c3, label='Recoverable/All')
+			ax[2].plot(b - binHalf, r, 'o',color=c1, markersize=5, markeredgecolor=c3)
 
 			use = np.where(histObs > 0)[0]
 			if (len(use) > 0):
 				b = bin_edges[use]
 				r =  allhistRec[use]/histObs[use]
-				ax3.step(np.append(b[0] - 2*binHalf, b), np.append(0,r), color=c3, label='Recoverable/Observable')
-				ax3.plot(b - binHalf, r, 'o',color=c2, markersize=5, markeredgecolor=c3)
+				ax[2].step(np.append(b[0] - 2*binHalf, b), np.append(0,r), color=c3, label='Recoverable/Observable')
+				ax[2].plot(b - binHalf, r, 'o',color=c2, markersize=5, markeredgecolor=c3)
 		#ax3.step(bin_edges[use], histRec[use]/histObs[use], color=c2, linestyle='--', dashes=(3, 3), linewidth=4)
 
-		ax3.set_ylabel('Ratio')
-		ax3.set_yscale('log')
-		ax3.set_ylim(10**-4,1)
-		ax3.set_xlabel(xtitle)
+
+		ax[2].set_yscale('log')
+		ax[2].set_ylim(10**-4,1)
+		ax[2].set_xlabel(xtitle)
+		if (saveit):
+			ax[2].set_ylabel('Ratio')
 
 		# ax1.legend()
 		# ax2.legend()
 		# ax3.legend()
-		lAll = mlines.Line2D([], [], color=c1, label='All')
-		lObs = mlines.Line2D([], [], color=c2, label='Obs.')
-		lRec = mlines.Line2D([], [], color=c3, label='Rec.')
-		lObsAll = mlines.Line2D([], [], color=c2, marker='o', markerfacecolor=c1, markersize=5, markeredgecolor=c2, label='Obs./All')
-		lRecAll = mlines.Line2D([], [], color=c3, marker='o', markerfacecolor=c1, markersize=5, markeredgecolor=c3, label='Rec./All')
-		lRecObs = mlines.Line2D([], [], color=c3, marker='o', markerfacecolor=c2, markersize=5, markeredgecolor=c3, label='Rec./Obs.')
-		ax1.legend(handles=[lAll, lObs, lRec, lObsAll, lRecAll, lRecObs], loc='lower right')
+		if (showLegend):
+			lAll = mlines.Line2D([], [], color=c1, label='All')
+			lObs = mlines.Line2D([], [], color=c2, label='Obs.')
+			lRec = mlines.Line2D([], [], color=c3, label='Rec.')
+			lObsAll = mlines.Line2D([], [], color=c2, marker='o', markerfacecolor=c1, markersize=5, markeredgecolor=c2, label='Obs./All')
+			lRecAll = mlines.Line2D([], [], color=c3, marker='o', markerfacecolor=c1, markersize=5, markeredgecolor=c3, label='Rec./All')
+			lRecObs = mlines.Line2D([], [], color=c3, marker='o', markerfacecolor=c2, markersize=5, markeredgecolor=c3, label='Rec./Obs.')
+			ax[0].legend(handles=[lAll, lObs, lRec, lObsAll, lRecAll, lRecObs], loc='lower right')
 
-		if (xlim != None):
-			ax1.set_xlim(xlim[0], xlim[1])
-			ax2.set_xlim(xlim[0], xlim[1])
-			ax3.set_xlim(xlim[0], xlim[1])
+		if (xlim is not None):
+			ax[0].set_xlim(xlim[0], xlim[1])
+			ax[1].set_xlim(xlim[0], xlim[1])
+			ax[2].set_xlim(xlim[0], xlim[1])
 
-		f.subplots_adjust(hspace=0)
-		print(fname)
-		f.savefig(fname+'_ObsRecRatio.pdf',format='pdf', bbox_inches = 'tight')
-		plt.close(f)
+		if (saveit):
+			f.subplots_adjust(hspace=0)
+			print(fname)
+			f.savefig(fname+'_ObsRecRatio.pdf',format='pdf', bbox_inches = 'tight')
+			plt.close(f)
 
 
-	def plotObsRecOtherRatio(self, d1, d2, key, xtitle, fname, xlim = None, legendLoc='lower right'):
+	def plotObsRecOtherRatio(self, d1, d2, key, xtitle, fname,  xlim = None, ax = [None], showLegend = True, legendLoc = 'lower right'):
 		c1 = '#0294A5'  #turqoise
 		c2 = '#d95f02' #orange from color brewer
 		c3 = '#00353E' #slate
 		c4 = '#508201' #olive
 
-		f,(ax1, ax2, ax3) = plt.subplots(3,1,figsize=(5, 12), sharex=True)
+		saveit = False
+		if (ax[0] is None):
+			saveit = True
+			f,ax = plt.subplots(3,1,figsize=(5, 12), sharex=True)
 
-		histAll = d1[key+'hAll']
-		histObs = d1[key+'hObs']
-		allhistRec = d1[key+'hRec']['all']
-		bin_edges = d1[key+'b']
+		histAll = d1[key+'hAllCDF']
+		histObs = d1[key+'hObsCDF']
+		allhistRec = d1[key+'hRecCDF']['all']
+		bin_edges = d1[key+'bCDF']
 
-		histAllOD = d2[key+'hAll']
-		histObsOD = d2[key+'hObs']
-		allhistRecOD = d2[key+'hRec']['all']
-		bin_edgesOD = d2[key+'b']		
+		histAllOD = d2[key+'hAllCDF']
+		histObsOD = d2[key+'hObsCDF']
+		allhistRecOD = d2[key+'hRecCDF']['all']
+		bin_edgesOD = d2[key+'bCDF']		
 
 		binHalf = (bin_edges[1] - bin_edges[0])/2.
 		binHalfOD = (bin_edgesOD[1] - bin_edgesOD[0])/2.
@@ -216,14 +240,28 @@ class EBLSSTanalyzer(object):
 			cdfRec.append(np.sum(allhistRec[:i])/np.sum(allhistRec))
 		for i in range(len(allhistRecOD)):
 			cdfRecOD.append(np.sum(allhistRecOD[:i])/np.sum(allhistRecOD))
-		ax1.step(bin_edges, cdfAll, color=c1, label='All')
-		ax1.step(bin_edges, cdfObs, color=c2, label='Observable')
-		ax1.step(bin_edges, cdfRec, color=c3, label='Recoverable')
-		ax1.step(bin_edgesOD, cdfAllOD, color=c1, linestyle=':')
-		ax1.step(bin_edgesOD, cdfObsOD, color=c2, linestyle=':')
-		ax1.step(bin_edgesOD, cdfRecOD, color=c3, linestyle=':')
-		ax1.set_ylabel('CDF', fontsize=16)
-		ax1.set_ylim(-0.01,1.01)
+		ax[0].step(bin_edges, cdfAll, color=c1, label='All')
+		ax[0].step(bin_edges, cdfObs, color=c2, label='Observable')
+		ax[0].step(bin_edges, cdfRec, color=c3, label='Recoverable')
+		ax[0].step(bin_edgesOD, cdfAllOD, color=c1, linestyle=':')
+		ax[0].step(bin_edgesOD, cdfObsOD, color=c2, linestyle=':')
+		ax[0].step(bin_edgesOD, cdfRecOD, color=c3, linestyle=':')
+		ax[0].set_ylim(-0.01,1.01)
+		if (saveit):
+			ax[0].set_ylabel('CDF', fontsize=16)
+
+		histAll = d1[key+'hAll']
+		histObs = d1[key+'hObs']
+		allhistRec = d1[key+'hRec']['all']
+		bin_edges = d1[key+'b']
+
+		histAllOD = d2[key+'hAll']
+		histObsOD = d2[key+'hObs']
+		allhistRecOD = d2[key+'hRec']['all']
+		bin_edgesOD = d2[key+'b']		
+
+		binHalf = (bin_edges[1] - bin_edges[0])/2.
+		binHalfOD = (bin_edgesOD[1] - bin_edgesOD[0])/2.
 
 		#PDF --need to divide by the bin size
 		# ax2.step(bin_edges, histAll/np.sum(histAll)/np.diff(bin_edges)[0], color=c1, label='All')
@@ -234,79 +272,172 @@ class EBLSSTanalyzer(object):
 		# ax2.step(bin_edgesOD, allhistRecOD/np.sum(allhistRecOD)/np.diff(bin_edgesOD)[0], color=c3, linestyle=':')
 		# ax2.set_ylabel('PDF', fontsize=16)
 		#this is the fraction in each bin
-		ax2.step(bin_edges, histAll/np.sum(histAll), color=c1, label='All')
-		ax2.step(bin_edges, histObs/np.sum(histObs), color=c2, label='Observable')
-		ax2.step(bin_edges, allhistRec/np.sum(allhistRec), color=c3, label='Recoverable')
-		ax2.step(bin_edgesOD, histAllOD/np.sum(histAllOD), color=c1, linestyle=':')
-		ax2.step(bin_edgesOD, histObsOD/np.sum(histObsOD), color=c2, linestyle=':')
-		ax2.step(bin_edgesOD, allhistRecOD/np.sum(allhistRecOD), color=c3, linestyle=':')
-		ax2.set_ylabel('PDF', fontsize=16)
-		ax2.set_yscale('log')
-		ax2.set_ylim(0.5e-5, 0.9)
-
+		ax[1].step(bin_edges, histAll/np.sum(histAll), color=c1, label='All')
+		ax[1].step(bin_edges, histObs/np.sum(histObs), color=c2, label='Observable')
+		ax[1].step(bin_edges, allhistRec/np.sum(allhistRec), color=c3, label='Recoverable')
+		ax[1].step(bin_edgesOD, histAllOD/np.sum(histAll), color=c1, linestyle=':')
+		ax[1].step(bin_edgesOD, histObsOD/np.sum(histObs), color=c2, linestyle=':')
+		ax[1].step(bin_edgesOD, allhistRecOD/np.sum(allhistRec), color=c3, linestyle=':')
+		ax[1].set_ylim(0.5e-5, 1.9)
+		ax[1].set_yscale('log')
+		if (saveit):
+			ax[1].set_ylabel(r'$N/\sum N_\mathrm{baseline}$', fontsize=16)
 
 		ratio = histObs/histAll
 		check = np.isnan(ratio)
 		ratio[check]=0.
-		ax3.step(bin_edges, ratio, color=c2, label='Observable/All')
-		ax3.plot(bin_edges - binHalf, ratio, 'o',color=c1, markersize=5, markeredgecolor=c2)
+		ax[2].step(bin_edges, ratio, color=c2, label='Observable/All')
+		ax[2].plot(bin_edges - binHalf, ratio, 'o',color=c1, markersize=5, markeredgecolor=c2)
 
 		ratio = allhistRec/histAll
 		check = np.isnan(ratio)
 		ratio[check]=0.	
-		ax3.step(bin_edges, ratio, color=c3, label='Recoverable/All')
-		ax3.plot(bin_edges - binHalf, ratio, 'o',color=c1, markersize=5, markeredgecolor=c3)
+		ax[2].step(bin_edges, ratio, color=c3, label='Recoverable/All')
+		ax[2].plot(bin_edges - binHalf, ratio, 'o',color=c1, markersize=5, markeredgecolor=c3)
 
 		ratio = allhistRec/histObs
 		check = np.isnan(ratio)
 		ratio[check]=0.
-		ax3.step(bin_edges, ratio, color=c3, label='Recoverable/Observable')
-		ax3.plot(bin_edges - binHalf, ratio, 'o',color=c2, markersize=5, markeredgecolor=c3)
+		ax[2].step(bin_edges, ratio, color=c3, label='Recoverable/Observable')
+		ax[2].plot(bin_edges - binHalf, ratio, 'o',color=c2, markersize=5, markeredgecolor=c3)
 
 		ratio = histObsOD/histAllOD
 		check = np.isnan(ratio)
 		ratio[check]=0.	
-		ax3.step(bin_edgesOD, ratio, color=c2, linestyle=':')
-		ax3.plot(bin_edgesOD - binHalfOD, ratio, 'o',color=c1, markersize=3.5, markeredgecolor=c2)
+		ax[2].step(bin_edgesOD, ratio, color=c2, linestyle=':')
+		ax[2].plot(bin_edgesOD - binHalfOD, ratio, 'o',color=c1, markersize=3.5, markeredgecolor=c2)
 
 		ratio = allhistRecOD/histAllOD
 		check = np.isnan(ratio)
 		ratio[check]=0.	
-		ax3.step(bin_edgesOD, ratio, color=c3, linestyle=':')
-		ax3.plot(bin_edgesOD - binHalfOD, ratio, 'o',color=c1, markersize=3.5, markeredgecolor=c3)
+		ax[2].step(bin_edgesOD, ratio, color=c3, linestyle=':')
+		ax[2].plot(bin_edgesOD - binHalfOD, ratio, 'o',color=c1, markersize=3.5, markeredgecolor=c3)
 
 		ratio = allhistRecOD/histObsOD
 		check = np.isnan(ratio)
 		ratio[check]=0.
-		ax3.step(bin_edgesOD, ratio, color=c3, linestyle=':')
-		ax3.plot(bin_edgesOD - binHalfOD, ratio, 'o',color=c2, markersize=3.5, markeredgecolor=c3)
+		ax[2].step(bin_edgesOD, ratio, color=c3, linestyle=':')
+		ax[2].plot(bin_edgesOD - binHalfOD, ratio, 'o',color=c2, markersize=3.5, markeredgecolor=c3)
 
+		if (saveit):
+			ax[2].set_ylabel('Ratio', fontsize=16)
+		ax[2].set_ylim(0.5e-5,1)
+		ax[2].set_yscale('log')
+		ax[2].set_xlabel(xtitle, fontsize=16)
 
-		ax3.set_ylabel('Ratio', fontsize=16)
-		ax3.set_yscale('log')
-		ax3.set_ylim(0.5e-5,1)
-		ax3.set_xlabel(xtitle, fontsize=16)
-
-		if (xlim != None):
-			ax1.set_xlim(xlim[0], xlim[1])
-			ax2.set_xlim(xlim[0], xlim[1])
-			ax3.set_xlim(xlim[0], xlim[1])
+		if (xlim is not None):
+			ax[0].set_xlim(xlim[0], xlim[1])
+			ax[1].set_xlim(xlim[0], xlim[1])
+			ax[2].set_xlim(xlim[0], xlim[1])
 
 		# ax1.legend()
 		# ax2.legend()
 		# ax3.legend()
-		lAll = mlines.Line2D([], [], color=c1, label='All')
-		lObs = mlines.Line2D([], [], color=c2, label='Obs.')
-		lRec = mlines.Line2D([], [], color=c3, label='Rec.')
-		lObsAll = mlines.Line2D([], [], color=c2, marker='o', markerfacecolor=c1, markersize=5, markeredgecolor=c2, label='Obs./All')
-		lRecAll = mlines.Line2D([], [], color=c3, marker='o', markerfacecolor=c1, markersize=5, markeredgecolor=c3, label='Rec./All')
-		lRecObs = mlines.Line2D([], [], color=c3, marker='o', markerfacecolor=c2, markersize=5, markeredgecolor=c3, label='Rec./Obs.')
-		ax1.legend(handles=[lAll, lObs, lRec, lObsAll, lRecAll, lRecObs], loc=legendLoc)
+		if (showLegend):
+			lAll = mlines.Line2D([], [], color=c1, label='All')
+			lObs = mlines.Line2D([], [], color=c2, label='Obs.')
+			lRec = mlines.Line2D([], [], color=c3, label='Rec.')
+			lObsAll = mlines.Line2D([], [], color=c2, marker='o', markerfacecolor=c1, markersize=5, markeredgecolor=c2, label='Obs./All')
+			lRecAll = mlines.Line2D([], [], color=c3, marker='o', markerfacecolor=c1, markersize=5, markeredgecolor=c3, label='Rec./All')
+			lRecObs = mlines.Line2D([], [], color=c3, marker='o', markerfacecolor=c2, markersize=5, markeredgecolor=c3, label='Rec./Obs.')
+			ax[0].legend(handles=[lAll, lObs, lRec, lObsAll, lRecAll, lRecObs], loc=legendLoc)
 
 
-		f.subplots_adjust(hspace=0)
-		f.savefig(fname+'_ObsRecOtherRatio.pdf',format='pdf', bbox_inches = 'tight')
-		plt.close(f)
+		if (saveit):
+			f.subplots_adjust(hspace=0)
+			f.savefig(fname+'_ObsRecOtherRatio.pdf',format='pdf', bbox_inches = 'tight')
+			plt.close(f)
+
+	def plotObsRecOtherPDF(self, d1, d1C, d2, d2C, d3, d3C, key, xtitle, fname,  xlim = None, ax = None, showLegend = True, legendLoc = 'lower right'):
+		c1 = '#0294A5'  #turqoise
+		c2 = '#d95f02' #orange from color brewer
+		c3 = '#00353E' #slate
+		c4 = '#508201' #olive
+
+		saveit = False
+		if (ax is None):
+			saveit = True
+			f,ax = plt.subplots(figsize=(5, 4))
+
+
+		histAll1 = d1[key+'hAll']
+		histObs1 = d1[key+'hObs']
+		allhistRec1 = d1[key+'hRec']['all']
+		bin_edges1 = d1[key+'b']
+
+		histAll1C = d1C[key+'hAll']
+		histObs1C = d1C[key+'hObs']
+		allhistRec1C = d1C[key+'hRec']['all']
+		bin_edges1C = d1C[key+'b']
+
+		histAll2 = d2[key+'hAll']
+		histObs2 = d2[key+'hObs']
+		allhistRec2 = d2[key+'hRec']['all']
+		bin_edges2 = d2[key+'b']		
+
+		histAll2C = d2C[key+'hAll']
+		histObs2C = d2C[key+'hObs']
+		allhistRec2C = d2C[key+'hRec']['all']
+		bin_edges2C = d2C[key+'b']	
+
+		histAll3 = d3[key+'hAll']
+		histObs3 = d3[key+'hObs']
+		allhistRec3 = d3[key+'hRec']['all']
+		bin_edges3 = d3[key+'b']		
+
+		histAll3C = d3C[key+'hAll']
+		histObs3C = d3C[key+'hObs']
+		allhistRec3C = d3C[key+'hRec']['all']
+		bin_edges3C = d3C[key+'b']	
+
+		binHalf1 = (bin_edges1[1] - bin_edges1[0])/2.
+		binHalf1C = (bin_edges1C[1] - bin_edges1C[0])/2.
+		binHalf2 = (bin_edges2[1] - bin_edges2[0])/2.
+		binHalf2C = (bin_edges2C[1] - bin_edges2C[0])/2.
+		binHalf3 = (bin_edges3[1] - bin_edges3[0])/2.
+		binHalf3C = (bin_edges3C[1] - bin_edges3C[0])/2.
+
+		#PDF --need to divide by the bin size
+		#this is the fraction in each bin
+		#ax.step(bin_edges1,  allhistRec1/np.sum(allhistRec1), color=c3, label='Field')
+		#ax.step(bin_edges1C, allhistRec1C/np.sum(allhistRec1), color=c3,linestyle=':')
+		#ax.step(bin_edges2,  allhistRec2/np.sum(allhistRec2), color=c2, label='GCs')
+		#ax.step(bin_edges2C, allhistRec2C/np.sum(allhistRec2), color=c2,linestyle=':')
+		#ax.step(bin_edges3,  allhistRec3/np.sum(allhistRec3), color=c1, label='OCs')
+		#ax.step(bin_edges3C, allhistRec3C/np.sum(allhistRec3), color=c1,linestyle=':')
+
+		ax.step(bin_edges1,  allhistRec1, color=c3, label='Field')
+		ax.step(bin_edges1C, allhistRec1C, color=c3,linestyle=':')
+		ax.step(bin_edges2,  allhistRec2, color=c2, label='GCs')
+		ax.step(bin_edges2C, allhistRec2C, color=c2,linestyle=':')
+		ax.step(bin_edges3,  allhistRec3, color=c1, label='OCs')
+		ax.step(bin_edges3C, allhistRec3C, color=c1,linestyle=':')
+
+
+		#ax.set_ylim(0.5e-5, 1.9)
+		ax.set_ylim(1, 4e6)
+		ax.set_yscale('log')
+		ax.set_xlabel(xtitle, fontsize=16)
+		if (saveit):
+			#ax.set_ylabel(r'$N_i/\sum_i N_i$', fontsize=16)
+			ax.set_ylabel(r'$N$', fontsize=16)
+
+
+		if (xlim is not None):
+			ax.set_xlim(xlim[0], xlim[1])
+
+		if (showLegend):
+			lAll = mlines.Line2D([], [], color=c3, label='Field')
+			lObs = mlines.Line2D([], [], color=c2, label='GCs')
+			lRec = mlines.Line2D([], [], color=c1, label='OCs')
+			ax.legend(handles=[lAll, lObs, lRec], loc=legendLoc)
+
+
+		if (saveit):
+			f.subplots_adjust(hspace=0)
+			f.savefig(fname+'_ObsRecOtherPDF.pdf',format='pdf', bbox_inches = 'tight')
+			plt.close(f)
+
 
 	def saveHist(self, d, key, xtitle, fname, xlim = None, filters = ['u_', 'g_', 'r_', 'i_', 'z_', 'y_','all']):
 		c1 = '#0294A5'  #turqoise
@@ -331,6 +462,11 @@ class EBLSSTanalyzer(object):
 		ax1.set_yscale('log')
 
 		#CDF
+		histAll = d[key+'hAllCDF']
+		histObs = d[key+'hObsCDF']
+		histRec = d[key+'hRecCDF']
+		bin_edges = d[key+'bCDF']
+
 		cdfAll = []
 		cdfObs = []
 		cdfRec = dict()
@@ -359,18 +495,18 @@ class EBLSSTanalyzer(object):
 		plt.close(fig)
 
 		#write to a text file (I could do this much easier in pandas, but this already works)
-		with open(fname+'.csv','w') as fl:
-			outline = 'binEdges,histAll,histObs'
-			for f in filters:
-				outline += ','+f+'histRec'
-			outline += '\n'
-			fl.write(outline)
-			for i in range(len(bin_edges)):
-				outline = str(bin_edges[i])+','+str(histAll[i])+','+str(histObs[i])
-				for f in filters:
-					outline += ','+str(histRec[f][i])
-				outline += '\n'
-				fl.write(outline)
+		# with open(fname+'.csv','w') as fl:
+		# 	outline = 'binEdges,histAll,histObs'
+		# 	for f in filters:
+		# 		outline += ','+f+'histRec'
+		# 	outline += '\n'
+		# 	fl.write(outline)
+		# 	for i in range(len(bin_edges)):
+		# 		outline = str(bin_edges[i])+','+str(histAll[i])+','+str(histObs[i])
+		# 		for f in filters:
+		# 			outline += ','+str(histRec[f][i])
+		# 		outline += '\n'
+		# 		fl.write(outline)
 
 		self.plotObsRecRatio(d, key, xtitle, fname, xlim)
 
@@ -391,13 +527,29 @@ class EBLSSTanalyzer(object):
 			frad, axrad = plt.subplots()
 
 		#bins for all the histograms
-		mbins = np.arange(0,10, 0.1, dtype='float')
-		qbins = np.arange(0,1, 0.1, dtype='float')
-		ebins = np.arange(0, 1.05, 0.05, dtype='float')
-		lpbins = np.arange(-3, 10, 0.5, dtype='float')
-		dbins = np.arange(0, 40, 1, dtype='float')
-		magbins = np.arange(11, 25, 1, dtype='float')
-		rbins = np.arange(0, 100, 0.2, dtype='float')
+		mbSize = self.m1bin
+		qbSize = 0.05
+		ebSize = 0.05
+		lpbSize = 0.25
+		dbSize = 1.
+		magbSize = 1.
+		rbSize = 0.2
+		mbins = np.arange(0,10+mbSize, mbSize, dtype='float')
+		qbins = np.arange(0,1+qbSize, qbSize, dtype='float')
+		ebins = np.arange(0, 1+ebSize, ebSize, dtype='float')
+		lpbins = np.arange(-3, 10+lpbSize, lpbSize, dtype='float')
+		dbins = np.arange(0, 40+dbSize, dbSize, dtype='float')
+		magbins = np.arange(11, 25+magbSize, magbSize, dtype='float')
+		rbins = np.arange(0, 5+rbSize, rbSize, dtype='float')
+
+		CDFfac = 1000.
+		mbinsCDF = np.arange(0,10+mbSize/CDFfac, mbSize/CDFfac, dtype='float')
+		qbinsCDF = np.arange(0,1+qbSize/CDFfac, qbSize/CDFfac, dtype='float')
+		ebinsCDF = np.arange(0, 1+ebSize/CDFfac, ebSize/CDFfac, dtype='float')
+		lpbinsCDF = np.arange(-3, 10+lpbSize/CDFfac, lpbSize/CDFfac, dtype='float')
+		dbinsCDF = np.arange(0, 40+dbSize/CDFfac, dbSize/CDFfac, dtype='float')
+		magbinsCDF = np.arange(11, 25+magbSize/CDFfac, magbSize/CDFfac, dtype='float')
+		rbinsCDF = np.arange(0, 5+rbSize/CDFfac, rbSize/CDFfac, dtype='float')
 
 		# mbins = np.arange(0,10, 0.1, dtype='float')
 		# qbins = np.arange(0,2, 0.05, dtype='float')
@@ -440,6 +592,40 @@ class EBLSSTanalyzer(object):
 			dhRec[f] = np.zeros_like(dbins)[1:]
 			maghRec[f] = np.zeros_like(magbins)[1:]
 			rhRec[f] = np.zeros_like(rbins)[1:]
+
+		#blanks for the CDFs
+		#All
+		m1hAllCDF = np.zeros_like(mbinsCDF)[1:]
+		qhAllCDF = np.zeros_like(qbinsCDF)[1:]
+		ehAllCDF = np.zeros_like(ebinsCDF)[1:]
+		lphAllCDF = np.zeros_like(lpbinsCDF)[1:]
+		dhAllCDF = np.zeros_like(dbinsCDF)[1:]
+		maghAllCDF = np.zeros_like(magbinsCDF)[1:]
+		rhAllCDF = np.zeros_like(rbinsCDF)[1:]
+		#Observable
+		m1hObsCDF = np.zeros_like(mbinsCDF)[1:]
+		qhObsCDF = np.zeros_like(qbinsCDF)[1:]
+		ehObsCDF = np.zeros_like(ebinsCDF)[1:]
+		lphObsCDF = np.zeros_like(lpbinsCDF)[1:]
+		dhObsCDF = np.zeros_like(dbinsCDF)[1:]
+		maghObsCDF = np.zeros_like(magbinsCDF)[1:]
+		rhObsCDF = np.zeros_like(rbinsCDF)[1:]
+		#Recovered
+		m1hRecCDF = dict()
+		qhRecCDF = dict()
+		ehRecCDF = dict()
+		lphRecCDF = dict()
+		dhRecCDF = dict()
+		maghRecCDF = dict()
+		rhRecCDF = dict()
+		for f in self.filters:
+			m1hRecCDF[f] = np.zeros_like(mbinsCDF)[1:]
+			qhRecCDF[f] = np.zeros_like(qbinsCDF)[1:]
+			ehRecCDF[f] = np.zeros_like(ebinsCDF)[1:]
+			lphRecCDF[f] = np.zeros_like(lpbinsCDF)[1:]
+			dhRecCDF[f] = np.zeros_like(dbinsCDF)[1:]
+			maghRecCDF[f] = np.zeros_like(magbinsCDF)[1:]
+			rhRecCDF[f] = np.zeros_like(rbinsCDF)[1:]
 
 		#Read in all the data and make the histograms
 		files = os.listdir(self.directory)
@@ -489,6 +675,19 @@ class EBLSSTanalyzer(object):
 				#read in rest of the file
 				data = pd.read_csv(os.path.join(self.directory,f), header = 2).fillna(-999)
 				if (data['m1'][0] != -1): #these are files that were not even run
+
+					#swap locations so that m1 is always > m2
+					check = data.loc[(data['m2'] > data['m1'])]
+					if (len(check.index) > 0):
+						for index, row in check.iterrows():
+							m1tmp = row['m1']
+							data.at[index, 'm1'] = row['m2']
+							data.at[index, 'm2'] = m1tmp
+							r1tmp = row['r1']
+							data.at[index, 'r1'] = row['r2']
+							data.at[index, 'r2'] = r1tmp						
+							#will want to swap L1 and T1 too if using newer files
+
 					data['r1'].replace(0., 1e-10, inplace = True)
 					data['r2'].replace(0., 1e-10, inplace = True)
 					data['m1'].replace(0., 1e-10, inplace = True)
@@ -523,6 +722,14 @@ class EBLSSTanalyzer(object):
 						maghAll0, magb = np.histogram(data["appMagMean_r"], bins=magbins)
 						rhAll0, rb = np.histogram(data["r2"]/data["r1"], bins=rbins)
 
+						m1hAll0CDF, m1bCDF = np.histogram(data["m1"], bins=mbinsCDF)
+						qhAll0CDF, qbCDF = np.histogram(data["m2"]/data["m1"], bins=qbinsCDF)
+						ehAll0CDF, ebCDF = np.histogram(data["e"], bins=ebinsCDF)
+						lphAll0CDF, lpbCDF = np.histogram(np.ma.log10(data["p"].values).filled(-999), bins=lpbinsCDF)
+						dhAll0CDF, dbCDF = np.histogram(data["d"], bins=dbinsCDF)
+						maghAll0CDF, magbCDF = np.histogram(data["appMagMean_r"], bins=magbinsCDF)
+						rhAll0CDF, rbCDF = np.histogram(data["r2"]/data["r1"], bins=rbinsCDF)
+
 						if (self.doIndividualPlots):
 							axmass.step(m1b[0:-1], m1hAll0/np.sum(m1hAll0), color='black', alpha=0.1)
 							axqrat.step(qb[0:-1], qhAll0/np.sum(qhAll0), color='black', alpha=0.1)
@@ -552,6 +759,14 @@ class EBLSSTanalyzer(object):
 						maghAll += maghAll0/Nall*Nmult
 						rhAll += rhAll0/Nall*Nmult
 
+						m1hAllCDF += m1hAll0CDF/Nall*Nmult
+						qhAllCDF += qhAll0CDF/Nall*Nmult
+						ehAllCDF += ehAll0CDF/Nall*Nmult
+						lphAllCDF += lphAll0CDF/Nall*Nmult
+						dhAllCDF += dhAll0CDF/Nall*Nmult
+						maghAllCDF += maghAll0CDF/Nall*Nmult
+						rhAllCDF += rhAll0CDF/Nall*Nmult
+
 						#Obs
 						#I want to account for all filters here too (maybe not necessary; if LSM is != -999 then they are all filled in, I think)...
 						obs = data.loc[(data['u_LSS_PERIOD'] != -999) | (data['g_LSS_PERIOD'] != -999) | (data['r_LSS_PERIOD'] != -999) | (data['i_LSS_PERIOD'] != -999) | (data['z_LSS_PERIOD'] != -999) | (data['y_LSS_PERIOD'] != -999) | (data['LSM_PERIOD'] != -999)]
@@ -576,6 +791,21 @@ class EBLSSTanalyzer(object):
 							dhObs += dhObs0/Nall*Nmult
 							maghObs += maghObs0/Nall*Nmult
 							rhObs += rhObs0/Nall*Nmult
+
+							m1hObs0CDF, m1bCDF = np.histogram(obs["m1"], bins=mbinsCDF)
+							qhObs0CDF, qbCDF = np.histogram(obs["m2"]/obs["m1"], bins=qbinsCDF)
+							ehObs0CDF, ebCDF = np.histogram(obs["e"], bins=ebinsCDF)
+							lphObs0CDF, lpbCDF = np.histogram(np.ma.log10(obs["p"].values).filled(-999), bins=lpbinsCDF)
+							dhObs0CDF, dbCDF = np.histogram(obs["d"], bins=dbinsCDF)
+							maghObs0CDF, magbCDF = np.histogram(obs["appMagMean_r"], bins=magbinsCDF)
+							rhObs0CDF, rbCDF = np.histogram(obs["r2"]/obs["r1"], bins=rbinsCDF)
+							m1hObsCDF += m1hObs0CDF/Nall*Nmult
+							qhObsCDF += qhObs0CDF/Nall*Nmult
+							ehObsCDF += ehObs0CDF/Nall*Nmult
+							lphObsCDF += lphObs0CDF/Nall*Nmult
+							dhObsCDF += dhObs0CDF/Nall*Nmult
+							maghObsCDF += maghObs0CDF/Nall*Nmult
+							rhObsCDF += rhObs0CDF/Nall*Nmult
 
 							#Rec
 							recCombined = pd.DataFrame()
@@ -608,6 +838,21 @@ class EBLSSTanalyzer(object):
 									maghRec[filt] += maghRec0/Nall*Nmult
 									rhRec[filt] += rhRec0/Nall*Nmult
 
+									m1hRec0CDF, m1bCDF = np.histogram(rec["m1"], bins=mbinsCDF)
+									qhRec0CDF, qbCDF = np.histogram(rec["m2"]/rec["m1"], bins=qbinsCDF)
+									ehRec0CDF, ebCDF = np.histogram(rec["e"], bins=ebinsCDF)
+									lphRec0CDF, lpbCDF = np.histogram(np.ma.log10(rec["p"].values).filled(-999), bins=lpbinsCDF)
+									dhRec0CDF, dbCDF = np.histogram(rec["d"], bins=dbinsCDF)
+									maghRec0CDF, magbCDF = np.histogram(rec["appMagMean_r"], bins=magbinsCDF)
+									rhRec0CDF, rbCDF = np.histogram(rec["r2"]/rec["r1"], bins=rbinsCDF)
+									m1hRecCDF[filt] += m1hRec0CDF/Nall*Nmult
+									qhRecCDF[filt] += qhRec0CDF/Nall*Nmult
+									ehRecCDF[filt] += ehRec0CDF/Nall*Nmult
+									lphRecCDF[filt] += lphRec0CDF/Nall*Nmult
+									dhRecCDF[filt] += dhRec0CDF/Nall*Nmult
+									maghRecCDF[filt] += maghRec0CDF/Nall*Nmult
+									rhRecCDF[filt] += rhRec0CDF/Nall*Nmult
+
 								#I'd like to account for all filters here to have more accurate numbers
 								recCombined = recCombined.append(rec)
 								prsaRecCombined = prsaRecCombined.append(prsaRec)
@@ -635,6 +880,20 @@ class EBLSSTanalyzer(object):
 									maghRec[filt] += maghRec0/Nall*Nmult
 									rhRec[filt] += rhRec0/Nall*Nmult
 
+									m1hRec0CDF, m1bCDF = np.histogram(recCombined["m1"], bins=mbinsCDF)
+									qhRec0CDF, qbCDF = np.histogram(recCombined["m2"]/rec["m1"], bins=qbinsCDF)
+									ehRec0CDF, ebCDF = np.histogram(recCombined["e"], bins=ebinsCDF)
+									lphRec0CDF, lpbCDF = np.histogram(np.ma.log10(recCombined["p"].values).filled(-999), bins=lpbinsCDF)
+									dhRec0CDF, dbCDF = np.histogram(recCombined["d"], bins=dbinsCDF)
+									maghRec0CDF, magbCDF = np.histogram(recCombined["appMagMean_r"], bins=magbinsCDF)
+									rhRec0CDF, rbCDF = np.histogram(recCombined["r2"]/recCombined["r1"], bins=rbinsCDF)
+									m1hRecCDF[filt] += m1hRec0CDF/Nall*Nmult
+									qhRecCDF[filt] += qhRec0CDF/Nall*Nmult
+									ehRecCDF[filt] += ehRec0CDF/Nall*Nmult
+									lphRecCDF[filt] += lphRec0CDF/Nall*Nmult
+									dhRecCDF[filt] += dhRec0CDF/Nall*Nmult
+									maghRecCDF[filt] += maghRec0CDF/Nall*Nmult
+									rhRecCDF[filt] += rhRec0CDF/Nall*Nmult
 					rF = Nrec/Nall
 					rN = Nrec/Nall*Nmult
 					raN = Nmult
@@ -653,8 +912,8 @@ class EBLSSTanalyzer(object):
 
 
 
-				self.outputNumbers['RA'].append(header['OpSimRA'])
-				self.outputNumbers['Dec'].append(header['OpSimDec'])
+				self.outputNumbers['RA'].append(header['OpSimRA'][0])
+				self.outputNumbers['Dec'].append(header['OpSimDec'][0])
 				self.outputNumbers['recFrac'].append(rF)
 
 				self.outputNumbers['recN'].append(rN)
@@ -675,30 +934,30 @@ class EBLSSTanalyzer(object):
 
 
 
-		#bins
-		self.outputHists['m1b'] = m1b
-		self.outputHists['qb'] = qb
-		self.outputHists['eb'] = eb
-		self.outputHists['lpb'] = lpb
-		self.outputHists['db'] = db
-		self.outputHists['magb'] = magb
-		self.outputHists['rb'] = rb
-		#All (inserting zeros at the start so that I can more easily plot these with the bin_edges)
-		self.outputHists['m1hAll'] = np.insert(m1hAll,0,0)
-		self.outputHists['qhAll'] = np.insert(qhAll,0,0)
-		self.outputHists['ehAll'] = np.insert(ehAll,0,0)
-		self.outputHists['lphAll'] = np.insert(lphAll,0,0)
-		self.outputHists['dhAll'] = np.insert(dhAll,0,0)
-		self.outputHists['maghAll'] = np.insert(maghAll,0,0)
-		self.outputHists['rhAll'] = np.insert(rhAll,0,0)
+		#bins (inserting zeros at the start and end so that I can more easily plot these with the bin_edges)
+		self.outputHists['m1b'] = np.append(m1b, m1b[-1] + mbSize)
+		self.outputHists['qb'] = np.append(qb, qb[-1] + qbSize)
+		self.outputHists['eb'] = np.append(eb, eb[-1] + ebSize)
+		self.outputHists['lpb'] = np.append(lpb, lpb[-1] + lpbSize)
+		self.outputHists['db'] = np.append(db, db[-1] + dbSize)
+		self.outputHists['magb'] = np.append(magb, magb[-1] + magbSize)
+		self.outputHists['rb'] = np.append(rb, rb[-1] + rbSize)
+		#All 
+		self.outputHists['m1hAll'] = np.append(np.insert(m1hAll,0,0),0)
+		self.outputHists['qhAll'] = np.append(np.insert(qhAll,0,0),0)
+		self.outputHists['ehAll'] = np.append(np.insert(ehAll,0,0),0)
+		self.outputHists['lphAll'] = np.append(np.insert(lphAll,0,0),0)
+		self.outputHists['dhAll'] = np.append(np.insert(dhAll,0,0),0)
+		self.outputHists['maghAll'] = np.append(np.insert(maghAll,0,0),0)
+		self.outputHists['rhAll'] = np.append(np.insert(rhAll,0,0),0)
 		#Observable
-		self.outputHists['m1hObs'] = np.insert(m1hObs,0,0)
-		self.outputHists['qhObs'] = np.insert(qhObs,0,0)
-		self.outputHists['ehObs'] = np.insert(ehObs,0,0)
-		self.outputHists['lphObs'] = np.insert(lphObs,0,0)
-		self.outputHists['dhObs'] = np.insert(dhObs,0,0)
-		self.outputHists['maghObs'] = np.insert(maghObs,0,0)
-		self.outputHists['rhObs'] = np.insert(rhObs,0,0)
+		self.outputHists['m1hObs'] = np.append(np.insert(m1hObs,0,0),0)
+		self.outputHists['qhObs'] = np.append(np.insert(qhObs,0,0),0)
+		self.outputHists['ehObs'] = np.append(np.insert(ehObs,0,0),0)
+		self.outputHists['lphObs'] = np.append(np.insert(lphObs,0,0),0)
+		self.outputHists['dhObs'] = np.append(np.insert(dhObs,0,0),0)
+		self.outputHists['maghObs'] = np.append(np.insert(maghObs,0,0),0)
+		self.outputHists['rhObs'] = np.append(np.insert(rhObs,0,0),0)
 		#Recovered
 		self.outputHists['m1hRec'] = dict()
 		self.outputHists['qhRec'] = dict()
@@ -708,13 +967,53 @@ class EBLSSTanalyzer(object):
 		self.outputHists['maghRec'] = dict()
 		self.outputHists['rhRec'] = dict()
 		for f in self.filters:
-			self.outputHists['m1hRec'][f] = np.insert(m1hRec[f],0,0)
-			self.outputHists['qhRec'][f] = np.insert(qhRec[f],0,0)
-			self.outputHists['ehRec'][f] = np.insert(ehRec[f],0,0)
-			self.outputHists['lphRec'][f] = np.insert(lphRec[f],0,0)
-			self.outputHists['dhRec'][f] = np.insert(dhRec[f],0,0)
-			self.outputHists['maghRec'][f] = np.insert(maghRec[f],0,0)
-			self.outputHists['rhRec'][f] = np.insert(rhRec[f],0,0)
+			self.outputHists['m1hRec'][f] = np.append(np.insert(m1hRec[f],0,0),0)
+			self.outputHists['qhRec'][f] = np.append(np.insert(qhRec[f],0,0),0)
+			self.outputHists['ehRec'][f] = np.append(np.insert(ehRec[f],0,0),0)
+			self.outputHists['lphRec'][f] = np.append(np.insert(lphRec[f],0,0),0)
+			self.outputHists['dhRec'][f] = np.append(np.insert(dhRec[f],0,0),0)
+			self.outputHists['maghRec'][f] = np.append(np.insert(maghRec[f],0,0),0)
+			self.outputHists['rhRec'][f] = np.append(np.insert(rhRec[f],0,0),0)
+
+		self.outputHists['m1bCDF'] = m1bCDF
+		self.outputHists['qbCDF'] = qbCDF
+		self.outputHists['ebCDF'] = ebCDF
+		self.outputHists['lpbCDF'] = lpbCDF
+		self.outputHists['dbCDF'] = dbCDF
+		self.outputHists['magbCDF'] = magbCDF
+		self.outputHists['rbCDF'] = rbCDF
+		#All (inserting zeros at the start so that I can more easily plot these with the bin_edges)
+		self.outputHists['m1hAllCDF'] = np.insert(m1hAllCDF,0,0)
+		self.outputHists['qhAllCDF'] = np.insert(qhAllCDF,0,0)
+		self.outputHists['ehAllCDF'] = np.insert(ehAllCDF,0,0)
+		self.outputHists['lphAllCDF'] = np.insert(lphAllCDF,0,0)
+		self.outputHists['dhAllCDF'] = np.insert(dhAllCDF,0,0)
+		self.outputHists['maghAllCDF'] = np.insert(maghAllCDF,0,0)
+		self.outputHists['rhAllCDF'] = np.insert(rhAllCDF,0,0)
+		#Observable
+		self.outputHists['m1hObsCDF'] = np.insert(m1hObsCDF,0,0)
+		self.outputHists['qhObsCDF'] = np.insert(qhObsCDF,0,0)
+		self.outputHists['ehObsCDF'] = np.insert(ehObsCDF,0,0)
+		self.outputHists['lphObsCDF'] = np.insert(lphObsCDF,0,0)
+		self.outputHists['dhObsCDF'] = np.insert(dhObsCDF,0,0)
+		self.outputHists['maghObsCDF'] = np.insert(maghObsCDF,0,0)
+		self.outputHists['rhObsCDF'] = np.insert(rhObsCDF,0,0)
+		#Recovered
+		self.outputHists['m1hRecCDF'] = dict()
+		self.outputHists['qhRecCDF'] = dict()
+		self.outputHists['ehRecCDF'] = dict()
+		self.outputHists['lphRecCDF'] = dict()
+		self.outputHists['dhRecCDF'] = dict()
+		self.outputHists['maghRecCDF'] = dict()
+		self.outputHists['rhRecCDF'] = dict()
+		for f in self.filters:
+			self.outputHists['m1hRecCDF'][f] = np.insert(m1hRecCDF[f],0,0)
+			self.outputHists['qhRecCDF'][f] = np.insert(qhRecCDF[f],0,0)
+			self.outputHists['ehRecCDF'][f] = np.insert(ehRecCDF[f],0,0)
+			self.outputHists['lphRecCDF'][f] = np.insert(lphRecCDF[f],0,0)
+			self.outputHists['dhRecCDF'][f] = np.insert(dhRecCDF[f],0,0)
+			self.outputHists['maghRecCDF'][f] = np.insert(maghRecCDF[f],0,0)
+			self.outputHists['rhRecCDF'][f] = np.insert(rhRecCDF[f],0,0)
 
 		if (self.doIndividualPlots):
 			self.individualPlots['fmass'] = fmass
@@ -724,6 +1023,61 @@ class EBLSSTanalyzer(object):
 			self.individualPlots['fdist'] = fdist
 			self.individualPlots['fmag'] = fmag
 			self.individualPlots['frad'] = frad
+
+	def makeMollweides(self, d, suffix='', showCbar=True):
+
+		#make the mollweide
+		use = d.loc[(d['recFrac'] > 0)]
+		coords = SkyCoord(use['RA'], use['Dec'], unit=(units.degree, units.degree),frame='icrs')	
+		lGal = coords.galactic.l.wrap_at(180.*units.degree).degree
+		bGal = coords.galactic.b.wrap_at(180.*units.degree).degree
+		RAwrap = coords.ra.wrap_at(180.*units.degree).degree
+		Decwrap = coords.dec.wrap_at(180.*units.degree).degree
+
+		f, ax = plt.subplots(subplot_kw={'projection': "mollweide"}, figsize=(8,5))
+		ax.grid(True)
+		#ax.set_xlabel(r"$l$",fontsize=16)
+		#ax.set_ylabel(r"$b$",fontsize=16)
+		#mlw = ax.scatter(lGal.ravel()*np.pi/180., bGal.ravel()*np.pi/180., c=np.log10(np.array(recFrac)*100.), cmap='viridis_r', s = 4)
+		ax.set_xlabel("RA",fontsize=16)
+		ax.set_ylabel("Dec",fontsize=16)
+		mlw = ax.scatter(np.array(RAwrap).ravel()*np.pi/180., np.array(Decwrap).ravel()*np.pi/180., c=np.array(use['recN']/use['obsN']), cmap='magma_r', s = 10, vmin=0.3, vmax=0.7)
+		if (showCbar):
+			#cbar = f.colorbar(mlw, shrink=0.7)
+			# Now adding the colorbar
+			cbaxes = f.add_axes([0.1, 0.9, 0.8, 0.03]) 
+			cbar = plt.colorbar(mlw, cax = cbaxes, orientation="horizontal") 
+			cbar.set_label(r'$N_\mathrm{Rec.}/N_\mathrm{Obs.}$',fontsize=16)
+			cbaxes.xaxis.set_ticks_position('top')
+			cbaxes.xaxis.set_label_position('top')
+
+		f.savefig(os.path.join(self.plotsDirectory,'mollweide_pct'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
+		plt.close(f)
+
+
+		coords = SkyCoord(d['RA'], d['Dec'], unit=(units.degree, units.degree),frame='icrs')	
+		lGal = coords.galactic.l.wrap_at(180.*units.degree).degree
+		bGal = coords.galactic.b.wrap_at(180.*units.degree).degree
+		RAwrap = coords.ra.wrap_at(180.*units.degree).degree
+		Decwrap = coords.dec.wrap_at(180.*units.degree).degree
+
+		f, ax = plt.subplots(subplot_kw={'projection': "mollweide"}, figsize=(8,5))
+		ax.grid(True)
+		#ax.set_xlabel(r"$l$",fontsize=16)
+		#ax.set_ylabel(r"$b$",fontsize=16)
+		#mlw = ax.scatter(lGal.ravel()*np.pi/180., bGal.ravel()*np.pi/180., c=np.log10(np.array(recN)), cmap='viridis_r', s = 4)
+		ax.set_xlabel("RA",fontsize=16)
+		ax.set_ylabel("Dec",fontsize=16)
+		mlw = ax.scatter(np.array(RAwrap).ravel()*np.pi/180., np.array(Decwrap).ravel()*np.pi/180., c=np.log10(np.array(d['recN'])), cmap='magma_r', s = 10, vmin=0, vmax=4.5)
+		if (showCbar):
+			#cbar = f.colorbar(mlw, shrink=0.7)
+			cbaxes = f.add_axes([0.1, 0.9, 0.8, 0.03]) 
+			cbar = plt.colorbar(mlw, cax = cbaxes, orientation="horizontal") 
+			cbar.set_label(r'$\log_{10}(N_\mathrm{Rec.})$',fontsize=16)
+			cbaxes.xaxis.set_ticks_position('top')
+			cbaxes.xaxis.set_label_position('top')
+		f.savefig(os.path.join(self.plotsDirectory,'mollweide_N'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
+		plt.close(f)
 
 	def makePlots(self):
 
@@ -744,38 +1098,7 @@ class EBLSSTanalyzer(object):
 		self.saveHist(self.outputHists, 'r', 'r2/r1', os.path.join(self.plotsDirectory,'EBLSST_rhist'+suffix), xlim=[0,3])
 
 
-		#make the mollweide
-		coords = SkyCoord(self.outputNumbers['RA'], self.outputNumbers['Dec'], unit=(units.degree, units.degree),frame='icrs')	
-		lGal = coords.galactic.l.wrap_at(180.*units.degree).degree
-		bGal = coords.galactic.b.wrap_at(180.*units.degree).degree
-		RAwrap = coords.ra.wrap_at(180.*units.degree).degree
-		Decwrap = coords.dec.wrap_at(180.*units.degree).degree
-
-		f, ax = plt.subplots(subplot_kw={'projection': "mollweide"}, figsize=(8,5))
-		ax.grid(True)
-		#ax.set_xlabel(r"$l$",fontsize=16)
-		#ax.set_ylabel(r"$b$",fontsize=16)
-		#mlw = ax.scatter(lGal.ravel()*np.pi/180., bGal.ravel()*np.pi/180., c=np.log10(np.array(recFrac)*100.), cmap='viridis_r', s = 4)
-		ax.set_xlabel("RA",fontsize=16)
-		ax.set_ylabel("Dec",fontsize=16)
-		mlw = ax.scatter(np.array(RAwrap).ravel()*np.pi/180., np.array(Decwrap).ravel()*np.pi/180., c=np.array(self.outputNumbers['recFrac'])*100., cmap='magma_r', s = 4, vmin=0, vmax=0.07)
-		cbar = f.colorbar(mlw, shrink=0.7)
-		cbar.set_label(r'% recovered')
-		f.savefig(os.path.join(self.plotsDirectory,'mollweide_pct'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
-		plt.close(f)
-
-		f, ax = plt.subplots(subplot_kw={'projection': "mollweide"}, figsize=(8,5))
-		ax.grid(True)
-		#ax.set_xlabel(r"$l$",fontsize=16)
-		#ax.set_ylabel(r"$b$",fontsize=16)
-		#mlw = ax.scatter(lGal.ravel()*np.pi/180., bGal.ravel()*np.pi/180., c=np.log10(np.array(recN)), cmap='viridis_r', s = 4)
-		ax.set_xlabel("RA",fontsize=16)
-		ax.set_ylabel("Dec",fontsize=16)
-		mlw = ax.scatter(np.array(RAwrap).ravel()*np.pi/180., np.array(Decwrap).ravel()*np.pi/180., c=np.log10(np.array(self.outputNumbers['recN'])), cmap='magma_r', s = 4, vmin=0, vmax=3.7)
-		cbar = f.colorbar(mlw, shrink=0.7)
-		cbar.set_label(r'log10(N) recovered')
-		f.savefig(os.path.join(self.plotsDirectory,'mollweide_N'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
-		plt.close(f)
+		self.makeMollweides(pd.DataFrame(self.outputNumbers), suffix=suffix)
 
 		if (self.doIndividualPlots):
 			self.individualPlots['fmass'].savefig(os.path.join(self.plotsDirectory,'massPDFall'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
@@ -817,18 +1140,63 @@ class EBLSSTanalyzer(object):
 		#save the numbers to a file
 		df = pd.DataFrame(self.outputNumbers)
 		df.to_csv(os.path.join(self.plotsDirectory,'numbers.csv'), index=False)
+		pickle.dump(self.outputHists, open( os.path.join(self.plotsDirectory,"outputHists.pickle"), "wb"))
 
 	def plotAllObsRecOtherRatio(self, d1, d2):
 		suffix = ''
 		if (self.onlyDWD):
 			suffix = '_DWD'
-		self.plotObsRecOtherRatio(d1, d2, 'm1', 'm1 (Msolar)', os.path.join(self.plotsDirectory,'EBLSST_m1hist'+suffix), xlim=[0,3])
+		self.plotObsRecOtherRatio(d1, d2, 'm1', 'm1 (Msolar)', os.path.join(self.plotsDirectory,'EBLSST_m1hist'+suffix), xlim=self.m1xlim)
 		self.plotObsRecOtherRatio(d1, d2, 'q', 'q (m2/m1)', os.path.join(self.plotsDirectory,'EBLSST_qhist'+suffix), xlim=[0,1])
 		self.plotObsRecOtherRatio(d1, d2, 'e', 'e', os.path.join(self.plotsDirectory,'EBLSST_ehist'+suffix), xlim=[0,1])
 		self.plotObsRecOtherRatio(d1, d2, 'lp', 'log(P [days])', os.path.join(self.plotsDirectory,'EBLSST_lphist'+suffix), xlim=[-2,5])
 		self.plotObsRecOtherRatio(d1, d2, 'd', 'd (kpc)', os.path.join(self.plotsDirectory,'EBLSST_dhist'+suffix), xlim=[0,25])
 		self.plotObsRecOtherRatio(d1, d2, 'mag', 'mag', os.path.join(self.plotsDirectory,'EBLSST_maghist'+suffix), xlim=[12, 25])
 		self.plotObsRecOtherRatio(d1, d2, 'r', 'r2/r1', os.path.join(self.plotsDirectory,'EBLSST_rhist'+suffix), xlim=[0,3])
+
+
+		m1xlim = self.m1xlim
+		#m1xlim[1] -= 0.01
+		f,ax = plt.subplots(3,4,figsize=(20, 12))
+		self.plotObsRecOtherRatio(d1, d2, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist'+suffix), xlim=[-2,5], ax=ax[:,0], showLegend=False)
+		self.plotObsRecOtherRatio(d1, d2, 'e', r'$ecc$', os.path.join(self.plotsDirectory,'EBLSST_ehist'+suffix), xlim=[0,1], ax=ax[:,1], showLegend=False)
+		self.plotObsRecOtherRatio(d1, d2, 'm1', r'$m_1$ $(M_\odot)$', os.path.join(self.plotsDirectory,'EBLSST_m1hist'+suffix), xlim=m1xlim, ax=ax[:,2], showLegend=False)
+		self.plotObsRecOtherRatio(d1, d2, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist'+suffix), xlim=[0,1], ax=ax[:,3], showLegend=True, legendLoc = 'upper left')
+		ax[0,0].set_ylabel('CDF', fontsize=16)
+		ax[1,0].set_ylabel(r'$N/\sum N_\mathrm{baseline}$', fontsize=16)
+		#ax[1,0].set_ylabel('PDF', fontsize=16)
+		ax[2,0].set_ylabel('Ratio', fontsize=16)
+		for i in range(3):
+			for j in range(4):
+				if (i != 2):
+					ax[i,j].set_xticklabels([])
+				if (j != 0):
+					ax[i,j].set_yticklabels([])
+
+		f.subplots_adjust(hspace=0, wspace=0.07)
+		f.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecOtherRatioCombined.pdf'),format='pdf', bbox_inches = 'tight')
+		plt.close(f)
+
+
+	def plotAllObsRecOtherPDF(self, d1, d1C, d2, d2C, d3, d3C):
+
+		suffix = ''
+
+		m1xlim = self.m1xlim
+		#m1xlim[1] -= 0.01
+		f,ax = plt.subplots(1,4,figsize=(20, 4), sharey=True)
+		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist'+suffix), xlim=[-2,5], ax=ax[0], showLegend=True, legendLoc = 'upper right')
+		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'e', r'$ecc$', os.path.join(self.plotsDirectory,'EBLSST_ehist'+suffix), xlim=[0,1], ax=ax[1], showLegend=False)
+		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'm1', r'$m_1$ $(M_\odot)$', os.path.join(self.plotsDirectory,'EBLSST_m1hist'+suffix), xlim=m1xlim, ax=ax[2], showLegend=False)
+		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist'+suffix), xlim=[0,1], ax=ax[3], showLegend=False)
+		#ax[0].set_ylabel(r'$\frac{N_i}{\sum_i N_i}$', fontsize=16)
+		#ax[0].set_ylabel('PDF', fontsize=16)
+		ax[0].set_ylabel(r'$N$', fontsize=16)
+
+
+		f.subplots_adjust(wspace=0.07)
+		f.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecOtherPDFCombined.pdf'),format='pdf', bbox_inches = 'tight')
+		plt.close(f)
 
 	def run(self):
 		self.compileData()
