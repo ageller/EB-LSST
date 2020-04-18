@@ -18,6 +18,7 @@ class TRILEGAL(object):
 		self.area = np.pi*(3.5/2.)**2. #square degrees (LSST FoV)
 		self.area0frac = 1.
 		self.maglim = 26
+		self.maglimFilter = 3
 		self.sigma_AV = 0.1 #default
 		self.binaries = False
 		self.filterset = 'lsst' 
@@ -44,7 +45,7 @@ class TRILEGAL(object):
 		self.area *= self.area0frac
 		while (not passed):
 			passed = trilegal_update.get_trilegal(self.tmpfname, self.RA, self.Dec, folder=self.tmpdir, galactic=False, \
-				filterset=self.filterset, area=self.area, maglim=self.maglim, binaries=self.binaries, \
+				filterset=self.filterset, area=self.area, maglim=self.maglim, maglimFilter=self.maglimFilter, binaries=self.binaries, \
 				trilegal_version='1.6', sigma_AV=self.sigma_AV, convert_h5=True)
 			if (not passed):
 				self.area *= 0.9
