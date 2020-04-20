@@ -34,7 +34,7 @@ class getSingleStars(object):
 
 		"""
 		# Initial (input) binares -- using sampler method from cosmic #1234 - random seed
-		print("initial single input:",self.random_seed, self.age, self.Z, self.Nsing)
+		print("initial single input:",self.age, self.Z, self.Nsing)
 		# InitialSingles, sampled_mass, n_sampled = InitialBinaryTable.sampler('multidim',\
 		# 	[0,12], [0,12],self.random_seed,1, 'delta_burst', self.age, self.Z, self.Nsing)
 		InitialSingles, sampled_mass, mass_binaries, n_singles, n_binaries = InitialBinaryTable.sampler('independent', \

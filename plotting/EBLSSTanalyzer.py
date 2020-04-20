@@ -1162,7 +1162,7 @@ class EBLSSTanalyzer(object):
 		self.plotObsRecOtherRatio(d1, d2, 'e', r'$ecc$', os.path.join(self.plotsDirectory,'EBLSST_ehist'+suffix), xlim=[0,1], ax=ax[:,1], showLegend=False)
 		self.plotObsRecOtherRatio(d1, d2, 'm1', r'$m_1$ $(M_\odot)$', os.path.join(self.plotsDirectory,'EBLSST_m1hist'+suffix), xlim=m1xlim, ax=ax[:,2], showLegend=False)
 		self.plotObsRecOtherRatio(d1, d2, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist'+suffix), xlim=[0,1], ax=ax[:,3], showLegend=False)
-		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'mag', r'$r\_$ mag', os.path.join(self.plotsDirectory,'EBLSST_maghist'+suffix), xlim=[0,1], ax=ax[:,4], showLegend=False)
+		self.plotObsRecOtherRatio(d1, d2, 'mag', r'$r\_$ mag', os.path.join(self.plotsDirectory,'EBLSST_maghist'+suffix), xlim=[12,25], ax=ax[:,4], showLegend=False)
 		ax[0,0].set_ylabel('CDF', fontsize=16)
 		ax[1,0].set_ylabel(r'$N/\sum N_\mathrm{baseline}$', fontsize=16)
 		#ax[1,0].set_ylabel('PDF', fontsize=16)
@@ -1190,10 +1190,10 @@ class EBLSSTanalyzer(object):
 		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'e', r'$ecc$', os.path.join(self.plotsDirectory,'EBLSST_ehist'+suffix), xlim=[0,1], ax=ax[1], showLegend=False)
 		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'm1', r'$m_1$ $(M_\odot)$', os.path.join(self.plotsDirectory,'EBLSST_m1hist'+suffix), xlim=m1xlim, ax=ax[2], showLegend=False)
 		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist'+suffix), xlim=[0,1], ax=ax[3], showLegend=False)
-		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'mag', r'$r\_$ mag', os.path.join(self.plotsDirectory,'EBLSST_maghist'+suffix), xlim=[0,1], ax=ax[4], showLegend=False)
+		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'mag', r'$r\_$ mag', os.path.join(self.plotsDirectory,'EBLSST_maghist'+suffix), xlim=[12,25], ax=ax[4], showLegend=False)
 		#ax[0].set_ylabel(r'$\frac{N_i}{\sum_i N_i}$', fontsize=16)
 		#ax[0].set_ylabel('PDF', fontsize=16)
-		ax[0].set_ylabel(r'$N$', fontsize=16)
+		ax[0].set_ylabel(r'$N_\mathrm{Rec.}$', fontsize=16)
 
 
 		f.subplots_adjust(wspace=0.07)
