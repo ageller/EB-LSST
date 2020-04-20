@@ -1,0 +1,14 @@
+
+
+<!DOCTYPE html
+	PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	 "http://www.w3.org/TR/html4/loose.dtd">
+<html><head><title>TRILEGAL 1.6 output</title>
+<link rev="made" href="mailto:L%26eacute%3Bo%20Girardi">
+<base href="http://stev.oapd.inaf.it/cgi-bin/trilegal_1.6">
+<meta name="robots" content="noarchive">
+<link rel="stylesheet" type="text/css" href="../~webmaster/trilegal_1.6/form.css">
+</head>
+<body>
+<link rel='icon' href='../~webmaster/trilegal_1.6/smallicon.png' type='image/x-icon'><link rel='shortcut icon' href='../~webmaster/trilegal_1.6/smallicon.png' type='image/x-icon'><center><h1>TRILEGAL is too busy! </h1></center><form method="post" action="./trilegal_1.6" enctype="multipart/form-data"><hr><fieldset title='Results'><legend title='Results'>Results</legend><p>Your job could not be submitted on Mon Apr 20 18:14:40 CEST 2020
+.<p>The server seems too busy. Please wait a few minutes and try again. Use the back arrow in your browser to recover the parameters you set, and resubmit.</fieldset>

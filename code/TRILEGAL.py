@@ -43,6 +43,7 @@ class TRILEGAL(object):
 	def downloadModel(self):
 		passed = False
 		self.area *= self.area0frac
+		print("downloading model")
 		while (not passed):
 			passed = trilegal_update.get_trilegal(self.tmpfname, self.RA, self.Dec, folder=self.tmpdir, galactic=False, \
 				filterset=self.filterset, area=self.area, maglim=self.maglim, maglimFilter=self.maglimFilter, binaries=self.binaries, \

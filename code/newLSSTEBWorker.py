@@ -73,9 +73,6 @@ class LSSTEBWorker(object):
 		self.galDir = ''
 		self.mTol = 0.001 #tolerance on the mass to draw from the trilegal sample
 
-		self.magLims = np.array([15.8, 24.]) #lower and upper limits on the magnitude detection assumed for LSST: 15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
-		self.eclipseDepthLim = 3. #depth / error
-
 
 	def make_gatspy_plots(self, j):
 
@@ -211,8 +208,6 @@ class LSSTEBWorker(object):
 
 	def getEB(self, line, OpSimi=0):
 		self.EB = EclipsingBinary()
-		self.EB.magLims = self.magLims
-		self.EB.eclipseDepthLim = self.eclipseDepthLim
 
 		self.EB.Galaxy = self.Galaxy
 		

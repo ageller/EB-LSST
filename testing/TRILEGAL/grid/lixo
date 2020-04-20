@@ -1,0 +1,11 @@
+--2020-04-20 11:14:39--  http://stev.oapd.inaf.it/cgi-bin/trilegal_1.6
+Resolving stev.oapd.inaf.it (stev.oapd.inaf.it)... 193.206.243.34
+Connecting to stev.oapd.inaf.it (stev.oapd.inaf.it)|193.206.243.34|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Saving to: ‘grid/tmpfile’
+
+     0K                                                        27.0M=0s
+
+2020-04-20 11:14:40 (27.0 MB/s) - ‘grid/tmpfile’ saved [1018]
+
