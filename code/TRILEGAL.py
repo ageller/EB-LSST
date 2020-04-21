@@ -24,6 +24,7 @@ class TRILEGAL(object):
 		self.filterset = 'lsst' 
 		self.tmpfname = 'TRILEGAL_model.h5'
 		self.tmpdir = '.'
+		self.archivedir = '.'
 		self.deleteModel = True
 
 		self.model = None
@@ -43,7 +44,7 @@ class TRILEGAL(object):
 	def downloadModel(self):
 		passed = False
 		self.area *= self.area0frac
-		print("downloading model")
+		print("downloading model",self.tmpfname, self.area)
 		while (not passed):
 			passed = trilegal_update.get_trilegal(self.tmpfname, self.RA, self.Dec, folder=self.tmpdir, galactic=False, \
 				filterset=self.filterset, area=self.area, maglim=self.maglim, maglimFilter=self.maglimFilter, binaries=self.binaries, \
@@ -54,10 +55,21 @@ class TRILEGAL(object):
 
 	def setModel(self, download = True):
 		area0 = self.area
+		filePath = os.path.join(self.archivedir,self.tmpfname)
+
+		if (not os.path.exists(filePath)):
+			download = True
+			filePath = os.path.join(self.tmpdir,self.tmpfname)
+
 		if (download):
 			self.downloadModel()
 
-		self.model = pd.read_hdf(os.path.join(self.tmpdir,self.tmpfname))
+		with pd.HDFStore(filePath) as store:
+			attrs = store.get_storer('df').attrs
+			if ('area' in attrs.trilegal_args):
+				self.area = float(attrs.trilegal_args['area'])
+
+		self.model = pd.read_hdf(filePath)
 		self.Nstars = len(self.model) * (area0/self.area)
 
 		#check for crowding
@@ -81,7 +93,7 @@ class TRILEGAL(object):
 			self.model = self.model.sample(frac=1).reset_index(drop=True)
 
 		if (self.deleteModel):
-			os.remove(os.path.join(self.tmpdir,self.tmpfname))
+			os.remove(filePath)
 
 		data = np.vstack((self.model['logL'].values, self.model['logTe'].values, self.model['logg'].values, \
 						self.model['logDist'].values, self.model['Av'].values, self.model['[M/H]'].values))

@@ -199,6 +199,8 @@ if __name__ == "__main__":
 		os.makedirs(galDir)
 	worker.galDir = galDir
 
+	worker.galArchiveDir = '/projects/p30137/ageller/EBLSST/input/TRILEGALmodels/'
+
 	#add a delay here to help with the get_trilegal pileup?
 	time.sleep(5*rank)
 

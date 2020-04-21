@@ -89,7 +89,8 @@ class LSSTEBClusterWorker(object):
 
 		#galaxy field info
 		self.Galaxy = None
-		self.galDir = ''
+		self.galDir = '.'
+		self.galArchiveDir = '.'
 		self.mTol = 0.001 #tolerance on the mass to draw from the trilegal sample
 
 	def make_gatspy_plots(self, j):
@@ -222,11 +223,12 @@ class LSSTEBClusterWorker(object):
 			if (self.verbose): 
 				print('LSM =', self.EB.LSM)
 
-	def getGalaxy(self, OpSimi, deleteModel = True, downloadModel = True):
+	def getGalaxy(self, OpSimi, deleteModel = False, downloadModel = False):
 		self.Galaxy = TRILEGAL()
 		self.Galaxy.RA = self.OpSim.RA[OpSimi]
 		self.Galaxy.Dec = self.OpSim.Dec[OpSimi]
 		self.Galaxy.fieldID = self.OpSim.fieldID[OpSimi]
+		self.Galaxy.archivedir = self.galArchiveDir
 		self.Galaxy.tmpdir = self.galDir
 		self.Galaxy.tmpfname = 'TRILEGAL_model_fID'+str(int(self.OpSim.fieldID[OpSimi]))+'.h5'
 		self.Galaxy.deleteModel = deleteModel
