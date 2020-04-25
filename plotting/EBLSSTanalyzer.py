@@ -14,6 +14,8 @@ import pickle
 import matplotlib
 matplotlib.use('Agg')
 
+import cartopy.crs as ccrs
+
 
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
@@ -1026,22 +1028,55 @@ class EBLSSTanalyzer(object):
 
 	def makeMollweides(self, d, suffix='', showCbar=True):
 
+		#I want to show the RA with the origin at the side, so that the plots look like the figures here http://astro-lsst-01.astro.washington.edu:8080/allMetricResults?runId=1
+		#this requires me to use cartopy, which doesn't label the axes, so I have to go through a LOT of trouble to add axes labels!
+		#but this appears to work well enough, despite a few "magic numbers"
+		def makeMollweideAxes():    
+			#set up the projections
+			proj = ccrs.Mollweide(central_longitude=180)
+			data_proj = ccrs.Geodetic()
+
+			#create the plot
+			f,ax = plt.subplots(figsize=(8, 5), subplot_kw={'projection':proj})
+			ax.set_global()
+
+			#for the labels
+			xlocs = np.linspace(0, 360, 13)
+			ylocs = np.linspace(-90, 90, 13)
+			ax.gridlines(xlocs=xlocs, ylocs=ylocs)
+
+			#labels
+			plt.gcf().text(0.51, 0.15, 'RA', fontsize=16, horizontalalignment='center')
+			plt.gcf().text(0.045, 0.5, 'Dec', fontsize=16, rotation=90, verticalalignment='center')
+			for x in xlocs[1:-1]:
+				l = r'$'+str(int(x))+'^\degree$'
+				#plt.gcf().text(x/360. + 0.04 , 0.51, l, fontsize=12, horizontalalignment='center')
+				ax.text(x, 1, l, fontsize=12, horizontalalignment='center', transform=data_proj)
+
+			#it seems like there should be a better way to do this!
+			bbox = ax.dataLim
+			for y in ylocs[1:-1]:
+				loc = proj.transform_point(0, y,data_proj)
+				xval = (loc[0]*0.75 - bbox.x0)/(bbox.x1 - bbox.x0)   
+				yval = (loc[1]*0.65 - bbox.y0)/(bbox.y1 - bbox.y0)    
+				l = r'$'+str(int(y))+'^\degree$'
+				xoff = -0.015
+				if (y < 0):
+					xoff = -0.03
+				plt.gcf().text(xval + xoff, yval, l, verticalalignment='center', horizontalalignment='center')
+
+			return f, ax, data_proj
+
+
 		#make the mollweide
 		use = d.loc[(d['recFrac'] > 0)]
 		coords = SkyCoord(use['RA'], use['Dec'], unit=(units.degree, units.degree),frame='icrs')	
-		lGal = coords.galactic.l.wrap_at(180.*units.degree).degree
-		bGal = coords.galactic.b.wrap_at(180.*units.degree).degree
-		RAwrap = coords.ra.wrap_at(180.*units.degree).degree
-		Decwrap = coords.dec.wrap_at(180.*units.degree).degree
+		RAwrap = coords.ra.wrap_at(360.*units.degree).degree
+		Decwrap = coords.dec.wrap_at(90.*units.degree).degree
 
-		f, ax = plt.subplots(subplot_kw={'projection': "mollweide"}, figsize=(8,5))
-		ax.grid(True)
-		#ax.set_xlabel(r"$l$",fontsize=16)
-		#ax.set_ylabel(r"$b$",fontsize=16)
-		#mlw = ax.scatter(lGal.ravel()*np.pi/180., bGal.ravel()*np.pi/180., c=np.log10(np.array(recFrac)*100.), cmap='viridis_r', s = 4)
-		ax.set_xlabel("RA",fontsize=16)
-		ax.set_ylabel("Dec",fontsize=16)
-		mlw = ax.scatter(np.array(RAwrap).ravel()*np.pi/180., np.array(Decwrap).ravel()*np.pi/180., c=np.array(use['recN']/use['obsN']), cmap='magma_r', s = 10, vmin=0.3, vmax=0.7)
+		f, ax, data_proj = makeMollweideAxes()
+
+		mlw = ax.scatter(np.array(RAwrap).ravel(), np.array(Decwrap).ravel(), c=np.array(use['recN']/use['obsN']), cmap='magma_r', s = 10, vmin=0.3, vmax=0.7, transform=data_proj)
 		if (showCbar):
 			#cbar = f.colorbar(mlw, shrink=0.7)
 			# Now adding the colorbar
@@ -1056,19 +1091,11 @@ class EBLSSTanalyzer(object):
 
 
 		coords = SkyCoord(d['RA'], d['Dec'], unit=(units.degree, units.degree),frame='icrs')	
-		lGal = coords.galactic.l.wrap_at(180.*units.degree).degree
-		bGal = coords.galactic.b.wrap_at(180.*units.degree).degree
-		RAwrap = coords.ra.wrap_at(180.*units.degree).degree
-		Decwrap = coords.dec.wrap_at(180.*units.degree).degree
+		RAwrap = coords.ra.wrap_at(360.*units.degree).degree
+		Decwrap = coords.dec.wrap_at(90.*units.degree).degree
 
-		f, ax = plt.subplots(subplot_kw={'projection': "mollweide"}, figsize=(8,5))
-		ax.grid(True)
-		#ax.set_xlabel(r"$l$",fontsize=16)
-		#ax.set_ylabel(r"$b$",fontsize=16)
-		#mlw = ax.scatter(lGal.ravel()*np.pi/180., bGal.ravel()*np.pi/180., c=np.log10(np.array(recN)), cmap='viridis_r', s = 4)
-		ax.set_xlabel("RA",fontsize=16)
-		ax.set_ylabel("Dec",fontsize=16)
-		mlw = ax.scatter(np.array(RAwrap).ravel()*np.pi/180., np.array(Decwrap).ravel()*np.pi/180., c=np.log10(np.array(d['recN'])), cmap='magma_r', s = 10, vmin=0, vmax=4.5)
+		f, ax, data_proj = makeMollweideAxes()
+		mlw = ax.scatter(np.array(RAwrap).ravel(), np.array(Decwrap).ravel(), c=np.log10(np.array(d['recN'])), cmap='magma_r', s = 10, vmin=0, vmax=4.5, transform=data_proj)
 		if (showCbar):
 			#cbar = f.colorbar(mlw, shrink=0.7)
 			cbaxes = f.add_axes([0.1, 0.9, 0.8, 0.03]) 
