@@ -1,11 +1,6 @@
---2020-04-25 15:13:27--  http://stev.oapd.inaf.it/cgi-bin/trilegal_1.6
+--2020-05-07 11:28:13--  http://stev.oapd.inaf.it/tmp/output712133360401.dat
 Resolving stev.oapd.inaf.it (stev.oapd.inaf.it)... 193.206.243.34
 Connecting to stev.oapd.inaf.it (stev.oapd.inaf.it)|193.206.243.34|:80... connected.
-HTTP request sent, awaiting response... 200 OK
-Length: unspecified [text/html]
-Saving to: ‘/Users/ageller/WORK/LSST/onGitHub/EBLSST/input/TRILEGALmodels//tmpfile’
-
-     0K .                                                       107K=0.02s
-
-2020-04-25 15:13:29 (107 KB/s) - ‘/Users/ageller/WORK/LSST/onGitHub/EBLSST/input/TRILEGALmodels//tmpfile’ saved [1973]
+HTTP request sent, awaiting response... 404 Not Found
+2020-05-07 11:28:14 ERROR 404: Not Found.
 

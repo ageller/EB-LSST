@@ -1,3 +1,5 @@
 These files were created from /Users/ageller/WORK/LSST/onGitHub/EBLSST/testing/TRILEGAL/getAllTRILEGAL.ipynb
 
 They go to 25th mag in the LSST r band
+
+rsync -avPe ssh *.h5 amg416@quest.it.northwestern.edu:/projects/p30137/ageller/EBLSST/input/TRILEGALmodels/
