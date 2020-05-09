@@ -301,7 +301,7 @@ class LSSTEBWorker(object):
 		self.Galaxy.fieldID = self.OpSim.fieldID[OpSimi]
 		self.Galaxy.archivedir = self.galArchiveDir
 		self.Galaxy.tmpdir = self.galDir
-		self.Galaxy.tmpfname = 'TRILEGAL_model_fID'+str(int(self.OpSim.fieldID[OpSimi]))+'.h5'
+		self.Galaxy.tmpfname = 'TRILEGAL_model_fID_'+str(int(self.OpSim.fieldID[OpSimi]))+'.h5'
 		self.Galaxy.deleteModel = deleteModel
 		self.Galaxy.seeing = self.seeing
 		if (area0frac is not None): self.Galaxy.area0frac = area0frac
