@@ -317,17 +317,20 @@ if __name__ == "__main__":
 
 				for j, line in enumerate(clusterDat):
 
-					#define the binary parameters
-					worker.getEB(line, OpSimi=i)
-					print(f"RANK={rank}, OpSimi={i}, linej={j}, ID={worker.OpSim.fieldID[i]}, pb={worker.EB.period}")
-	
-					if (worker.EB.observable):
-						worker.run_ellc()
+					try:
+						#define the binary parameters
+						worker.getEB(line, OpSimi=i)
+						print(f"RANK={rank}, OpSimi={i}, linej={j}, ID={worker.OpSim.fieldID[i]}, pb={worker.EB.period}")
+		
 						if (worker.EB.observable):
-							worker.run_gatspy()
-	
-					worker.writeOutputLine()
-					csvfile.flush()
+							worker.run_ellc()
+							if (worker.EB.observable):
+								worker.run_gatspy()
+		
+						worker.writeOutputLine()
+						csvfile.flush()
+					except:
+						print('BAD INPUT LINE : ', line)
 			else:
 				worker.writeOutputLine(OpSimi=i, noRun=True)
 				csvfile.flush()
