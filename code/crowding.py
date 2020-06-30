@@ -42,6 +42,10 @@ class crowding(object):
 		self.clusterAV = None
 		self.clusterNstars = None 
 		
+		#I'd love to limit this so that the code can be more efficient, but this will require a substantial rewrite!
+		self.maxFluxFrac = 30. #not sure what the best limit is -- (if the flux in the r band reaches maxFluxFrac of the input star, then stop)
+		self.input_rFlux = 0.
+
 		#for SED
 		self.filterFilesRoot = '../input/filters/'
 
@@ -128,7 +132,8 @@ class crowding(object):
 			singles['M_H'] = np.ones(self.nCrowdCluster)*self.clusterFeH
 			singles['dist'] = np.ones(self.nCrowdCluster)*self.clusterDist #kpc
 			singles['AV'] = np.ones(self.nCrowdCluster)*self.clusterAV
-			self.clusterSingles = self.getSinglesFlux(singles)
+			#self.clusterSingles = self.getSinglesFlux(singles)
+			self.clusterSingles = singles
 
 	def generateGalaxySingles(self):
 
@@ -154,45 +159,83 @@ class crowding(object):
 			singles['lumin_1'] = 10.**crowd['logL'].to_numpy()
 			singles['teff_1'] = 10.**crowd['logTe'].to_numpy()
 
-			self.galaxySingles = self.getSinglesFlux(singles)	
+			#self.galaxySingles = self.getSinglesFlux(singles)	
+			self.galaxySingles = singles	
 
-	def getSinglesFlux(self, singles):
-		#get the fluxes
+
+	def getSingleFlux(self, star):
 		flux = {}
 		for f in self.filters:
-			flux[f] = []
+			flux[f] = 0.0
 		
-		for index, star in singles.iterrows():
-			#sample a random star
-			s = SingleStar()
-			s.filterFilesRoot = self.filterFilesRoot
-			s.M_H = star['M_H']
-			s.dist = star['dist']
-			s.m = star['mass_1']
-			s.L = star['lumin_1']
-			if ('teff_1' in star): s.T = star['teff_1']
-			if ('logg' in star): s.logg = star['logg']
-			if ('rad_1' in star): s.R = star['rad_1']
-			if ('AV' in star): s.AV = star['AV']
-			s.initialize()
-			#print(s.m, s.Fv, s.appMagMean)
-			for f in self.filters:
-				flux[f].append(s.Fv[f])
-				
+		#sample a random star
+		s = SingleStar()
+		s.filterFilesRoot = self.filterFilesRoot
+		s.M_H = star['M_H']
+		s.dist = star['dist']
+		s.m = star['mass_1']
+		s.L = star['lumin_1']
+		if ('teff_1' in star): s.T = star['teff_1']
+		if ('logg' in star): s.logg = star['logg']
+		if ('rad_1' in star): s.R = star['rad_1']
+		if ('AV' in star): s.AV = star['AV']
+		s.initialize()
+		#print(s.m, s.Fv, s.appMagMean)
 		for f in self.filters:
-			singles['flux_'+f] = flux[f]
+			star['flux_'+f] = s.Fv[f]
 
-		return singles 
+		return star 
+
+	# def getSinglesFlux(self, singles):
+	# 	#get the fluxes
+	# 	print('getting singles flux')
+	# 	flux = {}
+	# 	for f in self.filters:
+	# 		flux[f] = []
+		
+	# 	for index, star in singles.iterrows():
+	# 		#sample a random star
+	# 		s = SingleStar()
+	# 		s.filterFilesRoot = self.filterFilesRoot
+	# 		s.M_H = star['M_H']
+	# 		s.dist = star['dist']
+	# 		s.m = star['mass_1']
+	# 		s.L = star['lumin_1']
+	# 		if ('teff_1' in star): s.T = star['teff_1']
+	# 		if ('logg' in star): s.logg = star['logg']
+	# 		if ('rad_1' in star): s.R = star['rad_1']
+	# 		if ('AV' in star): s.AV = star['AV']
+	# 		s.initialize()
+	# 		#print(s.m, s.Fv, s.appMagMean)
+	# 		for f in self.filters:
+	# 			flux[f].append(s.Fv[f])
+
+	# 	for f in self.filters:
+	# 		singles['flux_'+f] = flux[f]
+
+	#	return singles 
 
 	def integrateFlux(self):
 
 		self.fluxgrid = {}
 
-		def sumFlux(singles, i, j, x, y):
+		def sumFlux(singles, xvals, yvals):
+			dx = xvals[1] - xvals[0]
+			dy = yvals[1] - yvals[0]
+			dA = dx*dy
 			for index, star in singles.iterrows():
-				for f in self.filters:
-					amp = star['flux_'+f]
-					self.fluxgrid[f][i,j] += gauss2D(amp, x, star['xAng'], self.seeing, y, star['yAng'], self.seeing)
+				star = self.getSingleFlux(star)
+				for i,x in enumerate(xvals):
+					for j,y in enumerate(yvals):
+						for f in self.filters:
+							amp = star['flux_'+f]
+							self.fluxgrid[f][i,j] += gauss2D(amp, x, star['xAng'], self.seeing, y, star['yAng'], self.seeing)
+							#check if we can stop
+							if (f == 'r_'):
+								check = np.sum(self.fluxgrid[f]*dA)
+								if (check/self.input_rFlux > self.maxFluxFrac):
+									print("reached maximum flux limit", check, self.input_rFlux, check/self.input_rFlux)
+									return None
 
 		def sumAV(singles):
 			nvals = 0.
@@ -209,14 +252,19 @@ class crowding(object):
 		zvals = np.zeros((len(xvals), len(yvals)))
 		self.xgrid, self.ygrid = np.meshgrid(xvals, yvals)
 
+		dx = xvals[1] - xvals[0]
+		dy = yvals[1] - yvals[0]
+		dA = dx*dy
+
 		for f in self.filters:
 			self.fluxgrid[f] = zvals
 
-		for i,x in enumerate(xvals):
-			for j,y in enumerate(yvals):
-				if (self.clusterSingles is not None): sumFlux(self.clusterSingles, i, j, x, y)
-				if (self.galaxySingles is not None): sumFlux(self.galaxySingles, i, j, x, y)
+		#this will be the bottleneck
 
+		if (self.nCrowdCluster > 0):
+			sumFlux(self.clusterSingles, xvals, yvals)
+		if (self.nCrowdGalaxy > 0):
+			sumFlux(self.galaxySingles, xvals, yvals)
 
 
 		ext = F04(Rv=self.RV)
@@ -230,9 +278,7 @@ class crowding(object):
 			if (self.galaxySingles is not None): nvals += sumAV(self.galaxySingles)
 			self.AV /= nvals
 
-		dx = xvals[1] - xvals[0]
-		dy = yvals[1] - yvals[0]
-		dA = dx*dy
+
 		for f in self.filters:
 			Ared = ext(self.wavelength[f]*units.nm)*self.AV
 
@@ -258,8 +304,9 @@ class crowding(object):
 		if (self.Galaxy is not None):
 			self.generateGalaxySingles()
 
+		print('crowding Ncluster, Ngalaxy', self.nCrowdCluster, self.nCrowdGalaxy)
+
 		if (self.nCrowd > 0):
 			self.integrateFlux()	
 
-		print('crowding Ncluster, Ngalaxy', self.nCrowdCluster, self.nCrowdGalaxy)
 		print('crowding mag', self.backgroundMag)			

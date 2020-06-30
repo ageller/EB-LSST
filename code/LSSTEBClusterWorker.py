@@ -4,7 +4,7 @@ import scipy.special as ss
 import datetime
 
 import matplotlib
-matplotlib.use('agg')
+#matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 

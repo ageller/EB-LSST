@@ -601,6 +601,7 @@ class EclipsingBinary(object):
 
 		#this now covers the galaxy and the cluster, if available
 		if (self.observable and self.crowding is not None):
+			self.crowding.input_rFlux = self.Fv1['r_'] + self.Fv2['r_'] #NOTE; if I don't have a r_ band, this will crash
 			self.crowding.getCrowding()
 			for f in self.filters:
 				self.light_3[f] = self.crowding.backgroundFlux[f]/(self.Fv1[f] + self.Fv2[f])

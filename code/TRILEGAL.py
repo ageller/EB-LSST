@@ -58,6 +58,7 @@ class TRILEGAL(object):
 		filePath = os.path.join(self.archivedir,self.tmpfname)
 
 		if (not os.path.exists(filePath)):
+			print("file path does not exist", filePath)
 			download = True
 			filePath = os.path.join(self.tmpdir,self.tmpfname)
 
