@@ -43,7 +43,7 @@ class crowding(object):
 		self.clusterNstars = None 
 		
 		#if the flux in the r band reaches maxFluxFrac of the input star, then stop, to speed up the code
-		self.maxFluxFrac = 100. #not sure what the best limit is -- 30 cuts the flux to about 0.98 in ellc
+		self.maxFluxFrac = 100. #not sure what the best limit is -- 30 cuts the flux to about 0.98 in ellc, 100 takes it to 0.993 (from testCrowdingCluster.ipynb)
 		self.input_rFlux = 0.
 
 		#for SED
