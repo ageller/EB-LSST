@@ -1,0 +1,3 @@
+[submodule "fromAndrewBowen/ClusterEclipsingBinaries"]
+	path = fromAndrewBowen/ClusterEclipsingBinaries
+	url = https://github.com/andrewbowen19/ClusterEclipsingBinaries.git
