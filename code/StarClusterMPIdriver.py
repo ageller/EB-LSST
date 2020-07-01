@@ -265,7 +265,7 @@ if __name__ == "__main__":
 	worker.galArchiveDir = '/projects/p30137/ageller/EBLSST/input/TRILEGALmodels/'
 
 	#add a delay here to help with the get_trilegal pileup?
-	time.sleep(5*rank)
+	#time.sleep(5*rank)
 
 	ofile = worker.ofile
 	for i in range(len(worker.clusterName)):
