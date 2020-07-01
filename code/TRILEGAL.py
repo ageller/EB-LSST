@@ -98,6 +98,6 @@ class TRILEGAL(object):
 
 		data = np.vstack((self.model['logL'].values, self.model['logTe'].values, self.model['logg'].values, \
 						self.model['logDist'].values, self.model['Av'].values, self.model['[M/H]'].values))
-		self.KDE = scipy.stats.gaussian_kde(data)
+		#self.KDE = scipy.stats.gaussian_kde(data)
 
 		print(f'downloaded TRILEGAL model for ID={self.fieldID}, RA={self.RA}, DEC={self.Dec}, Nstars={self.Nstars}, Nstars/resEl={self.starsPerResEl}')
