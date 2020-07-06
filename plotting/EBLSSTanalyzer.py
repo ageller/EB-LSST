@@ -1129,7 +1129,6 @@ class EBLSSTanalyzer(object):
 		f.savefig(os.path.join(self.plotsDirectory,'mollweide_pct'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
 		plt.close(f)
 
-
 		coords = SkyCoord(d['RA'], d['Dec'], unit=(units.degree, units.degree),frame='icrs')	
 		RAwrap = coords.ra.wrap_at(360.*units.degree).degree
 		Decwrap = coords.dec.wrap_at(90.*units.degree).degree
