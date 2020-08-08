@@ -10,7 +10,7 @@ import pickle
 
 #for Quest
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 
 import cartopy.crs as ccrs
 
@@ -349,16 +349,16 @@ class EBLSSTanalyzer(object):
 			f.savefig(fname+'_ObsRecOtherRatio.pdf',format='pdf', bbox_inches = 'tight')
 			plt.close(f)
 
-	def plotObsRecOtherPDF(self, d1, d1C, d2, d2C, d3, d3C, key, xtitle, fname,  xlim = None, ax = None, showLegend = True, legendLoc = 'lower right'):
+	def plotObsRecOtherPDF(self, d1, d1C, d2, d2C, d3, d3C, key, xtitle, fname,  xlim = None, ax1 = None, ax2 = None, showLegend = True, legendLoc = 'lower right',includeASASSN=False):
 		c1 = '#0294A5'  #turqoise
 		c2 = '#d95f02' #orange from color brewer
 		c3 = '#00353E' #slate
 		c4 = '#508201' #olive
 
 		saveit = False
-		if (ax is None):
+		if (ax1 is None):
 			saveit = True
-			f,ax = plt.subplots(figsize=(5, 4))
+			f,ax1 = plt.subplots(figsize=(5, 4))
 
 
 		histAll1 = d1[key+'hAll']
@@ -407,18 +407,102 @@ class EBLSSTanalyzer(object):
 		#ax.step(bin_edges3,  allhistRec3/np.sum(allhistRec3), color=c1, label='OCs')
 		#ax.step(bin_edges3C, allhistRec3C/np.sum(allhistRec3), color=c1,linestyle=':')
 
-		ax.step(bin_edges1,  allhistRec1, color=c3, label='Field')
-		ax.step(bin_edges1C, allhistRec1C, color=c3,linestyle=':')
-		ax.step(bin_edges2,  allhistRec2, color=c2, label='GCs')
-		ax.step(bin_edges2C, allhistRec2C, color=c2,linestyle=':')
-		ax.step(bin_edges3,  allhistRec3, color=c1, label='OCs')
-		ax.step(bin_edges3C, allhistRec3C, color=c1,linestyle=':')
+		ax1.step(bin_edges1,  allhistRec1, color=c3, label='Field')
+		ax1.step(bin_edges1C, allhistRec1C, color=c3,linestyle=':')
+		ax1.step(bin_edges2,  allhistRec2, color=c2, label='GCs')
+		ax1.step(bin_edges2C, allhistRec2C, color=c2,linestyle=':')
+		ax1.step(bin_edges3,  allhistRec3, color=c1, label='OCs')
+		ax1.step(bin_edges3C, allhistRec3C, color=c1,linestyle=':')
 
 
 		#ax.set_ylim(0.5e-5, 1.9)
+		ax1.set_ylim(1, 4e6)
+		ax1.set_yscale('log')
+
+		if (ax2 is not None):
+			ratio1 = allhistRec1/histObs1
+			check = np.isnan(ratio1)
+			ratio1[check]=0.
+			ax2.step(bin_edges1, ratio1, color=c3)
+			ratio1C = allhistRec1C/histObs1C
+			check = np.isnan(ratio1C)
+			ratio1C[check]=0.
+			ax2.step(bin_edges1C, ratio1C, color=c3, linestyle=':')
+
+			ratio2 = allhistRec2/histObs2
+			check = np.isnan(ratio2)
+			ratio2[check]=0.
+			ax2.step(bin_edges2, ratio2, color=c2)
+			ratio2C = allhistRec2C/histObs2C
+			check = np.isnan(ratio2C)
+			ratio2C[check]=0.
+			ax2.step(bin_edges2C, ratio2C, color=c2, linestyle=':')
+
+			ratio3 = allhistRec3/histObs3
+			check = np.isnan(ratio3)
+			ratio3[check]=0.
+			ax2.step(bin_edges3, ratio3, color=c1)
+			ratio3C = allhistRec3C/histObs3C
+			check = np.isnan(ratio3C)
+			ratio3C[check]=0.
+			ax2.step(bin_edges3C, ratio3C, color=c1, linestyle=':')
+
+			ax2.set_ylim(1e-3,5)
+			ax2.set_yscale('log')
+			ax2.set_xlabel(xtitle, fontsize=16)
+
+
+		if (saveit):
+			#ax.set_ylabel(r'$N_i/\sum_i N_i$', fontsize=16)
+			ax1.set_ylabel(r'$N$', fontsize=16)
+
+
+		if (xlim is not None):
+			ax1.set_xlim(xlim[0], xlim[1])
+			if (ax2 is not None):
+				ax2.set_xlim(xlim[0], xlim[1])
+
+		if (showLegend):
+			lAll = mlines.Line2D([], [], color=c3, label='Field')
+			lObs = mlines.Line2D([], [], color=c2, label='GCs')
+			lRec = mlines.Line2D([], [], color=c1, label='OCs')
+			if (includeASASSN):
+				lASN = mlines.Line2D([], [], color='lightgray', label='ASAS-SN')
+			ax1.legend(handles=[lAll, lObs, lRec,lASN], loc=legendLoc)
+
+
+		if (saveit):
+			f.subplots_adjust(hspace=0)
+			f.savefig(fname+'_ObsRecOtherPDF.pdf',format='pdf', bbox_inches = 'tight')
+			plt.close(f)
+
+	def plotRecFilterPDF(self, d1, d1C, key, xtitle, fname,  xlim = None, ax = None, showLegend = True, legendLoc = 'lower right'):
+
+		colors = ['purple', 'green', 'red', 'darkorange', 'gold', 'yellow', 'black']
+
+		saveit = False
+		if (ax is None):
+			saveit = True
+			f,ax = plt.subplots(figsize=(5, 4))
+
+		bin_edges1 = d1[key+'b']
+		bin_edges1C = d1C[key+'b']
+
+		outrec = []
+		for f,c in zip(self.filters, colors):
+			rec = d1[key+'hRec'][f]
+			recC = d1C[key+'hRec'][f]
+			#ax.step(bin_edges1, rec, color=c)
+			#ax.step(bin_edges1, recC, color=c, linestyle=':', label=f)
+			ax.plot(bin_edges1, rec, color=c)
+			ax.plot(bin_edges1, recC, color=c, linestyle=':', label=f)
+			outrec.append(sum(rec))
+			print(f,sum(rec))
+
 		ax.set_ylim(1, 4e6)
 		ax.set_yscale('log')
-		ax.set_xlabel(xtitle, fontsize=16)
+
+
 		if (saveit):
 			#ax.set_ylabel(r'$N_i/\sum_i N_i$', fontsize=16)
 			ax.set_ylabel(r'$N$', fontsize=16)
@@ -428,17 +512,19 @@ class EBLSSTanalyzer(object):
 			ax.set_xlim(xlim[0], xlim[1])
 
 		if (showLegend):
-			lAll = mlines.Line2D([], [], color=c3, label='Field')
-			lObs = mlines.Line2D([], [], color=c2, label='GCs')
-			lRec = mlines.Line2D([], [], color=c1, label='OCs')
-			ax.legend(handles=[lAll, lObs, lRec], loc=legendLoc)
+			lab = []
+			for f,c in zip(self.filters, colors):
+				lf = mlines.Line2D([], [], color=c, label=f)
+				lab.append(lf)
+			ax.legend(handles=lab, loc=legendLoc)
 
 
 		if (saveit):
 			f.subplots_adjust(hspace=0)
-			f.savefig(fname+'_ObsRecOtherPDF.pdf',format='pdf', bbox_inches = 'tight')
+			f.savefig(fname+'_recFilter.pdf',format='pdf', bbox_inches = 'tight')
 			plt.close(f)
 
+		return outrec
 
 	def saveHist(self, d, key, xtitle, fname, xlim = None, filters = ['u_', 'g_', 'r_', 'i_', 'z_', 'y_','all']):
 		c1 = '#0294A5'  #turqoise
@@ -1207,10 +1293,10 @@ class EBLSSTanalyzer(object):
 
 		#save the numbers to a file
 		df = pd.DataFrame(self.outputNumbers)
-		df.to_csv(os.path.join(self.plotsDirectory,'numbers.csv'), index=False)
-		pickle.dump(self.outputHists, open( os.path.join(self.plotsDirectory,"outputHists.pickle"), "wb"))
+		df.to_csv(os.path.join(self.plotsDirectory,'numbers'+suffix+'.csv'), index=False)
+		pickle.dump(self.outputHists, open( os.path.join(self.plotsDirectory,'outputHists'+suffix+'.pickle'), "wb"))
 
-		pickle.dump(self.allRec, open( os.path.join(self.plotsDirectory,"allRec.pickle"), "wb"))
+		pickle.dump(self.allRec, open( os.path.join(self.plotsDirectory,'allRec'+suffix+'.pickle'), "wb"))
 
 	def plotAllObsRecOtherRatio(self, d1, d2, m1key='m1'):
 		suffix = ''
@@ -1248,30 +1334,44 @@ class EBLSSTanalyzer(object):
 					ax[i,j].set_yticklabels([])
 
 		f.subplots_adjust(hspace=0, wspace=0.07)
-		f.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecOtherRatioCombined.pdf'),format='pdf', bbox_inches = 'tight')
+		f.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecOtherRatioCombined'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
 		plt.close(f)
 
 
-	def plotAllObsRecOtherPDF(self, d1, d1C, d2, d2C, d3, d3C):
+	def plotAllObsRecOtherPDF(self, d1, d1C, d2, d2C, d3, d3C, includeASASSN=True):
 
 		suffix = ''
+		if (self.onlyDWD):
+			suffix = '_DWD'
 
 		m1xlim = self.m1xlim
 		#m1xlim[1] -= 0.01
 		#f,ax = plt.subplots(1,5,figsize=(25, 4), sharey=True)
-		f,ax = plt.subplots(1,4,figsize=(20, 4), sharey=True)
-		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist'+suffix), xlim=[-2,5], ax=ax[0], showLegend=True, legendLoc = 'upper right')
-		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'e', r'$e$', os.path.join(self.plotsDirectory,'EBLSST_ehist'+suffix), xlim=[0,1], ax=ax[1], showLegend=False)
-		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'm1', r'$m_1$ [M$_\odot$]', os.path.join(self.plotsDirectory,'EBLSST_m1hist'+suffix), xlim=m1xlim, ax=ax[2], showLegend=False)
-		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist'+suffix), xlim=[0,1], ax=ax[3], showLegend=False)
+		f,ax = plt.subplots(2,4,figsize=(20, 8))
+		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist'+suffix), xlim=[-2,5], ax1=ax[0][0], ax2=ax[1][0], showLegend=True, legendLoc = 'upper right',includeASASSN=includeASASSN)
+		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'e', r'$e$', os.path.join(self.plotsDirectory,'EBLSST_ehist'+suffix), xlim=[0,1], ax1=ax[0][1], ax2=ax[1][1], showLegend=False)
+		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'm1', r'$m_1$ [M$_\odot$]', os.path.join(self.plotsDirectory,'EBLSST_m1hist'+suffix), xlim=m1xlim, ax1=ax[0][2], ax2=ax[1][2], showLegend=False)
+		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist'+suffix), xlim=[0,1], ax1=ax[0][3], ax2=ax[1][3], showLegend=False)
 		#self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'mag', r'$r\_$ [mag]', os.path.join(self.plotsDirectory,'EBLSST_maghist'+suffix), xlim=[12,25], ax=ax[4], showLegend=False)
 		#ax[0].set_ylabel(r'$\frac{N_i}{\sum_i N_i}$', fontsize=16)
 		#ax[0].set_ylabel('PDF', fontsize=16)
-		ax[0].set_ylabel(r'$N_\mathrm{Rec.}$', fontsize=16)
+		ax[0][0].set_ylabel(r'$N_\mathrm{Rec.}$', fontsize=16)
+		ax[1][0].set_ylabel(r'$N_\mathrm{Rec.}/N_\mathrm{Obs.}$', fontsize=16)
 
+		if (includeASASSN):
+			lpbins = d1['lpb']
+			df = pd.read_csv('/Users/ageller/WORK/EBdata/asassn-catalog.csv')
+			EB = df.loc[(df['Type'] == 'EA')]# | (df['Type'] == 'EB') | (df['Type'] == 'EW') ]
+			ax[0][0].hist(np.log10(EB['period']), bins=lpbins, color='lightgray', histtype='step', linewidth=2)
 
-		f.subplots_adjust(wspace=0.07)
-		f.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecOtherPDFCombined.pdf'),format='pdf', bbox_inches = 'tight')
+		for i in range(4):
+			ax[0][i].xaxis.set_ticklabels([])
+			if (i > 0):
+				ax[0][i].yaxis.set_ticklabels([])
+				ax[1][i].yaxis.set_ticklabels([])
+
+		f.subplots_adjust(wspace=0.07, hspace=0)
+		f.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecOtherPDFCombined'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
 		plt.close(f)
 
 	def run(self):
