@@ -352,11 +352,15 @@ class EBLSSTanalyzer(object):
 			f.savefig(fname+'_ObsRecOtherRatio.pdf',format='pdf', bbox_inches = 'tight')
 			plt.close(f)
 
-	def plotObsRecOtherPDF(self, d1, d1C, d2, d2C, d3, d3C, key, xtitle, fname,  xlim = None, ax1 = None, ax2 = None, showLegend = True, legendLoc = 'lower right',includeASASSN=False):
-		c1 = '#0294A5'  #turqoise
-		c2 = '#d95f02' #orange from color brewer
-		c3 = '#00353E' #slate
-		c4 = '#508201' #olive
+	def plotObsRecOtherPDF(self, d1, d1C, d2, d2C, d3, d3C, key, xtitle, fname,  xlim = None, ax1 = None, ax2 = None, showLegend = True, legendLoc = 'lower right',includeASASSN=False, c1=None, c2=None, c3=None, c4=None):
+		if (c1 is None):
+			c1 = '#0294A5'  #turqoise
+		if (c2 is None):
+			c2 = '#d95f02' #orange from color brewer
+		if (c3 is None):
+			c3 = '#00353E' #slate
+		if (c4 is None):
+			c4 = '#508201' #olive
 
 		saveit = False
 		if (ax1 is None):
@@ -1344,7 +1348,7 @@ class EBLSSTanalyzer(object):
 		plt.close(f)
 
 
-	def plotAllObsRecOtherPDF(self, d1, d1C, d2, d2C, d3, d3C, includeASASSN=True):
+	def plotAllObsRecOtherPDF(self, d1, d1C, d2, d2C, d3, d3C, c1=None, c2=None, c3=None, includeASASSN=True):
 
 		suffix = ''
 		if (self.onlyDWD):
@@ -1354,10 +1358,10 @@ class EBLSSTanalyzer(object):
 		#m1xlim[1] -= 0.01
 		#f,ax = plt.subplots(1,5,figsize=(25, 4), sharey=True)
 		f,ax = plt.subplots(2,4,figsize=(20, 8))
-		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist'+suffix), xlim=[-2,5], ax1=ax[0][0], ax2=ax[1][0], showLegend=True, legendLoc = 'upper right',includeASASSN=includeASASSN)
-		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'e', r'$e$', os.path.join(self.plotsDirectory,'EBLSST_ehist'+suffix), xlim=[0,1], ax1=ax[0][1], ax2=ax[1][1], showLegend=False)
-		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'm1', r'$m_1$ [M$_\odot$]', os.path.join(self.plotsDirectory,'EBLSST_m1hist'+suffix), xlim=m1xlim, ax1=ax[0][2], ax2=ax[1][2], showLegend=False)
-		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist'+suffix), xlim=[0,1], ax1=ax[0][3], ax2=ax[1][3], showLegend=False)
+		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist'+suffix), xlim=[-2,5], ax1=ax[0][0], ax2=ax[1][0], showLegend=True, legendLoc = 'upper right',includeASASSN=includeASASSN, c1=c1, c2=c2, c3=c3)
+		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'e', r'$e$', os.path.join(self.plotsDirectory,'EBLSST_ehist'+suffix), xlim=[0,1], ax1=ax[0][1], ax2=ax[1][1], showLegend=False, c1=c1, c2=c2, c3=c3)
+		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'm1', r'$m_1$ [M$_\odot$]', os.path.join(self.plotsDirectory,'EBLSST_m1hist'+suffix), xlim=m1xlim, ax1=ax[0][2], ax2=ax[1][2], showLegend=False,  c1=c1, c2=c2, c3=c3)
+		self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist'+suffix), xlim=[0,1], ax1=ax[0][3], ax2=ax[1][3], showLegend=False,  c1=c1, c2=c2, c3=c3)
 		#self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'mag', r'$r\_$ [mag]', os.path.join(self.plotsDirectory,'EBLSST_maghist'+suffix), xlim=[12,25], ax=ax[4], showLegend=False)
 		#ax[0].set_ylabel(r'$\frac{N_i}{\sum_i N_i}$', fontsize=16)
 		#ax[0].set_ylabel('PDF', fontsize=16)
