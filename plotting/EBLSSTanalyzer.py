@@ -209,6 +209,9 @@ class EBLSSTanalyzer(object):
 			saveit = True
 			f,ax = plt.subplots(3,1,figsize=(5, 12), sharex=True)
 
+		for a in ax:
+			a.tick_params(axis='both', which='major', labelsize=14)
+
 		histAll = d1[key+'hAllCDF']
 		histObs = d1[key+'hObsCDF']
 		allhistRec = d1[key+'hRecCDF']['all']
@@ -249,7 +252,7 @@ class EBLSSTanalyzer(object):
 		ax[0].step(bin_edgesOD, cdfRecOD, color=c3, linestyle=':')
 		ax[0].set_ylim(-0.01,1.01)
 		if (saveit):
-			ax[0].set_ylabel('CDF', fontsize=16)
+			ax[0].set_ylabel('CDF', fontsize=18)
 
 		histAll = d1[key+'hAll']
 		histObs = d1[key+'hObs']
@@ -282,7 +285,7 @@ class EBLSSTanalyzer(object):
 		ax[1].set_ylim(0.5e-5, 1.9)
 		ax[1].set_yscale('log')
 		if (saveit):
-			ax[1].set_ylabel(r'$N/\sum N_\mathrm{baseline}$', fontsize=16)
+			ax[1].set_ylabel(r'$N/\sum N_\mathrm{baseline}$', fontsize=18)
 
 		ratio = histObs/histAll
 		check = np.isnan(ratio)
@@ -321,10 +324,10 @@ class EBLSSTanalyzer(object):
 		ax[2].plot(bin_edgesOD - binHalfOD, ratio, 'o',color=c2, markersize=3.5, markeredgecolor=c3)
 
 		if (saveit):
-			ax[2].set_ylabel('Ratio', fontsize=16)
+			ax[2].set_ylabel('Ratio', fontsize=18)
 		ax[2].set_ylim(0.5e-5,1)
 		ax[2].set_yscale('log')
-		ax[2].set_xlabel(xtitle, fontsize=16)
+		ax[2].set_xlabel(xtitle, fontsize=18)
 
 		if (xlim is not None):
 			ax[0].set_xlim(xlim[0], xlim[1])
@@ -341,7 +344,7 @@ class EBLSSTanalyzer(object):
 			lObsAll = mlines.Line2D([], [], color=c2, marker='o', markerfacecolor=c1, markersize=5, markeredgecolor=c2, label='Obs./All')
 			lRecAll = mlines.Line2D([], [], color=c3, marker='o', markerfacecolor=c1, markersize=5, markeredgecolor=c3, label='Rec./All')
 			lRecObs = mlines.Line2D([], [], color=c3, marker='o', markerfacecolor=c2, markersize=5, markeredgecolor=c3, label='Rec./Obs.')
-			ax[0].legend(handles=[lAll, lObs, lRec, lObsAll, lRecAll, lRecObs], loc=legendLoc)
+			ax[0].legend(handles=[lAll, lObs, lRec, lObsAll, lRecAll, lRecObs], loc=legendLoc, fontsize=10.5)
 
 
 		if (saveit):
@@ -360,6 +363,9 @@ class EBLSSTanalyzer(object):
 			saveit = True
 			f,ax1 = plt.subplots(figsize=(5, 4))
 
+		ax1.tick_params(axis='both', which='major', labelsize=14)
+		if (ax2 is not None):
+			ax2.tick_params(axis='both', which='major', labelsize=14)
 
 		histAll1 = d1[key+'hAll']
 		histObs1 = d1[key+'hObs']
@@ -449,12 +455,12 @@ class EBLSSTanalyzer(object):
 
 			ax2.set_ylim(1e-3,5)
 			ax2.set_yscale('log')
-			ax2.set_xlabel(xtitle, fontsize=16)
+			ax2.set_xlabel(xtitle, fontsize=18)
 
 
 		if (saveit):
 			#ax.set_ylabel(r'$N_i/\sum_i N_i$', fontsize=16)
-			ax1.set_ylabel(r'$N$', fontsize=16)
+			ax1.set_ylabel(r'$N$', fontsize=18)
 
 
 		if (xlim is not None):
@@ -468,7 +474,7 @@ class EBLSSTanalyzer(object):
 			lRec = mlines.Line2D([], [], color=c1, label='OCs')
 			if (includeASASSN):
 				lASN = mlines.Line2D([], [], color='lightgray', label='ASAS-SN')
-			ax1.legend(handles=[lAll, lObs, lRec,lASN], loc=legendLoc)
+			ax1.legend(handles=[lAll, lObs, lRec,lASN], loc=legendLoc, fontsize=12)
 
 
 		if (saveit):
@@ -1322,10 +1328,10 @@ class EBLSSTanalyzer(object):
 		self.plotObsRecOtherRatio(d1, d2, m1key, r'$m_1$ [M$_\odot$]', os.path.join(self.plotsDirectory,'EBLSST_m1hist'+suffix), xlim=m1xlim, ax=ax[:,2], showLegend=False)
 		self.plotObsRecOtherRatio(d1, d2, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist'+suffix), xlim=[0,1], ax=ax[:,3], showLegend=False)
 		#self.plotObsRecOtherRatio(d1, d2, 'mag', r'$r\_$ [mag]', os.path.join(self.plotsDirectory,'EBLSST_maghist'+suffix), xlim=[12,25], ax=ax[:,4], showLegend=False)
-		ax[0,0].set_ylabel('CDF', fontsize=16)
-		ax[1,0].set_ylabel(r'$N/\sum N_\mathrm{baseline}$', fontsize=16)
+		ax[0,0].set_ylabel('CDF', fontsize=18)
+		ax[1,0].set_ylabel(r'$N/\sum N_\mathrm{baseline}$', fontsize=18)
 		#ax[1,0].set_ylabel('PDF', fontsize=16)
-		ax[2,0].set_ylabel('Ratio', fontsize=16)
+		ax[2,0].set_ylabel('Ratio', fontsize=18)
 		for i in range(3):
 			for j in range(4):
 				if (i != 2):
@@ -1333,7 +1339,7 @@ class EBLSSTanalyzer(object):
 				if (j != 0):
 					ax[i,j].set_yticklabels([])
 
-		f.subplots_adjust(hspace=0, wspace=0.07)
+		f.subplots_adjust(hspace=0, wspace=0.1)
 		f.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecOtherRatioCombined'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
 		plt.close(f)
 
@@ -1355,8 +1361,8 @@ class EBLSSTanalyzer(object):
 		#self.plotObsRecOtherPDF(d1, d1C, d2, d2C, d3, d3C, 'mag', r'$r\_$ [mag]', os.path.join(self.plotsDirectory,'EBLSST_maghist'+suffix), xlim=[12,25], ax=ax[4], showLegend=False)
 		#ax[0].set_ylabel(r'$\frac{N_i}{\sum_i N_i}$', fontsize=16)
 		#ax[0].set_ylabel('PDF', fontsize=16)
-		ax[0][0].set_ylabel(r'$N_\mathrm{Rec.}$', fontsize=16)
-		ax[1][0].set_ylabel(r'$N_\mathrm{Rec.}/N_\mathrm{Obs.}$', fontsize=16)
+		ax[0][0].set_ylabel(r'$N_\mathrm{Rec.}$', fontsize=18)
+		ax[1][0].set_ylabel(r'$N_\mathrm{Rec.}/N_\mathrm{Obs.}$', fontsize=18)
 
 		if (includeASASSN):
 			lpbins = d1['lpb']
@@ -1370,7 +1376,7 @@ class EBLSSTanalyzer(object):
 				ax[0][i].yaxis.set_ticklabels([])
 				ax[1][i].yaxis.set_ticklabels([])
 
-		f.subplots_adjust(wspace=0.07, hspace=0)
+		f.subplots_adjust(wspace=0.1, hspace=0)
 		f.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecOtherPDFCombined'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
 		plt.close(f)
 
