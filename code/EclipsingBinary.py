@@ -255,19 +255,19 @@ class EclipsingBinary(object):
 		#https://en.wikipedia.org/wiki/Mass%E2%80%93luminosity_relation
 		#(not needed with Katie's model, but included here in case needed later)
 		#use stellar mass to return stellar luminosity (not necessary, read out by Katie's work)
-		if (m<0.43):
-			cons = 0.23
-			coeff = 2.3
-		if m>0.43 and m<2.0:
-			cons = 1
-			coeff = 4
-		if m>2.0 and m<20.0:
-			cons = 1.5
-			coeff = 3.5
-		else:
-			cons= 3200
-			coeff = 1
-		return cons*(m**coeff) 
+    	if (m<0.43):
+        	cons = 0.23
+        	coeff = 2.3
+    	if (m>=0.43 and m<2.0):
+    	    cons = 1
+    	    coeff = 4
+    	if (m>=2.0 and m<55.0):
+    	    cons = 1.4
+    	    coeff = 3.5
+    	if (m >= 55):
+    	    cons= 32000
+    	    coeff = 1
+    	return cons*(m**coeff)
 
 	def getafromP(self, m1, m2, P):
 		#returns the semimajor axis from the period and stellar masses
