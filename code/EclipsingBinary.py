@@ -457,7 +457,7 @@ class EclipsingBinary(object):
 		rp1 = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta))
 		rp2 = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta + np.pi))
 		rp = rp1 + rp2
-		eclipse_pri = checkEclipse(self.r1, self.r2, rp, self.inclination)
+		eclipse_pri = self.checkEclipse(self.r1, self.r2, rp, self.inclination)
 
 		#secondary
 		ttrans = radvel.orbit.timeperi_to_timetrans(np.array([self.t_zero]), self.period, self.eccentricity, self.omega*np.pi/180., secondary=True)
@@ -466,7 +466,7 @@ class EclipsingBinary(object):
 		rp1 = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta))
 		rp2 = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta + np.pi))
 		rp = rp1 + rp2
-		eclipse_sec = checkEclipse(self.r1, self.r2, rp, self.inclination)
+		eclipse_sec = self.checkEclipse(self.r1, self.r2, rp, self.inclination)
 
 		if (not eclipse_pri and not eclipse_sec):
 			self.inc_failed = 1
