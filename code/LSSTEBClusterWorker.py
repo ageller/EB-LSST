@@ -38,6 +38,7 @@ class LSSTEBClusterWorker(object):
 		self.useFast = True
 		self.doLSM = True
 		self.do_parallel = False 
+		self.gatspyPeriodMin = 0.2
 
 		self.years = 10.
 		self.totaltime = 365.* self.years
@@ -191,7 +192,10 @@ class LSSTEBClusterWorker(object):
 					model = LombScargleFast(fit_period = True, silence_warnings=True, optimizer_kwds={"quiet": True})
 				else:
 					model = LombScargle(fit_period = True, optimizer_kwds={"quiet": True})
-				model.optimizer.period_range = (0.2, drng)
+				pmin = self.gatspyPeriodMin
+				if (self.EB.period < pmin):
+					pmin = 0.1*self.EB.period
+				model.optimizer.period_range = (pmin, drng)
 				model.fit(self.EB.obsDates[filt], self.EB.appMagObs[filt], self.EB.appMagObsErr[filt])
 				self.EB.LSS[filt] = model.best_period
 				self.EB.LSSmodel[filt] = model
@@ -216,7 +220,10 @@ class LSSTEBClusterWorker(object):
 				model = LombScargleMultibandFast(fit_period = True, optimizer_kwds={"quiet": True})
 			else:
 				model = LombScargleMultiband(Nterms_band=self.n_band, Nterms_base=self.n_base, fit_period = True, optimizer_kwds={"quiet": True})
-			model.optimizer.period_range = (0.2, drng)
+			pmin = self.gatspyPeriodMin
+			if (self.EB.period < pmin):
+				pmin = 0.1*self.EB.period
+			model.optimizer.period_range = (pmin, drng)
 			model.fit(allObsDates, allAppMagObs, allAppMagObsErr, allObsFilters)
 			self.EB.LSM = model.best_period
 			self.EB.LSMmodel = model
