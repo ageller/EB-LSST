@@ -458,7 +458,7 @@ class EclipsingBinary(object):
 		rp2 = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta + np.pi))
 		rp = rp1 + rp2
 		eclipse_pri = self.checkEclipse(self.r1, self.r2, rp, self.inclination)
-
+		
 		#secondary
 		ttrans = radvel.orbit.timeperi_to_timetrans(np.array([self.t_zero]), self.period, self.eccentricity, self.omega*np.pi/180., secondary=True)
 		ta = radvel.orbit.true_anomaly(ttrans, np.array([self.t_zero]), self.period, self.eccentricity)
@@ -469,7 +469,8 @@ class EclipsingBinary(object):
 		eclipse_sec = self.checkEclipse(self.r1, self.r2, rp, self.inclination)
 
 		if (not eclipse_pri and not eclipse_sec):
-			self.inc_failed = 1
+			self.incl_failed = 1
+
 
 		#check for overlap of radii at peri
 		ta = 0.0
@@ -491,6 +492,7 @@ class EclipsingBinary(object):
 		if (self.period >= self.totaltime):
 			self.period_failed = 1
 			
+
 		if (self.radius_failed or self.period_failed or self.incl_failed):
 			self.observable = False
 
