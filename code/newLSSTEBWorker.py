@@ -198,7 +198,10 @@ class LSSTEBWorker(object):
 				model = LombScargleMultibandFast(fit_period = True, optimizer_kwds={"quiet": True})
 			else:
 				model = LombScargleMultiband(Nterms_band=self.n_band, Nterms_base=self.n_base, fit_period = True, optimizer_kwds={"quiet": True})
-			model.optimizer.period_range = (self.gatspyPeriodMin, drng)
+			pmin = self.gatspyPeriodMin
+			if (self.EB.period < pmin):
+				pmin = 0.1*self.EB.period
+			model.optimizer.period_range = (pmin, drng)
 			model.fit(allObsDates, allAppMagObs, allAppMagObsErr, allObsFilters)
 			self.EB.LSM = model.best_period
 			self.EB.LSMmodel = model
@@ -268,7 +271,7 @@ class LSSTEBWorker(object):
 			
 
 	def writeOutputLine(self, OpSimi=0, header = False, noRun = False):
-		cols = ['p', 'm1', 'm2', 'r1', 'r2', 'L1', 'L2', 'Teff1', 'Teff2','e', 'i', 'd', 'nobs','Av','[M/H]','appMagMean_r', 'maxDeltaMag','deltaMag_r','eclipseDepthFrac_r','mag_failure', 'incl_failure', 'period_failure', 'radius_failure', 'eclipseDepth_failure', 'u_LSS_PERIOD', 'g_LSS_PERIOD', 'r_LSS_PERIOD', 'i_LSS_PERIOD', 'z_LSS_PERIOD', 'y_LSS_PERIOD','LSM_PERIOD']
+		cols = ['p', 'm1', 'm2', 'r1', 'r2', 'L1', 'L2', 'Teff1', 'Teff2','e', 'i', 'omega','OMEGA', 't0','d', 'nobs','Av','[M/H]','appMagMean_r', 'maxDeltaMag','deltaMag_r','eclipseDepthFrac_r','mag_failure', 'incl_failure', 'period_failure', 'radius_failure', 'eclipseDepth_failure', 'u_LSS_PERIOD', 'g_LSS_PERIOD', 'r_LSS_PERIOD', 'i_LSS_PERIOD', 'z_LSS_PERIOD', 'y_LSS_PERIOD','LSM_PERIOD']
 		if (header):
 			if (self.useOpSimDates and self.OpSim is not None):
 				print("writing header")
@@ -284,7 +287,7 @@ class LSSTEBWorker(object):
 			output = [-1 for x in range(len(cols))]
 
 		else:
-			output = [self.EB.period, self.EB.m1, self.EB.m2, self.EB.r1, self.EB.r2, self.EB.L1, self.EB.L2, self.EB.T1, self.EB.T2, self.EB.eccentricity, self.EB.inclination, self.EB.dist, self.EB.nobs, self.EB.AV, self.EB.M_H, self.EB.appMagMean['r_'], self.EB.maxDeltaMag, self.EB.deltaMag['r_'], self.EB.eclipseDepthFrac['r_'], self.EB.appmag_failed, self.EB.incl_failed, self.EB.period_failed, self.EB.radius_failed, self.EB.eclipseDepth_failed]
+			output = [self.EB.period, self.EB.m1, self.EB.m2, self.EB.r1, self.EB.r2, self.EB.L1, self.EB.L2, self.EB.T1, self.EB.T2, self.EB.eccentricity, self.EB.inclination, self.EB.omega, self.EB.OMEGA, self.EB.t_zero, self.EB.dist, self.EB.nobs, self.EB.AV, self.EB.M_H, self.EB.appMagMean['r_'], self.EB.maxDeltaMag, self.EB.deltaMag['r_'], self.EB.eclipseDepthFrac['r_'], self.EB.appmag_failed, self.EB.incl_failed, self.EB.period_failed, self.EB.radius_failed, self.EB.eclipseDepth_failed]
 
 			#this is for gatspy
 			for filt in self.filters:

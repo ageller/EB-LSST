@@ -16,6 +16,11 @@ from dust_extinction.parameter_averages import F04
 #import vespa.stars.extinction
 from vespa_update import extinction
 
+#python code radvel :https://radvel.readthedocs.io/en/latest/index.html
+#https://radvel.readthedocs.io/_/downloads/en/latest/pdf/
+#for a few angles
+import radvel
+
 ######################
 #my code
 from SED import SED
@@ -255,19 +260,19 @@ class EclipsingBinary(object):
 		#https://en.wikipedia.org/wiki/Mass%E2%80%93luminosity_relation
 		#(not needed with Katie's model, but included here in case needed later)
 		#use stellar mass to return stellar luminosity (not necessary, read out by Katie's work)
-    	if (m<0.43):
-        	cons = 0.23
-        	coeff = 2.3
-    	if (m>=0.43 and m<2.0):
-    	    cons = 1
-    	    coeff = 4
-    	if (m>=2.0 and m<55.0):
-    	    cons = 1.4
-    	    coeff = 3.5
-    	if (m >= 55):
-    	    cons= 32000
-    	    coeff = 1
-    	return cons*(m**coeff)
+		if (m<0.43):
+			cons = 0.23
+			coeff = 2.3
+		if (m>=0.43 and m<2.0):
+			cons = 1
+			coeff = 4
+		if (m>=2.0 and m<55.0):
+			cons = 1.4
+			coeff = 3.5
+		if (m >= 55):
+			cons= 32000
+			coeff = 1
+		return cons*(m**coeff)
 
 	def getafromP(self, m1, m2, P):
 		#returns the semimajor axis from the period and stellar masses
@@ -432,16 +437,47 @@ class EclipsingBinary(object):
 			self.deltaMag[filt] = abs(self.appMagObs[filt][maxpos] - base)
 			self.eclipseDepthFrac[filt] = abs(self.deltaMag[filt]/self.appMagObsErr[filt][maxpos])
 
-	def preCheckIfObservable(self):
-		
-		ratio = (self.r1 + self.r2)/(2.*self.a)
+	def checkEclipse(self, r1,r2,rp,inclination):
+		ratio = (r1 + r2)/rp #rp = 2a for circular orbits
 		if (ratio <= 1):
 			theta = np.arcsin(ratio)*180./np.pi
-			min_incl = 90. - theta 
+			min_incl = 90. - theta
 			max_incl = 90. + theta
-			if (self.inclination <= min_incl or self.inclination >= max_incl):
-				self.incl_failed = 1
-		else:
+			if (inclination <= min_incl or inclination >= max_incl):
+				return False
+		return True
+	
+	def preCheckIfObservable(self):
+		
+		#check for eclipse (accounting for eccentricity)
+		#primary
+		ttrans = radvel.orbit.timeperi_to_timetrans(np.array([self.t_zero]), self.period, self.eccentricity, self.omega*np.pi/180.)
+		ta = radvel.orbit.true_anomaly(ttrans, np.array([self.t_zero]), self.period, self.eccentricity)
+
+		rp1 = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta))
+		rp2 = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta + np.pi))
+		rp = rp1 + rp2
+		eclipse_pri = checkEclipse(self.r1, self.r2, rp, self.inclination)
+
+		#secondary
+		ttrans = radvel.orbit.timeperi_to_timetrans(np.array([self.t_zero]), self.period, self.eccentricity, self.omega*np.pi/180., secondary=True)
+		ta = radvel.orbit.true_anomaly(ttrans, np.array([self.t_zero]), self.period self.eccentricity)
+
+		rp1 = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta))
+		rp2 = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta + np.pi))
+		rp = rp1 + rp2
+		eclipse_sec = checkEclipse(self.r1, self.r2, rp, self.inclination)
+
+		if (not eclipse_pri and not eclipse_sec):
+			self.inc_failed = 1
+
+		#check for overlap of radii at peri
+		ta = 0.0
+		rp1 = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta))
+		rp2 = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta + np.pi))
+		rp = rp1 + rp2
+		ratio = (self.r1 + self.r2)/rp
+		if (ratio > 1 or self.R_1 <= 0 or self.R_1 >=1 or self.R_2 <=0 or self.R_2 >= 1 or self.R_1e >=1 or self.R_2e >=1):
 			self.radius_failed = 1
 
 		if (self.useOpSimDates):
@@ -454,9 +490,6 @@ class EclipsingBinary(object):
 
 		if (self.period >= self.totaltime):
 			self.period_failed = 1
-				
-		if (self.R_1 <= 0 or self.R_1 >=1 or self.R_2 <=0 or self.R_2 >= 1 or self.R_1e >=1 or self.R_2e >=1):
-			self.radius_failed = 1
 			
 		if (self.radius_failed or self.period_failed or self.incl_failed):
 			self.observable = False
