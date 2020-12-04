@@ -38,7 +38,7 @@ class LSSTEBClusterWorker(object):
 		self.useFast = True
 		self.doLSM = True
 		self.do_parallel = False 
-		self.gatspyPeriodMin = 0.01
+		self.gatspyPeriodMin = 0.2
 
 		self.years = 10.
 		self.totaltime = 365.* self.years
@@ -193,8 +193,8 @@ class LSSTEBClusterWorker(object):
 				else:
 					model = LombScargle(fit_period = True, optimizer_kwds={"quiet": True})
 				pmin = self.gatspyPeriodMin
-				if (self.EB.period < pmin):
-					pmin = 0.1*self.EB.period
+				if (self.EB.period < 10.*pmin):
+					pmin = 0.01*self.EB.period
 				model.optimizer.period_range = (pmin, drng)
 				model.fit(self.EB.obsDates[filt], self.EB.appMagObs[filt], self.EB.appMagObsErr[filt])
 				self.EB.LSS[filt] = model.best_period
