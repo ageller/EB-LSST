@@ -38,7 +38,7 @@ class LSSTEBWorker(object):
 		self.useFast = True
 		self.doLSM = True
 		self.do_parallel = False 
-		self.gatspyPeriodMin = 0.2
+		self.gatspyPeriodMin = 0.02
 
 		self.years = 10.
 		self.totaltime = 365.* self.years

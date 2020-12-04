@@ -1170,14 +1170,14 @@ class EBLSSTanalyzer(object):
 		def makeMollweideAxes():    
 			#set up the projections
 			proj = ccrs.Mollweide(central_longitude=180)
-			data_proj = ccrs.Geodetic()
+			data_proj = ccrs.PlateCarree()#ccrs.Geodetic()
 
 			#create the plot
 			f,ax = plt.subplots(figsize=(8, 5), subplot_kw={'projection':proj})
 			ax.set_global()
 
 			#for the labels
-			xlocs = np.linspace(0, 360, 13)
+			xlocs = np.linspace(-180, 180, 13)
 			ylocs = np.linspace(-90, 90, 13)
 			ax.gridlines(xlocs=xlocs, ylocs=ylocs)
 
@@ -1194,8 +1194,11 @@ class EBLSSTanalyzer(object):
 			for y in ylocs[1:-1]:
 				loc = proj.transform_point(0, y,data_proj)
 				xval = (loc[0]*0.75 - bbox.x0)/(bbox.x1 - bbox.x0)   
-				yval = (loc[1]*0.65 - bbox.y0)/(bbox.y1 - bbox.y0)    
-				l = r'$'+str(int(y))+'^\degree$'
+				yval = (loc[1]*0.65 - bbox.y0)/(bbox.y1 - bbox.y0)   
+				tval = y
+				if (tval < 0):
+					tval += 360 
+				l = r'$'+str(int(tval))+'^\degree$'
 				xoff = -0.015
 				if (y < 0):
 					xoff = -0.03
