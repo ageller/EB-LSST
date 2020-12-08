@@ -478,7 +478,7 @@ class EclipsingBinary(object):
 		rp2 = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta + np.pi))
 		rp = rp1 + rp2
 		ratio = (self.r1 + self.r2)/rp
-		if (ratio > 1 or self.R_1 <= 0 or self.R_1 >=1 or self.R_2 <=0 or self.R_2 >= 1 or self.R_1e >=1 or self.R_2e >=1):
+		if (ratio > 1 or self.R_1*(1. - self.eccentricity) <= 0 or self.R_1*(1. - self.eccentricity) >=1 or self.R_2*(1. - self.eccentricity) <=0 or self.R_2*(1. - self.eccentricity) >= 1 or self.R_1e >=1 or self.R_2e >=1):
 			self.radius_failed = 1
 
 		if (self.useOpSimDates):
@@ -489,8 +489,8 @@ class EclipsingBinary(object):
 				if (self.OpSim.obsDates[self.OpSimi][filt][0] is not None):
 					self.totaltime = max(self.totaltime, (max(self.OpSim.obsDates[self.OpSimi][filt]) - min(self.OpSim.obsDates[self.OpSimi][filt])))
 
-		if (self.period >= self.totaltime):
-			self.period_failed = 1
+		# if (self.period >= self.totaltime):
+		# 	self.period_failed = 1
 			
 
 		if (self.radius_failed or self.period_failed or self.incl_failed):
@@ -525,8 +525,8 @@ class EclipsingBinary(object):
 
 		self.q = self.m2/self.m1
 		self.a = self.getafromP(self.m1*units.solMass, self.m2*units.solMass, self.period*units.day).to(units.solRad).value
-		self.R_1 = (self.r1/self.a)
-		self.R_2 = (self.r2/self.a)
+		self.R_1 = self.r1/self.a
+		self.R_2 = self.r2/self.a
 		self.R_1e = self.r1/self.Eggleton_RL(self.m1/self.m2, self.a * (1. - self.eccentricity))
 		self.R_2e = self.r2/self.Eggleton_RL(self.m2/self.m1, self.a * (1. - self.eccentricity))
 		self.f_c = np.sqrt(self.eccentricity)*np.cos(self.omega*np.pi/180.)

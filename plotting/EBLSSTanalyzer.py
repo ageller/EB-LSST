@@ -44,8 +44,11 @@ class EBLSSTanalyzer(object):
 		self.m1xlim = [0.,3.]
 
 		self.outputNumbers = dict()
+		self.outputNumbers['OpSimID'] = []
 		self.outputNumbers['RA'] = []
 		self.outputNumbers['Dec'] = []
+		self.outputNumbers['NstarsReal'] = []
+		self.outputNumbers['fb'] = []
 		self.outputNumbers['recFrac'] = []
 		self.outputNumbers['recN'] = []
 		self.outputNumbers['rawN'] = []
@@ -61,6 +64,7 @@ class EBLSSTanalyzer(object):
 		self.outputNumbers['recNDWD'] = []
 
 		self.outputHists = dict()
+		# self.outputHists['eachField'] = dict()
 
 		self.individualPlots = dict()
 
@@ -79,7 +83,7 @@ class EBLSSTanalyzer(object):
 
 	def fitRagfb(self):
 		x = [0.05, 0.1, 1, 8, 15]  #estimates of midpoints in bins, and using this: https://sites.uni.edu/morgans/astro/course/Notes/section2/spectralmasses.html
-		y = [0.20, 0.35, 0.50, 0.70, 0.75]
+		y = [0.20, 0.35, 0.44, 0.70, 0.75]
 		init = models.PowerLaw1D(amplitude=0.5, x_0=1, alpha=-1.)
 		fitter = fitting.LevMarLSQFitter()
 		fit = fitter(init, x, y)
@@ -751,15 +755,18 @@ class EBLSSTanalyzer(object):
 					Nmult = header['clusterMass'][0]/self.mMean
 				else:
 					Nmult = header['NstarsTRILEGAL'][0]
+				NstarsReal = Nmult
+
 				#Nmult = 1.
 
 
 				#to normalize for the difference in period, since I limit this for the field for computational efficiency (but not for clusters, which I allow to extend to the hard-soft boundary)
 				intNorm = 1.
-				if (not self.cluster):
-					intAll, err = quad(self.RagNormal, -20, 3650.)
-					intCut, err = quad(self.RagNormal, -20, 20)
-					intNorm = intCut/intAll
+				#instead I will limit the binary frequency, like I do with the clusters
+				# if (not self.cluster):
+				# 	intAll = 1.
+				# 	intCut = self.RagNormal(np.log10(3650), cdf = True)
+				# 	intNorm = intCut/intAll
 
 
 				rF = 0.
@@ -851,14 +858,16 @@ class EBLSSTanalyzer(object):
 							axrad.step(rb[0:-1], rhAll0/np.sum(rhAll0), color='black', alpha=0.1)
 
 						#account for the binary fraction, as a function of mass
-						dm1 = np.diff(m1b)
-						m1val = m1b[:-1] + dm1/2.
-						fb = np.sum(m1hAll0/len(data.index)*fbFit(m1val))
+						dm1 = np.diff(m1bSmall)
+						m1val = m1bSmall[:-1] + dm1/2.
+						fb = np.sum(m1hAll0Small/np.sum(m1hAll0Small)*fbFit(m1val))
+						Pcut = 3650.
 						if (self.cluster):
 							#account for the hard-soft boundary
-							Phs = self.getPhs(header['clusterVdisp'].iloc[0]*units.km/units.s).to(units.day).value
-							fb *= self.RagNormal(np.log10(Phs), cdf = True)
-							print("   fb, Nbins, log10(Phs) = ", fb, len(data.index), np.log10(Phs))
+							Pcut = self.getPhs(header['clusterVdisp'].iloc[0]*units.km/units.s).to(units.day).value
+						fb *= self.RagNormal(np.log10(Pcut), cdf = True)
+						print("   fb, Nbins, log10(Pcut) = ", fb, len(data.index), np.log10(Pcut))
+
 						Nmult *= fb
 
 									
@@ -879,6 +888,49 @@ class EBLSSTanalyzer(object):
 						dhAllCDF += dhAll0CDF/Nall*Nmult
 						maghAllCDF += maghAll0CDF/Nall*Nmult
 						rhAllCDF += rhAll0CDF/Nall*Nmult
+
+
+						# #save the individual histograms and CDFs
+						# OpSimID = header['OpSimID'][0]
+						# self.outputHists['eachField'][OpSimID] = dict()
+						# #Histograms
+						# #x
+						# # self.outputHists['eachField'][OpSimID]['m1b'] = np.append(m1b, m1b[-1] + mbSize)
+						# # self.outputHists['eachField'][OpSimID]['m1Smallb'] = np.append(m1bSmall, m1bSmall[-1] + mbSizeSmall)
+						# # self.outputHists['eachField'][OpSimID]['qb'] = np.append(qb, qb[-1] + qbSize)
+						# # self.outputHists['eachField'][OpSimID]['eb'] = np.append(eb, eb[-1] + ebSize)
+						# # self.outputHists['eachField'][OpSimID]['lpb'] = np.append(lpb, lpb[-1] + lpbSize)
+						# # self.outputHists['eachField'][OpSimID]['db'] = np.append(db, db[-1] + dbSize)
+						# # self.outputHists['eachField'][OpSimID]['magb'] = np.append(magb, magb[-1] + magbSize)
+						# # self.outputHists['eachField'][OpSimID]['rb'] = np.append(rb, rb[-1] + rbSize)
+						# #y
+						# self.outputHists['eachField'][OpSimID]['m1hAll'] = np.append(np.insert(m1hAll0/Nall*Nmult,0,0),0)
+						# self.outputHists['eachField'][OpSimID]['m1SmallhAll'] = np.append(np.insert(m1hAll0Small/Nall,0,0),0)
+						# self.outputHists['eachField'][OpSimID]['qhAll'] = np.append(np.insert(qhAll0/Nall*Nmult,0,0),0)
+						# self.outputHists['eachField'][OpSimID]['ehAll'] = np.append(np.insert(ehAll0/Nall*Nmult,0,0),0)
+						# self.outputHists['eachField'][OpSimID]['lphAll'] = np.append(np.insert(lphAll0/Nall*Nmult,0,0),0)
+						# self.outputHists['eachField'][OpSimID]['dhAll'] = np.append(np.insert(dhAll0/Nall*Nmult,0,0),0)
+						# self.outputHists['eachField'][OpSimID]['maghAll'] = np.append(np.insert(maghAll0/Nall*Nmult,0,0),0)
+						# self.outputHists['eachField'][OpSimID]['rhAll'] = np.append(np.insert(rhAll0/Nall*Nmult,0,0),0)
+						# #CDFs
+						# #x
+						# # self.outputHists['eachField'][OpSimID]['m1bCDF'] = m1bCDF
+						# # self.outputHists['eachField'][OpSimID]['m1SmallbCDF'] = m1bCDFSmall
+						# # self.outputHists['eachField'][OpSimID]['qbCDF'] = qbCDF
+						# # self.outputHists['eachField'][OpSimID]['ebCDF'] = ebCDF
+						# # self.outputHists['eachField'][OpSimID]['lpbCDF'] = lpbCDF
+						# # self.outputHists['eachField'][OpSimID]['dbCDF'] = dbCDF
+						# # self.outputHists['eachField'][OpSimID]['magbCDF'] = magbCDF
+						# # self.outputHists['eachField'][OpSimID]['rbCDF'] = rbCDF
+						# #y
+						# self.outputHists['eachField'][OpSimID]['m1hAllCDF'] = np.insert(m1hAll0CDF/Nall*Nmult,0,0)
+						# self.outputHists['eachField'][OpSimID]['m1SmallhAllCDF'] = np.insert(m1hAll0CDFSmall/Nall*Nmult,0,0)
+						# self.outputHists['eachField'][OpSimID]['qhAllCDF'] = np.insert(qhAll0CDF/Nall*Nmult,0,0)
+						# self.outputHists['eachField'][OpSimID]['ehAllCDF'] = np.insert(ehAll0CDF/Nall*Nmult,0,0)
+						# self.outputHists['eachField'][OpSimID]['lphAllCDF'] = np.insert(lphAll0CDF/Nall*Nmult,0,0)
+						# self.outputHists['eachField'][OpSimID]['dhAllCDF'] = np.insert(dhAll0CDF/Nall*Nmult,0,0)
+						# self.outputHists['eachField'][OpSimID]['maghAllCDF'] = np.insert(maghAll0CDF/Nall*Nmult,0,0)
+						# self.outputHists['eachField'][OpSimID]['rhAllCDF'] = np.insert(rhAll0CDF/Nall*Nmult,0,0)
 
 						#Obs
 						#I want to account for all filters here too (maybe not necessary; if LSM is != -999 then they are all filled in, I think)...
@@ -924,10 +976,52 @@ class EBLSSTanalyzer(object):
 							maghObsCDF += maghObs0CDF/Nall*Nmult
 							rhObsCDF += rhObs0CDF/Nall*Nmult
 
+							# #save the individual histograms and CDFs
+							# #Histograms
+							# #y
+							# self.outputHists['eachField'][OpSimID]['m1hObs'] = np.append(np.insert(m1hObs0/Nall*Nmult,0,0),0)
+							# self.outputHists['eachField'][OpSimID]['m1SmallhObs'] = np.append(np.insert(m1hObs0Small/Nall,0,0),0)
+							# self.outputHists['eachField'][OpSimID]['qhObs'] = np.append(np.insert(qhObs0/Nall*Nmult,0,0),0)
+							# self.outputHists['eachField'][OpSimID]['ehObs'] = np.append(np.insert(ehObs0/Nall*Nmult,0,0),0)
+							# self.outputHists['eachField'][OpSimID]['lphObs'] = np.append(np.insert(lphObs0/Nall*Nmult,0,0),0)
+							# self.outputHists['eachField'][OpSimID]['dhObs'] = np.append(np.insert(dhObs0/Nall*Nmult,0,0),0)
+							# self.outputHists['eachField'][OpSimID]['maghObs'] = np.append(np.insert(maghObs0/Nall*Nmult,0,0),0)
+							# self.outputHists['eachField'][OpSimID]['rhObs'] = np.append(np.insert(rhObs0/Nall*Nmult,0,0),0)
+							# #CDFs
+							# #y
+							# self.outputHists['eachField'][OpSimID]['m1hObsCDF'] = np.insert(m1hObs0CDF/Nall*Nmult,0,0)
+							# self.outputHists['eachField'][OpSimID]['m1SmallhObsCDF'] = np.insert(m1hObs0CDFSmall/Nall*Nmult,0,0)
+							# self.outputHists['eachField'][OpSimID]['qhObsCDF'] = np.insert(qhObs0CDF/Nall*Nmult,0,0)
+							# self.outputHists['eachField'][OpSimID]['ehObsCDF'] = np.insert(ehObs0CDF/Nall*Nmult,0,0)
+							# self.outputHists['eachField'][OpSimID]['lphObsCDF'] = np.insert(lphObs0CDF/Nall*Nmult,0,0)
+							# self.outputHists['eachField'][OpSimID]['dhObsCDF'] = np.insert(dhObs0CDF/Nall*Nmult,0,0)
+							# self.outputHists['eachField'][OpSimID]['maghObsCDF'] = np.insert(maghObs0CDF/Nall*Nmult,0,0)
+							# self.outputHists['eachField'][OpSimID]['rhObsCDF'] = np.insert(rhObs0CDF/Nall*Nmult,0,0)
+
 							#Rec
 							recCombined = pd.DataFrame()
 							prsaRecCombined = pd.DataFrame()
 							DWDRecCombined = pd.DataFrame()
+
+							# #histograms
+							# self.outputHists['eachField'][OpSimID]['m1hRec'] = dict()
+							# self.outputHists['eachField'][OpSimID]['m1SmallhRec'] = dict()
+							# self.outputHists['eachField'][OpSimID]['qhRec'] = dict()
+							# self.outputHists['eachField'][OpSimID]['ehRec'] = dict()
+							# self.outputHists['eachField'][OpSimID]['lphRec'] = dict()
+							# self.outputHists['eachField'][OpSimID]['dhRec'] = dict()
+							# self.outputHists['eachField'][OpSimID]['maghRec'] = dict()
+							# self.outputHists['eachField'][OpSimID]['rhRec'] = dict()
+							# #CDFs
+							# self.outputHists['eachField'][OpSimID]['m1hRecCDF'] = dict()
+							# self.outputHists['eachField'][OpSimID]['m1SmallhRecCDF'] = dict()
+							# self.outputHists['eachField'][OpSimID]['qhRecCDF'] = dict()
+							# self.outputHists['eachField'][OpSimID]['ehRecCDF'] = dict()
+							# self.outputHists['eachField'][OpSimID]['lphRecCDF'] = dict()
+							# self.outputHists['eachField'][OpSimID]['dhRecCDF'] = dict()
+							# self.outputHists['eachField'][OpSimID]['maghRecCDF'] = dict()
+							# self.outputHists['eachField'][OpSimID]['rhRecCDF'] = dict()
+
 							for filt in self.filters:
 								key = filt+'LSS_PERIOD'
 								if (filt == 'all'):
@@ -973,6 +1067,27 @@ class EBLSSTanalyzer(object):
 									dhRecCDF[filt] += dhRec0CDF/Nall*Nmult
 									maghRecCDF[filt] += maghRec0CDF/Nall*Nmult
 									rhRecCDF[filt] += rhRec0CDF/Nall*Nmult
+
+									# #Histograms
+									# #y
+									# self.outputHists['eachField'][OpSimID]['m1hRec'][filt] = np.append(np.insert(m1hRec0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['m1SmallhRec'][filt] = np.append(np.insert(m1hRec0Small/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['qhRec'][filt] = np.append(np.insert(qhRec0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['ehRec'][filt] = np.append(np.insert(ehRec0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['lphRec'][filt] = np.append(np.insert(lphRec0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['dhRec'][filt] = np.append(np.insert(dhRec0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['maghRec'][filt] = np.append(np.insert(maghRec0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['rhRec'][filt] = np.append(np.insert(rhRec0/Nall*Nmult,0,0),0)
+									# #CDFs
+									# #y
+									# self.outputHists['eachField'][OpSimID]['m1hRecCDF'][filt] = np.append(np.insert(m1hRec0CDF/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['m1SmallhRecCDF'][filt] = np.append(np.insert(m1hRec0CDFSmall/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['qhRecCDF'][filt] = np.append(np.insert(qhRec0CDF/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['ehRecCDF'][filt] = np.append(np.insert(ehRec0CDF/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['lphRecCDF'][filt] = np.append(np.insert(lphRec0CDF/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['dhRecCDF'][filt] = np.append(np.insert(dhRec0CDF/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['maghRecCDF'][filt] = np.append(np.insert(maghRec0CDF/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['rhRecCDF'][filt] = np.append(np.insert(rhRec0CDF/Nall*Nmult,0,0),0)
 
 								#I'd like to account for all filters here to have more accurate numbers
 								recCombined = recCombined.append(rec)
@@ -1020,6 +1135,28 @@ class EBLSSTanalyzer(object):
 									maghRecCDF[filt] += maghRec0CDF/Nall*Nmult
 									rhRecCDF[filt] += rhRec0CDF/Nall*Nmult
 
+									# #Histograms
+									# #y
+									# self.outputHists['eachField'][OpSimID]['m1hRec'][filt] = np.append(np.insert(m1hRec0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['m1SmallhRec'][filt] = np.append(np.insert(m1hRec0Small/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['qhRec'][filt] = np.append(np.insert(qhRec0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['ehRec'][filt] = np.append(np.insert(ehRec0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['lphRec'][filt] = np.append(np.insert(lphRec0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['dhRec'][filt] = np.append(np.insert(dhRec0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['maghRec'][filt] = np.append(np.insert(maghRec0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['rhRec'][filt] = np.append(np.insert(rhRec0/Nall*Nmult,0,0),0)
+									# #CDFs
+									# #y
+									# self.outputHists['eachField'][OpSimID]['m1hRecCDF'][filt] = np.append(np.insert(m1hRec0CDF/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['m1SmallhRecCDF'][filt] = np.append(np.insert(m1hRec0CDFSmall/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['qhRecCDF'][filt] = np.append(np.insert(qhRec0CDF/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['ehRecCDF'][filt] = np.append(np.insert(ehRec0CDF/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['lphRecCDF'][filt] = np.append(np.insert(lphRec0CDF/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['dhRecCDF'][filt] = np.append(np.insert(dhRec0CDF/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['maghRecCDF'][filt] = np.append(np.insert(maghRec0CDF/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['rhRecCDF'][filt] = np.append(np.insert(rhRec0CDF/Nall*Nmult,0,0),0)
+
+
 							self.allRec = self.allRec.append(recCombined)
 
 					rF = Nrec/Nall
@@ -1040,8 +1177,11 @@ class EBLSSTanalyzer(object):
 
 
 
+				self.outputNumbers['OpSimID'].append(header['OpSimID'][0])
 				self.outputNumbers['RA'].append(header['OpSimRA'][0])
 				self.outputNumbers['Dec'].append(header['OpSimDec'][0])
+				self.outputNumbers['NstarsReal'].append(NstarsReal)
+				self.outputNumbers['fb'].append(fb)
 				self.outputNumbers['recFrac'].append(rF)
 
 				self.outputNumbers['recN'].append(rN)
