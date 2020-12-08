@@ -454,18 +454,14 @@ class EclipsingBinary(object):
 		ttrans = radvel.orbit.timeperi_to_timetrans(np.array([self.t_zero]), self.period, self.eccentricity, self.omega*np.pi/180.)
 		ta = radvel.orbit.true_anomaly(ttrans, np.array([self.t_zero]), self.period, self.eccentricity)
 
-		rp1 = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta))
-		rp2 = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta + np.pi))
-		rp = rp1 + rp2
+		rp = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta))
 		eclipse_pri = self.checkEclipse(self.r1, self.r2, rp, self.inclination)
 		
 		#secondary
 		ttrans = radvel.orbit.timeperi_to_timetrans(np.array([self.t_zero]), self.period, self.eccentricity, self.omega*np.pi/180., secondary=True)
 		ta = radvel.orbit.true_anomaly(ttrans, np.array([self.t_zero]), self.period, self.eccentricity)
 
-		rp1 = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta))
-		rp2 = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta + np.pi))
-		rp = rp1 + rp2
+		rp = self.a*(1. - self.eccentricity*self.eccentricity)/(1. + self.eccentricity*np.cos(ta))
 		eclipse_sec = self.checkEclipse(self.r1, self.r2, rp, self.inclination)
 
 		if (not eclipse_pri and not eclipse_sec):
