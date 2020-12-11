@@ -34,10 +34,12 @@ class getClusterBinaries(object):
 		self.Nbin = Nbin
 		#self.cluster_file_path = cluster_file_path#Full files paths to gc and oc data
 
-
+		self.surveyTime = 3650. #LSST survey duration (days)
+		self.porb_lo = 0.2 #minimum initial period (days)
 
 		# Class variables for later
 		self.period_hardsoft = None
+		self.porb_hi = None
 		self.output = None
 		self.InitialBinaries = None
 		self.bpp = None
@@ -99,9 +101,10 @@ class getClusterBinaries(object):
 		age (to evolve to), number of binaries, metallicity, and velocity dispersion.
 
 		"""
+		self.porb_hi = min(self.surveyTime, self.period_hardsoft)
 		print("initial binary input:",self.random_seed, self.age, self.Z, self.Nbin, self.sigma, self.period_hardsoft)
 		InitialBinaries, mass_singles, mass_binaries, n_singles, n_binaries = InitialBinaryTable.sampler('multidim',\
-		 [0,12], [0,12],self.random_seed,1, 'delta_burst', self.age, self.Z, self.Nbin, porb_lo = 0.15, porb_hi = self.period_hardsoft)
+		 [0,12], [0,12],self.random_seed,1, 'delta_burst', self.age, self.Z, self.Nbin, porb_lo = self.porb_lo, porb_hi = self.porb_hi)
 
 		self.InitialBinaries = InitialBinaries
 

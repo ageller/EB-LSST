@@ -864,7 +864,7 @@ class EBLSSTanalyzer(object):
 						Pcut = 3650.
 						if (self.cluster):
 							#account for the hard-soft boundary
-							Pcut = self.getPhs(header['clusterVdisp'].iloc[0]*units.km/units.s).to(units.day).value
+							Pcut = min(3650., self.getPhs(header['clusterVdisp'].iloc[0]*units.km/units.s).to(units.day).value)
 						fb *= self.RagNormal(np.log10(Pcut), cdf = True)
 						print("   fb, Nbins, log10(Pcut) = ", fb, len(data.index), np.log10(Pcut))
 
