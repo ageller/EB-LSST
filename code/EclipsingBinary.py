@@ -1,4 +1,5 @@
 import numpy as np
+import time
 from astropy import units, constants
 from astropy.coordinates import SkyCoord
 import pickle
@@ -560,8 +561,10 @@ class EclipsingBinary(object):
 				while (self.AV is None and count < 100):
 					count += 1
 					self.AV = extinction.get_AV_infinity(self.RA, self.Dec, frame='icrs')
+					
 					if (self.AV is None):
 						print("WARNING: No AV found", self.RA, self.Dec, self.AV, count)
+						time.sleep(30)
 
 			self.SED1 = SED()
 			self.SED1.filters = self.filters

@@ -1,3 +1,4 @@
+import time
 from cosmic.sample.initialbinarytable import InitialBinaryTable
 from cosmic.sample.sampler import independent
 from cosmic.evolve import Evolve
@@ -127,9 +128,11 @@ class SingleStar(object):
 		if (self.AV is None):
 			count = 0
 			while (self.AV is None and count < 100):
+				count += 1
 				self.AV = extinction.get_AV_infinity(self.RA, self.Dec, frame='icrs')
 				if (self.AV is None):
 					print("WARNING: No AV found", self.RA, self.Dec, self.AV, count)
+					time.sleep(30)
 					
 		#initialize the SED
 		self.SED = SED()

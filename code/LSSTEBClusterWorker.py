@@ -1,4 +1,5 @@
 import numpy as np
+import time
 import pandas as pd
 import scipy.special as ss
 import datetime
@@ -394,6 +395,7 @@ class LSSTEBClusterWorker(object):
 			self.clusterAV[OpSimi] = extinction.get_AV_infinity(self.OpSim.RA[OpSimi], self.OpSim.Dec[OpSimi], frame='icrs')
 			if (self.clusterAV[OpSimi] is None):
 				print("WARNING: No AV found", self.OpSim.RA[OpSimi], self.OpSim.Dec[OpSimi], self.clusterAV[OpSimi], count)
+				time.sleep(30)
 
 		self.OpSim.setDates(OpSimi, self.filters)
 		print(f'total number of OpSim observation dates (all filters) = {self.OpSim.totalNobs[OpSimi]}')
