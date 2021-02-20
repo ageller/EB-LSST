@@ -156,7 +156,10 @@ class crowding(object):
 			singles['mass_1'] = crowd['Mact'].to_numpy()
 			singles['logg'] = crowd['logg'].to_numpy()
 			singles['rad_1'] = getRad(crowd['logg'].to_numpy(), crowd['Mact'].to_numpy())
-			singles['lumin_1'] = 10.**crowd['logL'].to_numpy()
+			#OLD COSMIC (on quest)
+			#singles['lumin_1'] = 10.**crowd['logL'].to_numpy()
+			#COSMIC v3.3.0
+			singles['lum_1'] = 10.**crowd['logL'].to_numpy()
 			singles['teff_1'] = 10.**crowd['logTe'].to_numpy()
 
 			#self.galaxySingles = self.getSinglesFlux(singles)	
@@ -174,7 +177,10 @@ class crowding(object):
 		s.M_H = star['M_H']
 		s.dist = star['dist']
 		s.m = star['mass_1']
-		s.L = star['lumin_1']
+		#OLD COSMIC (on quest)
+		#s.L = star['lumin_1']
+		#COSMIC v3.3.0
+		s.L = star['lum_1']
 		if ('teff_1' in star): s.T = star['teff_1']
 		if ('logg' in star): s.logg = star['logg']
 		if ('rad_1' in star): s.R = star['rad_1']
