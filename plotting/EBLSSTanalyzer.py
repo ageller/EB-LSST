@@ -357,7 +357,157 @@ class EBLSSTanalyzer(object):
 			plt.close(f)
 
 
-	def plotObsRecOtherRatio_new(self, d1, d2, key, xtitle, fname,  xlim = None, ax = [None], ax2 = None, showLegend = True, legendLoc = 'lower right'):
+	def plotObsRecOther_new(self, d1, d2, key, xtitle, fname,  xlim = None, ax = None, showLegend = True):
+		#http://jfly.iam.u-tokyo.ac.jp/color/image/pallete.jpg
+		#https://thenode.biologists.com/data-visualization-with-flying-colors/research/
+		#https://medium.com/cafe-pixo/inclusive-color-palettes-for-the-web-bbfe8cf2410e
+		#https://jrnold.github.io/ggthemes/reference/tableau_color_pal.html
+		#https://coolors.co/
+		c1 = '#000000'#all
+		c2 = '#898989' #obs
+		c3 = '#FF1B1C'#rec
+		w1 = 2
+		w2 = 2
+		w3 = 2
+
+		saveit = False
+		if (ax is None):
+			saveit = True
+			f,ax = plt.subplots(1,1,figsize=(5, 5), sharex=True)
+			ax.tick_params(axis='both', which='major', labelsize=14)
+
+
+		histAll = d1[key+'hAll']
+		histObs = d1[key+'hObs']
+		allhistRec = d1[key+'hRec']['all']
+		bin_edges = d1[key+'b']
+
+		histAllOD = d2[key+'hAll']
+		histObsOD = d2[key+'hObs']
+		allhistRecOD = d2[key+'hRec']['all']
+		bin_edgesOD = d2[key+'b']		
+
+		binHalf = (bin_edges[1] - bin_edges[0])/2.
+		binHalfOD = (bin_edgesOD[1] - bin_edgesOD[0])/2.
+
+		#PDF --need to divide by the bin size
+		#this is the fraction in each bin
+		ax.step(bin_edges, histAll/np.sum(histAll), color=c1, linewidth=w1, label='All')
+		ax.step(bin_edges, histObs/np.sum(histObs), color=c2, linewidth=w2, label='Observable')
+		ax.step(bin_edges, allhistRec/np.sum(allhistRec), color=c3, linewidth=w3, label='Recoverable')
+		ax.step(bin_edgesOD, histAllOD/np.sum(histAll), color=c1, linewidth=w1, linestyle=':')
+		ax.step(bin_edgesOD, histObsOD/np.sum(histObs), color=c2, linewidth=w2, linestyle=':')
+		ax.step(bin_edgesOD, allhistRecOD/np.sum(allhistRec), color=c3, linewidth=w3, linestyle=':')
+		ax.set_ylim(0.5e-5, 1.9)
+		ax.set_yscale('log')
+		if (saveit):
+			ax.set_ylabel(r'$N/\sum N_\mathrm{baseline}$', fontsize=18)
+
+		ax.set_xlabel(xtitle, fontsize=18)
+
+		if (xlim is not None):
+			ax.set_xlim(xlim[0], xlim[1])
+
+		# ax1.legend()
+		# ax2.legend()
+		# ax3.legend()
+		if (showLegend):
+			lAll = mlines.Line2D([], [], color=c1, linewidth=w1, label='All')
+			lObs = mlines.Line2D([], [], color=c2, linewidth=w2, label='Obs.')
+			lRec = mlines.Line2D([], [], color=c3, linewidth=w3, label='Rec.')
+			lASN = mlines.Line2D([], [], color='#5FC8D0', linewidth=2, label='ASAS-SN')
+			ax.legend(handles=[lAll, lObs, lRec, lASN], fontsize=10.5, ncol = 4, bbox_to_anchor=(0.15, 1.1, 1, 0.1))
+
+
+		if (saveit):
+			f.subplots_adjust(hspace=0)
+			f.savefig(fname+'_ObsRecOther_new.pdf',format='pdf', bbox_inches = 'tight')
+			plt.close(f)
+
+	def plotObsRecCDF_new(self, d1, d2, key, xtitle, fname,  xlim = None, ax = None, showLegend = True):
+		#http://jfly.iam.u-tokyo.ac.jp/color/image/pallete.jpg
+		#https://thenode.biologists.com/data-visualization-with-flying-colors/research/
+		#https://medium.com/cafe-pixo/inclusive-color-palettes-for-the-web-bbfe8cf2410e
+		#https://jrnold.github.io/ggthemes/reference/tableau_color_pal.html
+		#https://coolors.co/
+		c1 = '#000000'#all
+		c2 = '#898989' #obs
+		c3 = '#FF1B1C'#rec
+		w1 = 2
+		w2 = 2
+		w3 = 2
+
+		saveit = False
+		if (ax is None):
+			saveit = True
+			f,ax = plt.subplots(1,1,figsize=(5, 5), sharex=True)
+			ax.tick_params(axis='both', which='major', labelsize=14)
+
+		histAll = d1[key+'hAllCDF']
+		histObs = d1[key+'hObsCDF']
+		allhistRec = d1[key+'hRecCDF']['all']
+		bin_edges = d1[key+'bCDF']
+
+		histAllOD = d2[key+'hAllCDF']
+		histObsOD = d2[key+'hObsCDF']
+		allhistRecOD = d2[key+'hRecCDF']['all']
+		bin_edgesOD = d2[key+'bCDF']		
+
+		binHalf = (bin_edges[1] - bin_edges[0])/2.
+		binHalfOD = (bin_edgesOD[1] - bin_edgesOD[0])/2.
+
+		#CDF
+		cdfAll = []
+		cdfObs = []
+		cdfRec = []
+		cdfAllOD = []
+		cdfObsOD = []
+		cdfRecOD = []
+		for i in range(len(histAll)):
+			cdfAll.append(np.sum(histAll[:i])/np.sum(histAll))
+		for i in range(len(histAllOD)):
+			cdfAllOD.append(np.sum(histAllOD[:i])/np.sum(histAllOD))
+		for i in range(len(histObs)):
+			cdfObs.append(np.sum(histObs[:i])/np.sum(histObs))
+		for i in range(len(histObsOD)):
+			cdfObsOD.append(np.sum(histObsOD[:i])/np.sum(histObsOD))
+		for i in range(len(allhistRec)):
+			cdfRec.append(np.sum(allhistRec[:i])/np.sum(allhistRec))
+		for i in range(len(allhistRecOD)):
+			cdfRecOD.append(np.sum(allhistRecOD[:i])/np.sum(allhistRecOD))
+		ax.step(bin_edges, cdfAll, color=c1, linewidth=w1, label='All')
+		ax.step(bin_edges, cdfObs, color=c2, linewidth=w2, label='Observable')
+		ax.step(bin_edges, cdfRec, color=c3, linewidth=w3, label='Recoverable')
+		ax.step(bin_edgesOD, cdfAllOD, color=c1, linewidth=w1, linestyle=':')
+		ax.step(bin_edgesOD, cdfObsOD, color=c2, linewidth=w2, linestyle=':')
+		ax.step(bin_edgesOD, cdfRecOD, color=c3, linewidth=w3, linestyle=':')
+		ax.set_ylim(-0.01,1.01)
+		if (saveit):
+			ax.set_ylabel('CDF', fontsize=18)
+
+		ax.set_xlabel(xtitle, fontsize=18)
+
+		if (xlim is not None):
+			ax.set_xlim(xlim[0], xlim[1])
+
+		# ax1.legend()
+		# ax2.legend()
+		# ax3.legend()
+		if (showLegend):
+			lAll = mlines.Line2D([], [], color=c1, linewidth=w1, label='All')
+			lObs = mlines.Line2D([], [], color=c2, linewidth=w2, label='Obs.')
+			lRec = mlines.Line2D([], [], color=c3, linewidth=w3, label='Rec.')
+			lASN = mlines.Line2D([], [], color='#5FC8D0', linewidth=2, label='ASAS-SN')
+			ax.legend(handles=[lAll, lObs, lRec, lASN], fontsize=10.5, ncol = 4, bbox_to_anchor=(0.15, 1.1, 1, 0.1))
+
+
+		if (saveit):
+			f.subplots_adjust(hspace=0)
+			f.savefig(fname+'_ObsRecOther_new.pdf',format='pdf', bbox_inches = 'tight')
+			plt.close(f)
+
+
+	def plotObsRecCDFOther_new(self, d1, d2, key, xtitle, fname,  xlim = None, ax = [None], showLegend = True, legendLoc = 'lower right'):
 		#http://jfly.iam.u-tokyo.ac.jp/color/image/pallete.jpg
 		#https://thenode.biologists.com/data-visualization-with-flying-colors/research/
 		#https://medium.com/cafe-pixo/inclusive-color-palettes-for-the-web-bbfe8cf2410e
@@ -375,9 +525,6 @@ class EBLSSTanalyzer(object):
 			saveit = True
 			f,ax = plt.subplots(2,1,figsize=(5, 8), sharex=True)
 
-		if (ax2 is None):
-			f2,ax2 = plt.subplots(1,1,figsize=(5, 4))
-			ax2.tick_params(axis='both', which='major', labelsize=14)
 
 		for a in ax:
 			a.tick_params(axis='both', which='major', labelsize=14)
@@ -450,6 +597,60 @@ class EBLSSTanalyzer(object):
 		if (saveit):
 			ax[1].set_ylabel(r'$N/\sum N_\mathrm{baseline}$', fontsize=18)
 
+
+
+		ax[-1].set_xlabel(xtitle, fontsize=18)
+
+		if (xlim is not None):
+			ax[0].set_xlim(xlim[0], xlim[1])
+			ax[1].set_xlim(xlim[0], xlim[1])
+
+		# ax1.legend()
+		# ax2.legend()
+		# ax3.legend()
+		if (showLegend):
+			lAll = mlines.Line2D([], [], color=c1, linewidth=w1, label='All')
+			lObs = mlines.Line2D([], [], color=c2, linewidth=w2, label='Obs.')
+			lRec = mlines.Line2D([], [], color=c3, linewidth=w3, label='Rec.')
+			ax[0].legend(handles=[lAll, lObs, lRec], loc=legendLoc, fontsize=10.5)
+
+
+		if (saveit):
+			f.subplots_adjust(hspace=0)
+			f.savefig(fname+'_ObsRecOther_new.pdf',format='pdf', bbox_inches = 'tight')
+			plt.close(f)
+
+	def plotObsRecOtherRatio_new(self, d1, d2, key, xtitle, fname,  xlim = None, ax2 = None, showLegend = True, legendLoc = 'lower right'):
+		#http://jfly.iam.u-tokyo.ac.jp/color/image/pallete.jpg
+		#https://thenode.biologists.com/data-visualization-with-flying-colors/research/
+		#https://medium.com/cafe-pixo/inclusive-color-palettes-for-the-web-bbfe8cf2410e
+		#https://jrnold.github.io/ggthemes/reference/tableau_color_pal.html
+		#https://coolors.co/
+		c1 = '#898989' #obs
+		c2 = '#000000'#all
+		c3 = '#FF1B1C'#rec
+		w1 = 2
+		w2 = 2
+		w3 = 2
+
+		saveit = False
+		if (ax2 is None):
+			f2,ax2 = plt.subplots(1,1,figsize=(5, 4))
+			ax2.tick_params(axis='both', which='major', labelsize=14)
+
+		histAll = d1[key+'hAll']
+		histObs = d1[key+'hObs']
+		allhistRec = d1[key+'hRec']['all']
+		bin_edges = d1[key+'b']
+
+		histAllOD = d2[key+'hAll']
+		histObsOD = d2[key+'hObs']
+		allhistRecOD = d2[key+'hRec']['all']
+		bin_edgesOD = d2[key+'b']		
+
+		binHalf = (bin_edges[1] - bin_edges[0])/2.
+		binHalfOD = (bin_edgesOD[1] - bin_edgesOD[0])/2.
+
 		ratio = histObs/histAll
 		check = np.isnan(ratio)
 		ratio[check]=0.
@@ -495,36 +696,24 @@ class EBLSSTanalyzer(object):
 		ax2.set_yscale('log')
 		ax2.set_xlabel(xtitle, fontsize=18)
 
-		ax[-1].set_xlabel(xtitle, fontsize=18)
 
 		if (xlim is not None):
-			ax[0].set_xlim(xlim[0], xlim[1])
-			ax[1].set_xlim(xlim[0], xlim[1])
 			ax2.set_xlim(xlim[0], xlim[1])
 
 		# ax1.legend()
 		# ax2.legend()
 		# ax3.legend()
 		if (showLegend):
-			lAll = mlines.Line2D([], [], color=c1, linewidth=w1, label='All')
-			lObs = mlines.Line2D([], [], color=c2, linewidth=w2, label='Obs.')
-			lRec = mlines.Line2D([], [], color=c3, linewidth=w3, label='Rec.')
 			lObsAll = mlines.Line2D([], [], color=c1, linewidth=w1, label='Obs./All')
 			lRecObs = mlines.Line2D([], [], color=c2, linewidth=w2, label='Rec./Obs.')
 			lRecAll = mlines.Line2D([], [], color=c3, linewidth=w3, label='Rec./All')
-			# ax[0].legend(handles=[lAll, lObs, lRec, lObsAll, lRecAll, lRecObs], loc=legendLoc, fontsize=10.5)
-			ax[0].legend(handles=[lAll, lObs, lRec], loc=legendLoc, fontsize=10.5)
-			ax2.legend(handles=[lObsAll, lRecObs, lRecAll], loc='upper right', fontsize=10.5)
+			ax2.legend(handles=[lRecObs, lObsAll, lRecAll], loc=legendLoc, fontsize=10.5)
 
 
 		if (saveit):
-			f.subplots_adjust(hspace=0)
-			f.savefig(fname+'_ObsRecOther_new.pdf',format='pdf', bbox_inches = 'tight')
-			plt.close(f)
 			f2.subplots_adjust(hspace=0)
 			f2.savefig(fname+'_ObsRecRatio_new.pdf',format='pdf', bbox_inches = 'tight')
 			plt.close(f2)
-
 
 	def plotObsRecOther_clusters_new(self, d1, d2, df1, df2, key, xtitle, fname,  xlim = None, ax = None, showLegend = True, legendLoc = 'lower right'):
 		#http://jfly.iam.u-tokyo.ac.jp/color/image/pallete.jpg
@@ -1775,33 +1964,159 @@ class EBLSSTanalyzer(object):
 		if (self.onlyDWD):
 			suffix = '_DWD'
 		
-
-
 		m1xlim = self.m1xlim
 		f,ax = plt.subplots(2,4,figsize=(20, 8))
-		f2,ax2 = plt.subplots(1,4,figsize=(20, 4))
-		self.plotObsRecOtherRatio_new(d1, d2, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,5], ax=ax[:,0], ax2=ax2[0],showLegend=True, legendLoc = 'lower right')
-		self.plotObsRecOtherRatio_new(d1, d2, 'e', r'$e$', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1], ax=ax[:,1], ax2=ax2[1], showLegend=False)
-		self.plotObsRecOtherRatio_new(d1, d2, m1key, r'$m_1$ [M$_\odot$]', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=m1xlim, ax=ax[:,2], ax2=ax2[2], showLegend=False)
-		self.plotObsRecOtherRatio_new(d1, d2, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax=ax[:,3], ax2=ax2[3],showLegend=False)
+		self.plotObsRecCDFOther_new(d1, d2, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,5], ax=ax[:,0], showLegend=True, legendLoc = 'lower right')
+		self.plotObsRecCDFOther_new(d1, d2, 'e', r'$e$', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1], ax=ax[:,1], showLegend=False)
+		self.plotObsRecCDFOther_new(d1, d2, m1key, r'$m_1$ [M$_\odot$]', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=m1xlim, ax=ax[:,2], showLegend=False)
+		self.plotObsRecCDFOther_new(d1, d2, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax=ax[:,3], showLegend=False)
 		ax[0,0].set_ylabel('CDF', fontsize=18)
-		ax[1,0].set_ylabel(r'$N_\mathrm{norm} = N/\sum N_\mathrm{baseline}$', fontsize=18)
-		ax2[0].set_ylabel('Ratio', fontsize=18)
+		#ax[1,0].set_ylabel(r'$N_\mathrm{norm} = N/\sum N_\mathrm{baseline}$', fontsize=18)
+		ax[1,0].set_ylabel(r'$N/\sum N_\mathrm{baseline}$', fontsize=18)
 		for i in range(2):
 			for j in range(4):
 				if (i != 2):
 					ax[i,j].set_xticklabels([])
 				if (j != 0):
 					ax[i,j].set_yticklabels([])
-		for j in range(4):
-			if (j != 0):
-				ax2[j].set_yticklabels([])
+	
 
 		f.subplots_adjust(hspace=0, wspace=0.1)
 		f.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecOtherCombined_new'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
 		plt.close(f)
 
+		f2,ax2 = plt.subplots(1,4,figsize=(20, 4))
+		self.plotObsRecOtherRatio_new(d1, d2, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,5], ax2=ax2[0],showLegend=True, legendLoc = 'upper right')
+		self.plotObsRecOtherRatio_new(d1, d2, 'e', r'$e$', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax2=ax2[1], showLegend=False)
+		self.plotObsRecOtherRatio_new(d1, d2, m1key, r'$m_1$ [M$_\odot$]', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=m1xlim, ax2=ax2[2], showLegend=False)
+		self.plotObsRecOtherRatio_new(d1, d2, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax2=ax2[3],showLegend=False)
+		ax2[0].set_ylabel('Ratio', fontsize=18)
+		for j in range(4):
+			if (j != 0):
+				ax2[j].set_yticklabels([])
 		f2.subplots_adjust(hspace=0, wspace=0.1)
+		f2.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecOtherRatioCombined_new'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
+		plt.close(f2)
+
+
+	def plotAllObsRecOtherRatioCombined_new(self, dF1, dF2, dGC1, dGC2, dOC1, dOC2):
+		suffix = ''
+		if (self.onlyDWD):
+			suffix = '_DWD'
+		
+		f,ax = plt.subplots(3,4,figsize=(20, 12))
+
+		#histograms
+		#ASAS-SN DATA
+		lpbins = dF1['lpb']
+		df = pd.read_csv('/Users/ageller/WORK/EBdata/asassn-catalog.csv')
+		EB = df.loc[(df['Type'] == 'EA')]# | (df['Type'] == 'EB') | (df['Type'] == 'EW') ]
+		h, b = np.histogram(np.log10(EB['period']), bins=lpbins)
+		ax[0][0].step(b[0:-1],h/np.sum(h), color='#5FC8D0', linewidth=2)
+
+		self.plotObsRecOther_new(dF1, dF2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax=ax[0,0],showLegend=True)
+		self.plotObsRecOther_new(dF1, dF2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax=ax[0,1], showLegend=False)
+		self.plotObsRecOther_new(dF1, dF2, 'm1', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,10], ax=ax[0,2], showLegend=False)
+		self.plotObsRecOther_new(dF1, dF2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax=ax[0,3],showLegend=False)
+
+		self.plotObsRecOther_new(dGC1, dGC2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax=ax[1,0],showLegend=False)
+		self.plotObsRecOther_new(dGC1, dGC2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax=ax[1,1], showLegend=False)
+		self.plotObsRecOther_new(dGC1, dGC2, 'm1Small', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,3], ax=ax[1,2], showLegend=False)
+		self.plotObsRecOther_new(dGC1, dGC2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax=ax[1,3],showLegend=False)
+
+		self.plotObsRecOther_new(dOC1, dOC2, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax=ax[2,0],showLegend=False)
+		self.plotObsRecOther_new(dOC1, dOC2, 'e', r'$e$', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax=ax[2,1], showLegend=False)
+		self.plotObsRecOther_new(dOC1, dOC2, 'm1', r'$m_1$ [M$_\odot$]', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,10], ax=ax[2,2], showLegend=False)
+		self.plotObsRecOther_new(dOC1, dOC2, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax=ax[2,3],showLegend=False)
+
+		# ax[0,0].set_ylabel(r'$N_\mathrm{field}/\sum N_\mathrm{baseline,field}$', fontsize=18)
+		# ax[1,0].set_ylabel(r'$N_\mathrm{GC}/\sum N_\mathrm{baseline,GC}$', fontsize=18)
+		# ax[2,0].set_ylabel(r'$N_\mathrm{OC}/\sum N_\mathrm{baseline,OC}$', fontsize=18)
+		ax[0,0].set_ylabel(r'$N_\mathrm{norm, field}$', fontsize=18)
+		ax[1,0].set_ylabel(r'$N_\mathrm{norm,GC}$', fontsize=18)
+		ax[2,0].set_ylabel(r'$N_\mathrm{norm,OC}$', fontsize=18)
+		for i in range(3):
+			for j in range(4):
+				if (j != 0):
+					ax[i,j].set_yticklabels([])
+
+
+		f.subplots_adjust(hspace=0.3, wspace=0.1)
+		f.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecOtherCombined_new'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
+		plt.close(f)
+
+		#CDFs
+		f1,ax1 = plt.subplots(3,4,figsize=(20, 12))
+
+		#ASAS-SN DATA
+		lpbSize = 0.25
+		CDFfac = 1000.
+		lpbinsCDF = np.arange(-3, 10+lpbSize/CDFfac, lpbSize/CDFfac, dtype='float')
+		h, b = np.histogram(np.log10(EB['period']), bins=lpbinsCDF)
+		cdf = []
+		for i in range(len(h)):
+			cdf.append(np.sum(h[:i])/np.sum(h))
+		ax1[0][0].step(b[0:-1],cdf, color='#5FC8D0', linewidth=2)
+
+		#ax1[0][0].hist(np.log10(EB['period']), bins=lpbinsCDF, color='#5FC8D0', linewidth=2, cumulative=True, histtype='step',density=True)
+
+		self.plotObsRecCDF_new(dF1, dF2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphistCDF_new'+suffix), xlim=[-2,4], ax=ax1[0,0],showLegend=True)
+		self.plotObsRecCDF_new(dF1, dF2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehistCDF_new'+suffix), xlim=[0,1],  ax=ax1[0,1], showLegend=False)
+		self.plotObsRecCDF_new(dF1, dF2, 'm1', '', os.path.join(self.plotsDirectory,'EBLSST_m1histCDF_new'+suffix), xlim=[0,10], ax=ax1[0,2], showLegend=False)
+		self.plotObsRecCDF_new(dF1, dF2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhistCDF_new'+suffix), xlim=[0,1], ax=ax1[0,3],showLegend=False)
+
+		self.plotObsRecCDF_new(dGC1, dGC2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphistCDF_new'+suffix), xlim=[-2,4], ax=ax1[1,0],showLegend=False)
+		self.plotObsRecCDF_new(dGC1, dGC2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehistCDF_new'+suffix), xlim=[0,1],  ax=ax1[1,1], showLegend=False)
+		self.plotObsRecCDF_new(dGC1, dGC2, 'm1Small', '', os.path.join(self.plotsDirectory,'EBLSST_m1histCDF_new'+suffix), xlim=[0,3], ax=ax1[1,2], showLegend=False)
+		self.plotObsRecCDF_new(dGC1, dGC2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhistCDF_new'+suffix), xlim=[0,1], ax=ax1[1,3],showLegend=False)
+
+		self.plotObsRecCDF_new(dOC1, dOC2, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphistCDF_new'+suffix), xlim=[-2,4], ax=ax1[2,0],showLegend=False)
+		self.plotObsRecCDF_new(dOC1, dOC2, 'e', r'$e$', os.path.join(self.plotsDirectory,'EBLSST_ehistCDF_new'+suffix), xlim=[0,1],  ax=ax1[2,1], showLegend=False)
+		self.plotObsRecCDF_new(dOC1, dOC2, 'm1', r'$m_1$ [M$_\odot$]', os.path.join(self.plotsDirectory,'EBLSST_m1histCDF_new'+suffix), xlim=[0,10], ax=ax1[2,2], showLegend=False)
+		self.plotObsRecCDF_new(dOC1, dOC2, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhistCDF_new'+suffix), xlim=[0,1], ax=ax1[2,3],showLegend=False)
+
+		# ax[0,0].set_ylabel(r'$N_\mathrm{field}/\sum N_\mathrm{baseline,field}$', fontsize=18)
+		# ax[1,0].set_ylabel(r'$N_\mathrm{GC}/\sum N_\mathrm{baseline,GC}$', fontsize=18)
+		# ax[2,0].set_ylabel(r'$N_\mathrm{OC}/\sum N_\mathrm{baseline,OC}$', fontsize=18)
+		ax1[0,0].set_ylabel(r'CDF$_\mathrm{field}$', fontsize=18)
+		ax1[1,0].set_ylabel(r'CDF$_\mathrm{GC}$', fontsize=18)
+		ax1[2,0].set_ylabel(r'CDF$_\mathrm{OC}$', fontsize=18)
+		for i in range(3):
+			for j in range(4):
+				if (j != 0):
+					ax1[i,j].set_yticklabels([])
+
+
+		f1.subplots_adjust(hspace=0.3, wspace=0.1)
+		f1.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecCDFCombined_new'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
+		plt.close(f1)
+
+		#ratios
+		f2,ax2 = plt.subplots(3,4,figsize=(20, 12))
+		self.plotObsRecOtherRatio_new(dF1, dF2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax2=ax2[0,0],showLegend=True, legendLoc = 'upper right')
+		self.plotObsRecOtherRatio_new(dF1, dF2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax2=ax2[0,1], showLegend=False)
+		self.plotObsRecOtherRatio_new(dF1, dF2, 'm1', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,10], ax2=ax2[0,2], showLegend=False)
+		self.plotObsRecOtherRatio_new(dF1, dF2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax2=ax2[0,3],showLegend=False)
+
+		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax2=ax2[1,0],showLegend=False)
+		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax2=ax2[1,1], showLegend=False)
+		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'm1Small', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,3], ax2=ax2[1,2], showLegend=False)
+		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax2=ax2[1,3],showLegend=False)
+
+		self.plotObsRecOtherRatio_new(dOC1, dOC2, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax2=ax2[2,0],showLegend=False)
+		self.plotObsRecOtherRatio_new(dOC1, dOC2, 'e', r'$e$', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax2=ax2[2,1], showLegend=False)
+		self.plotObsRecOtherRatio_new(dOC1, dOC2, 'm1', r'$m_1$ [M$_\odot$]', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,10], ax2=ax2[2,2], showLegend=False)
+		self.plotObsRecOtherRatio_new(dOC1, dOC2, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax2=ax2[2,3],showLegend=False)
+
+		ax2[0,0].set_ylabel(r'Ratio$_\mathrm{field}$', fontsize=18)
+		ax2[1,0].set_ylabel(r'Ratio$_\mathrm{GC}$', fontsize=18)
+		ax2[2,0].set_ylabel(r'Ratio$_\mathrm{OC}$', fontsize=18)
+		for i in range(3):
+			for j in range(4):
+				if (j != 0):
+					ax2[i,j].set_yticklabels([])
+
+		f2.subplots_adjust(hspace=0.3, wspace=0.1)
 		f2.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecOtherRatioCombined_new'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
 		plt.close(f2)
 
