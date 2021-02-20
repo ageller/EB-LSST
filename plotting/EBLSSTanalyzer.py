@@ -525,6 +525,116 @@ class EBLSSTanalyzer(object):
 			f2.savefig(fname+'_ObsRecRatio_new.pdf',format='pdf', bbox_inches = 'tight')
 			plt.close(f2)
 
+
+	def plotObsRecOther_clusters_new(self, d1, d2, df1, df2, key, xtitle, fname,  xlim = None, ax = None, showLegend = True, legendLoc = 'lower right'):
+		#http://jfly.iam.u-tokyo.ac.jp/color/image/pallete.jpg
+		#https://thenode.biologists.com/data-visualization-with-flying-colors/research/
+		#https://medium.com/cafe-pixo/inclusive-color-palettes-for-the-web-bbfe8cf2410e
+		#https://jrnold.github.io/ggthemes/reference/tableau_color_pal.html
+		#https://coolors.co/
+		c1 = '#000000'#all
+		c2 = '#898989' #obs
+		c3 = '#FF1B1C'#rec
+		w1 = 2
+		w2 = 2
+		w3 = 2
+
+		saveit = False
+		if (ax is None):
+			saveit = True
+			f,ax = plt.subplots(1,1,figsize=(5, 5), sharex=True)
+			ax.tick_params(axis='both', which='major', labelsize=14)
+
+
+		#I want to divide (or subtract?) the field from the clusters.  This assumes the field and clusters have same bins
+		histAll = d1[key+'hAll']
+		histObs = d1[key+'hObs']
+		allhistRec = d1[key+'hRec']['all']
+		bin_edges = d1[key+'b']
+
+		histAllOD = d2[key+'hAll']
+		histObsOD = d2[key+'hObs']
+		allhistRecOD = d2[key+'hRec']['all']
+		bin_edgesOD = d2[key+'b']		
+
+		FhistAll = df1[key+'hAll']
+		FhistObs = df1[key+'hObs']
+		FallhistRec = df1[key+'hRec']['all']
+		Fbin_edges = df1[key+'b']
+
+		FhistAllOD = df2[key+'hAll']
+		FhistObsOD = df2[key+'hObs']
+		FallhistRecOD = df2[key+'hRec']['all']
+		Fbin_edgesOD = df2[key+'b']	
+
+		binHalf = (bin_edges[1] - bin_edges[0])/2.
+		binHalfOD = (bin_edgesOD[1] - bin_edgesOD[0])/2.
+
+		#PDF --need to divide by the bin size
+		#this is the fraction in each bin
+		# ax.step(bin_edges, histAll/np.sum(histAll) - FhistAll/np.sum(FhistAll), color=c1, linewidth=w1, label='All')
+		# ax.step(bin_edges, histObs/np.sum(histObs) - FhistObs/np.sum(FhistObs), color=c2, linewidth=w2, label='Observable')
+		# ax.step(bin_edges, allhistRec/np.sum(allhistRec) - FallhistRec/np.sum(FallhistRec), color=c3, linewidth=w3, label='Recoverable')
+		# ax.step(bin_edgesOD, histAllOD/np.sum(histAll) - FhistAllOD/np.sum(FhistAll), color=c1, linewidth=w1, linestyle=':')
+		# ax.step(bin_edgesOD, histObsOD/np.sum(histObs) - FhistObsOD/np.sum(FhistObs), color=c2, linewidth=w2, linestyle=':')
+		# ax.step(bin_edgesOD, allhistRecOD/np.sum(allhistRec) - FallhistRecOD/np.sum(FallhistRec), color=c3, linewidth=w3, linestyle=':')
+
+		ratio = histAll/np.sum(histAll)/(FhistAll/np.sum(FhistAll))
+		check = np.isnan(ratio)
+		ratio[check]=0.	
+		ax.step(bin_edges, ratio, color=c1, linewidth=w1, label='All')
+
+		ratio = histObs/np.sum(histObs)/(FhistObs/np.sum(FhistObs))
+		check = np.isnan(ratio)
+		ratio[check]=0.	
+		ax.step(bin_edges, ratio, color=c2, linewidth=w2, label='Observable')
+
+
+		ratio = allhistRec/np.sum(allhistRec)/(FallhistRec/np.sum(FallhistRec))
+		check = np.isnan(ratio)
+		ratio[check]=0.	
+		ax.step(bin_edges, ratio, color=c3, linewidth=w3, label='Recoverable')
+
+		ratio = histAllOD/np.sum(histAll)/(FhistAllOD/np.sum(FhistAll))
+		check = np.isnan(ratio)
+		ratio[check]=0.	
+		ax.step(bin_edgesOD, ratio, color=c1, linewidth=w1, linestyle=':')
+
+		ratio = histObsOD/np.sum(histObs)/(FhistObsOD/np.sum(FhistObs))
+		check = np.isnan(ratio)
+		ratio[check]=0.			
+		ax.step(bin_edgesOD, ratio, color=c2, linewidth=w2, linestyle=':')
+
+		ratio = allhistRecOD/np.sum(allhistRec)/(FallhistRecOD/np.sum(FallhistRec))
+		check = np.isnan(ratio)
+		ratio[check]=0.		
+		ax.step(bin_edgesOD, ratio, color=c3, linewidth=w3, linestyle=':')
+
+		ax.set_ylim(0,5)
+		#ax.set_ylim(0.5e-5, 1.9)
+		#ax.set_yscale('log')
+		if (saveit):
+			ax.set_ylabel(r'$N/\sum N_\mathrm{baseline}$', fontsize=18)
+
+
+		ax.set_xlabel(xtitle, fontsize=18)
+
+		if (xlim is not None):
+			ax.set_xlim(xlim[0], xlim[1])
+
+
+		if (showLegend):
+			lAll = mlines.Line2D([], [], color=c1, linewidth=w1, label='All')
+			lObs = mlines.Line2D([], [], color=c2, linewidth=w2, label='Obs.')
+			lRec = mlines.Line2D([], [], color=c3, linewidth=w3, label='Rec.')
+			ax.legend(handles=[lAll, lObs, lRec], loc=legendLoc, fontsize=10.5)
+
+
+		if (saveit):
+			f.subplots_adjust(hspace=0)
+			f.savefig(fname+'_ObsRecOther_clusters_new.pdf',format='pdf', bbox_inches = 'tight')
+			plt.close(f)
+
 	def plotObsRecOtherPDF(self, d1, d1C, d2, d2C, d3, d3C, key, xtitle, fname,  xlim = None, ax1 = None, ax2 = None, showLegend = True, legendLoc = 'lower right',includeASASSN=False, c1=None, c2=None, c3=None, c4=None):
 		if (c1 is None):
 			c1 = '#0294A5'  #turqoise
@@ -1675,7 +1785,7 @@ class EBLSSTanalyzer(object):
 		self.plotObsRecOtherRatio_new(d1, d2, m1key, r'$m_1$ [M$_\odot$]', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=m1xlim, ax=ax[:,2], ax2=ax2[2], showLegend=False)
 		self.plotObsRecOtherRatio_new(d1, d2, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax=ax[:,3], ax2=ax2[3],showLegend=False)
 		ax[0,0].set_ylabel('CDF', fontsize=18)
-		ax[1,0].set_ylabel(r'$N/\sum N_\mathrm{baseline}$', fontsize=18)
+		ax[1,0].set_ylabel(r'$N_\mathrm{norm} = N/\sum N_\mathrm{baseline}$', fontsize=18)
 		ax2[0].set_ylabel('Ratio', fontsize=18)
 		for i in range(2):
 			for j in range(4):
@@ -1694,6 +1804,31 @@ class EBLSSTanalyzer(object):
 		f2.subplots_adjust(hspace=0, wspace=0.1)
 		f2.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecOtherRatioCombined_new'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
 		plt.close(f2)
+
+
+	def plotAllObsRecOther_clusters_new(self, d1, d2, df1, df2, m1key='m1',tkey='GC'):
+		suffix = ''
+		if (self.onlyDWD):
+			suffix = '_DWD'
+		
+
+
+		m1xlim = self.m1xlim
+		f,ax = plt.subplots(1,4,figsize=(20, 4))
+		self.plotObsRecOther_clusters_new(d1, d2, df1, df2, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,5], ax=ax[0],showLegend=True, legendLoc = 'upper right')
+		self.plotObsRecOther_clusters_new(d1, d2, df1, df2, 'e', r'$e$', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1], ax=ax[1], showLegend=False)
+		self.plotObsRecOther_clusters_new(d1, d2, df1, df2, m1key, r'$m_1$ [M$_\odot$]', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=m1xlim, ax=ax[2], showLegend=False)
+		self.plotObsRecOther_clusters_new(d1, d2, df1, df2, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax=ax[3],showLegend=False)
+		ax[0].set_ylabel(r'$N_\mathrm{norm,'+tkey+'} / N_\mathrm{norm,field}$', fontsize=18)
+		for j in range(4):
+			if (j != 0):
+				ax[j].set_yticklabels([])
+
+
+		f.subplots_adjust(hspace=0, wspace=0.1)
+		f.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecOtherCombined_clusters_new'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
+		plt.close(f)
+
 
 	def plotAllObsRecOtherPDF(self, d1, d1C, d2, d2C, d3, d3C, c1=None, c2=None, c3=None, includeASASSN=True):
 
