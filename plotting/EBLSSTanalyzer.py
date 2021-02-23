@@ -30,7 +30,8 @@ class EBLSSTanalyzer(object):
 				Pcut = 0.1,
 				Nlim = 1,
 				onlyDWD = False,
-				onlyGiants = False,
+				oneGiant = False,
+				twoGiants = False,
 				noGiants = False):
 
 		self.directory = directory
@@ -42,7 +43,8 @@ class EBLSSTanalyzer(object):
 		self.Pcut = Pcut #cutoff in percent error for "recovered"
 		self.Nlim = Nlim #minimum number of lines to consider (for all, obs, rec, etc.)
 		self.onlyDWD = onlyDWD
-		self.onlyGiants = onlyGiants
+		self.oneGiant = oneGiant
+		self.twoGiants = twoGiants
 		self.noGiants = noGiants
 
 		self.m1xlim = [0.,3.]
@@ -1289,8 +1291,11 @@ class EBLSSTanalyzer(object):
 					if (self.onlyDWD):
 						data = data.loc[(data['logg1'] > 6) & (data['logg1'] < 12) & (data['logg2'] > 6) & (data['logg2'] < 12)]
 
-					if (self.onlyGiants):
+					if (self.oneGiant):
 						data = data.loc[((data['Teff1'] < 5500) & (data['L1'] > 10)) | (data['Teff2'] < 5500) & (data['L2'] > 10)]
+					
+					if (self.twoGiants):
+						data = data.loc[((data['Teff1'] < 5500) & (data['L1'] > 10)) & (data['Teff2'] < 5500) & (data['L2'] > 10)]
 
 					if (self.noGiants):
 						data = data.loc[((data['Teff1'] > 5500) | (data['L1'] < 10)) & (data['Teff2'] > 5500) | (data['L2'] < 10)]
@@ -1958,8 +1963,10 @@ class EBLSSTanalyzer(object):
 		suffix = ''
 		if (self.onlyDWD):
 			suffix = '_DWD'
-		if (self.onlyGiants):
-			suffix = '_Giants'
+		if (self.oneGiant):
+			suffix = '_oneGiant'
+		if (self.twoGiants):
+			suffix = '_twoGiants'
 		if (self.noGiants):
 			suffix = '_noGiants'
 
@@ -2024,10 +2031,12 @@ class EBLSSTanalyzer(object):
 		suffix = ''
 		if (self.onlyDWD):
 			suffix = '_DWD'
-		if (self.onlyGiants):
-			suffix = '_Giants'
+		if (self.oneGiant):
+			suffix = '_oneGiant'
+		if (self.twoGiants):
+			suffix = '_twoGiants'
 		if (self.noGiants):
-			suffix = '_noGiants'		
+			suffix = '_noGiants'	
 
 		self.plotObsRecOtherRatio(d1, d2, m1key, 'm1 (Msolar)', os.path.join(self.plotsDirectory,'EBLSST_m1hist'+suffix), xlim=self.m1xlim)
 		self.plotObsRecOtherRatio(d1, d2, 'q', 'q (m2/m1)', os.path.join(self.plotsDirectory,'EBLSST_qhist'+suffix), xlim=[0,1])
@@ -2067,8 +2076,10 @@ class EBLSSTanalyzer(object):
 		suffix = ''
 		if (self.onlyDWD):
 			suffix = '_DWD'
-		if (self.onlyGiants):
-			suffix = '_Giants'
+		if (self.oneGiant):
+			suffix = '_oneGiant'
+		if (self.twoGiants):
+			suffix = '_twoGiants'
 		if (self.noGiants):
 			suffix = '_noGiants'
 
@@ -2111,8 +2122,10 @@ class EBLSSTanalyzer(object):
 		suffix = ''
 		if (self.onlyDWD):
 			suffix = '_DWD'
-		if (self.onlyGiants):
-			suffix = '_Giants'
+		if (self.oneGiant):
+			suffix = '_oneGiant'
+		if (self.twoGiants):
+			suffix = '_twoGiants'
 		if (self.noGiants):
 			suffix = '_noGiants'
 
@@ -2237,10 +2250,12 @@ class EBLSSTanalyzer(object):
 		suffix = ''
 		if (self.onlyDWD):
 			suffix = '_DWD'
-		if (self.onlyGiants):
-			suffix = '_Giants'
+		if (self.oneGiant):
+			suffix = '_oneGiant'
+		if (self.twoGiants):
+			suffix = '_twoGiants'
 		if (self.noGiants):
-			suffix = '_noGiants'		
+			suffix = '_noGiants'	
 
 
 		m1xlim = self.m1xlim
@@ -2265,11 +2280,13 @@ class EBLSSTanalyzer(object):
 		suffix = ''
 		if (self.onlyDWD):
 			suffix = '_DWD'
-		if (self.onlyGiants):
-			suffix = '_Giants'
+		if (self.oneGiant):
+			suffix = '_oneGiant'
+		if (self.twoGiants):
+			suffix = '_twoGiants'
 		if (self.noGiants):
 			suffix = '_noGiants'
-			
+
 		m1xlim = self.m1xlim
 		#m1xlim[1] -= 0.01
 		#f,ax = plt.subplots(1,5,figsize=(25, 4), sharey=True)
