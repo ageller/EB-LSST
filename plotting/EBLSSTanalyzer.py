@@ -29,7 +29,9 @@ class EBLSSTanalyzer(object):
 				filters = ['u_', 'g_', 'r_', 'i_', 'z_', 'y_', 'all'],
 				Pcut = 0.1,
 				Nlim = 1,
-				onlyDWD = False):
+				onlyDWD = False,
+				onlyGiants = False,
+				noGiants = False):
 
 		self.directory = directory
 		self.plotsDirectory = plotsDirectory
@@ -40,6 +42,8 @@ class EBLSSTanalyzer(object):
 		self.Pcut = Pcut #cutoff in percent error for "recovered"
 		self.Nlim = Nlim #minimum number of lines to consider (for all, obs, rec, etc.)
 		self.onlyDWD = onlyDWD
+		self.onlyGiants = onlyGiants
+		self.noGiants = noGiants
 
 		self.m1xlim = [0.,3.]
 
@@ -1285,6 +1289,13 @@ class EBLSSTanalyzer(object):
 					if (self.onlyDWD):
 						data = data.loc[(data['logg1'] > 6) & (data['logg1'] < 12) & (data['logg2'] > 6) & (data['logg2'] < 12)]
 
+					if (self.onlyGiants):
+						data = data.loc[((data['Teff1'] < 5500) & (data['L1'] > 10)) | (data['Teff2'] < 5500) & (data['L2'] > 10)]
+
+					if (self.noGiants):
+						data = data.loc[((data['Teff1'] > 5500) | (data['L1'] < 10)) & (data['Teff2'] > 5500) | (data['L2'] < 10)]
+
+
 					prsa = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] > 15.8) & (data['p'] < 1000) & (data['p'] > 0.5)]
 					DWD = data.loc[(data['logg1'] > 6) & (data['logg1'] < 12) & (data['logg2'] > 6) & (data['logg2'] < 12)]
 
@@ -1947,6 +1958,10 @@ class EBLSSTanalyzer(object):
 		suffix = ''
 		if (self.onlyDWD):
 			suffix = '_DWD'
+		if (self.onlyGiants):
+			suffix = '_Giants'
+		if (self.noGiants):
+			suffix = '_noGiants'
 
 		#plot and save the histograms
 		self.saveHist(self.outputHists, 'm1', 'm1 (Msolar)', os.path.join(self.plotsDirectory,'EBLSST_m1hist'+suffix), xlim=[0,3])
@@ -2009,7 +2024,10 @@ class EBLSSTanalyzer(object):
 		suffix = ''
 		if (self.onlyDWD):
 			suffix = '_DWD'
-		
+		if (self.onlyGiants):
+			suffix = '_Giants'
+		if (self.noGiants):
+			suffix = '_noGiants'		
 
 		self.plotObsRecOtherRatio(d1, d2, m1key, 'm1 (Msolar)', os.path.join(self.plotsDirectory,'EBLSST_m1hist'+suffix), xlim=self.m1xlim)
 		self.plotObsRecOtherRatio(d1, d2, 'q', 'q (m2/m1)', os.path.join(self.plotsDirectory,'EBLSST_qhist'+suffix), xlim=[0,1])
@@ -2049,7 +2067,11 @@ class EBLSSTanalyzer(object):
 		suffix = ''
 		if (self.onlyDWD):
 			suffix = '_DWD'
-		
+		if (self.onlyGiants):
+			suffix = '_Giants'
+		if (self.noGiants):
+			suffix = '_noGiants'
+
 		m1xlim = self.m1xlim
 		f,ax = plt.subplots(2,4,figsize=(20, 8))
 		self.plotObsRecCDFOther_new(d1, d2, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,5], ax=ax[:,0], showLegend=True, legendLoc = 'lower right')
@@ -2089,7 +2111,11 @@ class EBLSSTanalyzer(object):
 		suffix = ''
 		if (self.onlyDWD):
 			suffix = '_DWD'
-		
+		if (self.onlyGiants):
+			suffix = '_Giants'
+		if (self.noGiants):
+			suffix = '_noGiants'
+
 		f,ax = plt.subplots(3,4,figsize=(20, 12))
 
 		#histograms
@@ -2211,7 +2237,10 @@ class EBLSSTanalyzer(object):
 		suffix = ''
 		if (self.onlyDWD):
 			suffix = '_DWD'
-		
+		if (self.onlyGiants):
+			suffix = '_Giants'
+		if (self.noGiants):
+			suffix = '_noGiants'		
 
 
 		m1xlim = self.m1xlim
@@ -2236,7 +2265,11 @@ class EBLSSTanalyzer(object):
 		suffix = ''
 		if (self.onlyDWD):
 			suffix = '_DWD'
-
+		if (self.onlyGiants):
+			suffix = '_Giants'
+		if (self.noGiants):
+			suffix = '_noGiants'
+			
 		m1xlim = self.m1xlim
 		#m1xlim[1] -= 0.01
 		#f,ax = plt.subplots(1,5,figsize=(25, 4), sharey=True)
