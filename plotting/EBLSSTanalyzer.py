@@ -374,7 +374,7 @@ class EBLSSTanalyzer(object):
 		c3 = '#FF1B1C'#rec
 		w1 = 2
 		w2 = 2
-		w3 = 2
+		w3 = 3
 
 		saveit = False
 		if (ax is None):
@@ -421,7 +421,7 @@ class EBLSSTanalyzer(object):
 			lAll = mlines.Line2D([], [], color=c1, linewidth=w1, label='All')
 			lObs = mlines.Line2D([], [], color=c2, linewidth=w2, label='Obs.')
 			lRec = mlines.Line2D([], [], color=c3, linewidth=w3, label='Rec.')
-			lASN = mlines.Line2D([], [], color='#5FC8D0', linewidth=2, label='ASAS-SN')
+			lASN = mlines.Line2D([], [], color='#5FC8D0', linewidth=1, label='ASAS-SN')
 			ax.legend(handles=[lAll, lObs, lRec, lASN], fontsize=10.5, ncol = 4, bbox_to_anchor=(0.15, 1.1, 1, 0.1))
 
 
@@ -441,7 +441,7 @@ class EBLSSTanalyzer(object):
 		c3 = '#FF1B1C'#rec
 		w1 = 2
 		w2 = 2
-		w3 = 2
+		w3 = 3
 
 		saveit = False
 		if (ax is None):
@@ -503,7 +503,7 @@ class EBLSSTanalyzer(object):
 			lAll = mlines.Line2D([], [], color=c1, linewidth=w1, label='All')
 			lObs = mlines.Line2D([], [], color=c2, linewidth=w2, label='Obs.')
 			lRec = mlines.Line2D([], [], color=c3, linewidth=w3, label='Rec.')
-			lASN = mlines.Line2D([], [], color='#5FC8D0', linewidth=2, label='ASAS-SN')
+			lASN = mlines.Line2D([], [], color='#5FC8D0', linewidth=1, label='ASAS-SN')
 			ax.legend(handles=[lAll, lObs, lRec, lASN], fontsize=10.5, ncol = 4, bbox_to_anchor=(0.15, 1.1, 1, 0.1))
 
 
@@ -524,7 +524,7 @@ class EBLSSTanalyzer(object):
 		c3 = '#FF1B1C'#rec
 		w1 = 2
 		w2 = 2
-		w3 = 2
+		w3 = 3
 
 		saveit = False
 		if (ax[0] is None):
@@ -637,7 +637,7 @@ class EBLSSTanalyzer(object):
 		c3 = '#FF1B1C'#rec
 		w1 = 2
 		w2 = 2
-		w3 = 2
+		w3 = 3
 
 		saveit = False
 		if (ax2 is None):
@@ -732,7 +732,7 @@ class EBLSSTanalyzer(object):
 		c3 = '#FF1B1C'#rec
 		w1 = 2
 		w2 = 2
-		w3 = 2
+		w3 = 3
 
 		saveit = False
 		if (ax is None):
@@ -2137,7 +2137,7 @@ class EBLSSTanalyzer(object):
 		df = pd.read_csv('/Users/ageller/WORK/EBdata/asassn-catalog.csv')
 		EB = df.loc[(df['Type'] == 'EA')]# | (df['Type'] == 'EB') | (df['Type'] == 'EW') ]
 		h, b = np.histogram(np.log10(EB['period']), bins=lpbins)
-		ax[0][0].step(b[0:-1],h/np.sum(h), color='#5FC8D0', linewidth=2)
+		ax[0][0].step(b[0:-1],h/np.sum(h), color='#5FC8D0', linewidth=1)
 
 		self.plotObsRecOther_new(dF1, dF2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax=ax[0,0],showLegend=True)
 		self.plotObsRecOther_new(dF1, dF2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax=ax[0,1], showLegend=False)
@@ -2181,7 +2181,7 @@ class EBLSSTanalyzer(object):
 		cdf = []
 		for i in range(len(h)):
 			cdf.append(np.sum(h[:i])/np.sum(h))
-		ax1[0][0].step(b[0:-1],cdf, color='#5FC8D0', linewidth=2)
+		ax1[0][0].step(b[0:-1],cdf, color='#5FC8D0', linewidth=1)
 
 		#ax1[0][0].hist(np.log10(EB['period']), bins=lpbinsCDF, color='#5FC8D0', linewidth=2, cumulative=True, histtype='step',density=True)
 
