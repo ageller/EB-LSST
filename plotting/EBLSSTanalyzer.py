@@ -18,6 +18,89 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 
+import sys
+sys.path.insert(0, '/Users/ageller/WORK/LSST/onGitHub/EBLSST/code')
+from SED import SED
+
+from dust_extinction.parameter_averages import F04
+
+def getrMagBinary(L1, T1, g1, r1, L2, T2, g2, r2, M_H, dist, AV, RV=3.1):
+
+	filterFilesRoot = '/Users/ageller/WORK/LSST/onGitHub/EBLSST/input/filters/'
+	wavelength = (552. + 691.)/2.
+
+	SED1 = SED()
+	SED1.filters = ['r_']
+	SED1.filterFilesRoot = filterFilesRoot
+	SED1.T = T1*units.K
+	SED1.R = r1*units.solRad
+	SED1.L = L1*units.solLum
+	SED1.logg = g1
+	SED1.M_H = M_H
+	SED1.EBV = AV/RV #could use this to account for reddening in SED
+	SED1.initialize()
+
+	SED2 = SED()
+	SED2.filters = ['r_']
+	SED2.filterFilesRoot = filterFilesRoot
+	SED2.T = T2*units.K
+	SED2.R = r2*units.solRad
+	SED2.L = L2*units.solLum
+	SED2.logg = g2
+	SED2.M_H = M_H
+	SED2.EBV = AV/RV #could use this to account for reddening in SED
+	SED2.initialize()
+
+	#estimate a combined Teff value, as I do in the N-body codes (but where does this comes from?)
+	logLb = np.log10(L1 + L2)
+	logRb = 0.5*np.log10(r1**2. + r2**2.)
+	T12 = 10.**(3.762 + 0.25*logLb - 0.5*logRb)
+	#print(L1, L2, T1, T2, T12)
+
+
+	#one option for getting the extinction
+	ext = F04(Rv=RV)
+
+	Lconst1 = SED1.getLconst()
+	Lconst2 = SED2.getLconst()
+
+	Ared = ext(wavelength*units.nm)*AV
+
+	Fv1 = SED1.getFvAB(dist*units.kpc, 'r_', Lconst = Lconst1)
+	Fv2 = SED2.getFvAB(dist*units.kpc, 'r_', Lconst = Lconst2)
+	Fv = Fv1 + Fv2
+	return -2.5*np.log10(Fv) + Ared #AB magnitude 
+
+
+def getrMagSingle(L1, T1, g1, r1, M_H, dist, AV, RV=3.1):
+
+	filterFilesRoot = '/Users/ageller/WORK/LSST/onGitHub/EBLSST/input/filters/'
+	wavelength = (552. + 691.)/2.
+
+	SED1 = SED()
+	SED1.filters = ['r_']
+	SED1.filterFilesRoot = filterFilesRoot
+	SED1.T = T1*units.K
+	SED1.R = r1*units.solRad
+	SED1.L = L1*units.solLum
+	SED1.logg = g1
+	SED1.M_H = M_H
+	SED1.EBV = AV/RV #could use this to account for reddening in SED
+	SED1.initialize()
+
+
+	#one option for getting the extinction
+	ext = F04(Rv=RV)
+
+	Lconst1 = SED1.getLconst()
+
+	Ared = ext(wavelength*units.nm)*AV
+	Fv = SED1.getFvAB(dist*units.kpc, 'r_', Lconst = Lconst1)
+
+	return -2.5*np.log10(Fv) + Ared #AB magnitude 
+
+
+
 class EBLSSTanalyzer(object):
 
 	def __init__(self, 
@@ -1264,6 +1347,42 @@ class EBLSSTanalyzer(object):
 				#read in rest of the file
 				data = pd.read_csv(os.path.join(self.directory,f), header = 2).fillna(-999)
 
+				#swap locations so that m1 is always > m2
+				check = data.loc[(data['m2'] > data['m1'])]
+				if (len(check.index) > 0):
+					for index, row in check.iterrows():
+						m1tmp = row['m1']
+						data.at[index, 'm1'] = row['m2']
+						data.at[index, 'm2'] = m1tmp
+						r1tmp = row['r1']
+						data.at[index, 'r1'] = row['r2']
+						data.at[index, 'r2'] = r1tmp
+						# g1tmp = row['logg1']
+						# data.at[index, 'logg1'] = row['logg2']
+						# data.at[index, 'logg2'] = g1tmp							
+						# #will want to swap L1 and T1 too if using newer files
+
+
+				#calculate logg values
+				data['r1'].replace(0., 1e-10, inplace = True)
+				data['r2'].replace(0., 1e-10, inplace = True)
+				data['m1'].replace(0., 1e-10, inplace = True)
+				data['m2'].replace(0., 1e-10, inplace = True)
+				logg1 = np.log10((constants.G*data['m1'].values*units.solMass/(data['r1'].values*units.solRad)**2.).decompose().to(units.cm/units.s**2.).value)
+				logg2 = np.log10((constants.G*data['m2'].values*units.solMass/(data['r2'].values*units.solRad)**2.).decompose().to(units.cm/units.s**2.).value)
+				data['logg1'] = logg1
+				data['logg2'] = logg2
+
+				#get the magnitudes if needed
+				print(data['appMagMean_r'])
+				rMag = data['appMagMean_r'].values
+				for index, row in data.iterrows():
+					if (row['appMagMean_r'] == -999.):
+						print(index)
+						rMag[index] = getrMagSingle(row['L1'], row['Teff1'], row['logg1'], row['r1'], row['[M/H]'], row['d'], row['Av'])
+				data['appMagMean_r'] = rMag
+				print(data['appMagMean_r'])
+
 				Nall = len(data.index)/intNorm  #saving this in case we want to limit the entire analysis to DWDs, but still want the full sample size for the cumulative numbers
 
 ##        self.magLims = np.array([15.8, 25.]) #lower and upper limits on the magnitude detection assumed for LSST: 15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
@@ -1277,26 +1396,8 @@ class EBLSSTanalyzer(object):
 						#I will use this for the total number of objects in the sample (as printed near the bottom)
 						NallMag = len(data.index)
 
-						#swap locations so that m1 is always > m2
-						check = data.loc[(data['m2'] > data['m1'])]
-						if (len(check.index) > 0):
-							for index, row in check.iterrows():
-								m1tmp = row['m1']
-								data.at[index, 'm1'] = row['m2']
-								data.at[index, 'm2'] = m1tmp
-								r1tmp = row['r1']
-								data.at[index, 'r1'] = row['r2']
-								data.at[index, 'r2'] = r1tmp						
-								#will want to swap L1 and T1 too if using newer files
 
-						data['r1'].replace(0., 1e-10, inplace = True)
-						data['r2'].replace(0., 1e-10, inplace = True)
-						data['m1'].replace(0., 1e-10, inplace = True)
-						data['m2'].replace(0., 1e-10, inplace = True)
-						logg1 = np.log10((constants.G*data['m1'].values*units.solMass/(data['r1'].values*units.solRad)**2.).decompose().to(units.cm/units.s**2.).value)
-						logg2 = np.log10((constants.G*data['m2'].values*units.solMass/(data['r2'].values*units.solRad)**2.).decompose().to(units.cm/units.s**2.).value)
-						data['logg1'] = logg1
-						data['logg2'] = logg2
+
 
 
 
