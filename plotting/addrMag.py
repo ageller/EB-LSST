@@ -13,6 +13,7 @@ from dust_extinction.parameter_averages import F04
 RV=3.1
 wavelength = (552. + 691.)/2.
 filterFilesRoot = '/Users/ageller/WORK/LSST/onGitHub/EBLSST/input/filters/'
+#filterFilesRoot = '/projects/p30137/ageller/EBLSST/input/filters/'
 
 def getrMagBinary(L1, T1, g1, r1, L2, T2, g2, r2, M_H, dist, AV, extVal):
 
@@ -130,8 +131,8 @@ def updateMag(directory = 'output_files'):
 				if (row['appMagMean_r'] == -999.):
 					rMag[index] = getrMagBinary(row['L1'], row['Teff1'], logg1[index], row['r1'], row['L2'], row['Teff2'], logg2[index], row['r2'], row['[M/H]'], row['d'], row['Av'], extVal)
 					print(index, rMag[index])
-				if (index > 10):
-					break
+				# if (index > 10):
+				# 	break
 
 			data['appMagMean_r'] = rMag
 
@@ -152,4 +153,5 @@ def updateMag(directory = 'output_files'):
 if __name__ == "__main__":
 
 	updateMag('/Users/ageller/WORK/LSST/fromQuest/clusters/GlobularClusters/withCrowding/TRILEGALrband/eccEclipse/baseline/output_files')
+	#updateMag('output_files')
 
