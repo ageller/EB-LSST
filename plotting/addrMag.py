@@ -91,8 +91,7 @@ def updateMag(directory = 'output_files'):
 	ext = F04(Rv=RV)
 	extVal = ext(wavelength*units.nm)
 
-	for i, f in enumerate(files):
-		print(round(i/len(files),4), f)
+	for index, f in enumerate(files):
 		fl = file_len(os.path.join(directory,f))
 
 		if (fl >= 4):
@@ -104,13 +103,13 @@ def updateMag(directory = 'output_files'):
 			#swap locations so that m1 is always > m2
 			check = data.loc[(data['m2'] > data['m1'])]
 			if (len(check.index) > 0):
-				for index, row in check.iterrows():
+				for i, row in check.iterrows():
 					m1tmp = row['m1']
-					data.at[index, 'm1'] = row['m2']
-					data.at[index, 'm2'] = m1tmp
+					data.at[i, 'm1'] = row['m2']
+					data.at[i, 'm2'] = m1tmp
 					r1tmp = row['r1']
-					data.at[index, 'r1'] = row['r2']
-					data.at[index, 'r2'] = r1tmp
+					data.at[i, 'r1'] = row['r2']
+					data.at[i, 'r2'] = r1tmp
 					# g1tmp = row['logg1']
 					# data.at[index, 'logg1'] = row['logg2']
 					# data.at[index, 'logg2'] = g1tmp							
@@ -127,11 +126,17 @@ def updateMag(directory = 'output_files'):
 
 			#get the magnitudes if needed
 			rMag = data['appMagMean_r'].values
-			for index, row in data.iterrows():
+			for i, row in data.iterrows():
 				if (row['appMagMean_r'] == -999.):
-					rMag[index] = getrMagBinary(row['L1'], row['Teff1'], logg1[index], row['r1'], row['L2'], row['Teff2'], logg2[index], row['r2'], row['[M/H]'], row['d'], row['Av'], extVal)
-					print(index, rMag[index])
-				# if (index > 10):
+					try:
+						rMag[i] = getrMagBinary(row['L1'], row['Teff1'], logg1[i], row['r1'], row['L2'], row['Teff2'], logg2[i], row['r2'], row['[M/H]'], row['d'], row['Av'], extVal)
+					except:
+						try:
+							rMag[i] = getrMagSingle(row['L1'], row['Teff1'], logg1[i], row['r1'],  row['[M/H]'], row['d'], row['Av'], extVal)
+						except:
+							print('bad mag',row['L1'], row['Teff1'], logg1[i], row['r1'], row['L2'], row['Teff2'], logg2[i], row['r2'], row['[M/H]'], row['d'], row['Av'])
+					print(i, rMag[i])
+				# if (i > 10):
 				# 	break
 
 			data['appMagMean_r'] = rMag
@@ -149,6 +154,8 @@ def updateMag(directory = 'output_files'):
 
 			#now the rest of the data
 			data.to_csv(fnew, mode='a', index=False)
+
+		print(round(i/len(files),4), f)
 
 if __name__ == "__main__":
 
