@@ -1263,8 +1263,16 @@ class EBLSSTanalyzer(object):
 
 				#read in rest of the file
 				data = pd.read_csv(os.path.join(self.directory,f), header = 2).fillna(-999)
+
+
+
 				if (data['m1'][0] != -1): #these are files that were not even run
 
+##        self.magLims = np.array([15.8, 25.]) #lower and upper limits on the magnitude detection assumed for LSST: 15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
+
+					#limit to the magnitude range of LSST
+					data = data.loc[(data['appMagMean_r'] <= 25) & (data['appMagMean_r'] > 15.8)]
+					
 					#swap locations so that m1 is always > m2
 					check = data.loc[(data['m2'] > data['m1'])]
 					if (len(check.index) > 0):
@@ -1299,6 +1307,8 @@ class EBLSSTanalyzer(object):
 
 					if (self.noGiants):
 						data = data.loc[((data['Teff1'] > 5500) | (data['L1'] < 10)) & (data['Teff2'] > 5500) | (data['L2'] < 10)]
+
+
 
 
 					prsa = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] > 15.8) & (data['p'] < 1000) & (data['p'] > 0.5)]
