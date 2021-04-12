@@ -1313,7 +1313,8 @@ class EBLSSTanalyzer(object):
 		#####################
 				if (self.cluster):
 					Nmult = header['clusterMass'][0]/self.mMean
-					clusterID = f.substr(0,'__output_file.csv')
+					p = f.find('__output_file.csv')
+					clusterID = f[0:p]
 				else:
 					Nmult = header['NstarsTRILEGAL'][0]
 				NstarsReal = Nmult
@@ -1377,23 +1378,24 @@ class EBLSSTanalyzer(object):
 				data['logg1'] = logg1
 				data['logg2'] = logg2
 
-				#get the approximate magnitudes for the primary stars from the isochrone for clusters, so that I can limit the sample
+				#get the approximate magnitudes for binary from the isochrone for clusters, so that I can limit the sample
 				if (self.cluster):
-					print(clusterID, data['appMagMean_r'])
+					#print(clusterID, data['appMagMean_r'])
 					#read in the isochrone file that I have already downloaded
-					isoFile = '/Users/ageller/WORK/LSST/onGitHub/EBLSST/input/isochrones/'+self.clusterType+'/'+clusterID+'.csv'
+					isoFile = '/Users/ageller/WORK/LSST/onGitHub/EBLSST/input/isochrones/'+self.clusterType+'s/'+clusterID+'.csv'
 					isodf = pd.read_csv(isoFile, comment='#')
+					isodf.sort_values('logL', inplace=True)
 					#get the reddening
 					ext = F04(Rv=3.1)
 					wavelength = (552. + 691.)/2.
-					Ared = ext(wavelength*units.nm)*isodf['Av'][0] #these will all have the same Av value
+					Ared = ext(wavelength*units.nm)*data['Av'][0] #all stars in the cluster will have same Av value
 					rMag = data['appMagMean_r'].values
 					for index, row in data.iterrows():
 						if (row['appMagMean_r'] == -999.):
-							Mag = np.interp(row['m1'],isodf['Mass'], isodf['rmag'])
+							Mag = np.interp(np.log10(row['L1'] + row['L2']), isodf['logL'], isodf['rmag'])
 							rMag[index] = Mag + 5*np.log10(row['d']*100) + Ared #d is in kpc, and I need d(pc)/10pc = d(kpc)*1000/10 = d(kpd)*100
 					data['appMagMean_r'] = rMag
-					print(data['appMagMean_r'])
+					#print(data['appMagMean_r'])
 
 				Nall = len(data.index)/intNorm  #saving this in case we want to limit the entire analysis to DWDs, but still want the full sample size for the cumulative numbers
 
@@ -1401,7 +1403,7 @@ class EBLSSTanalyzer(object):
 
 				#limit to the magnitude range of LSST
 				data = data.loc[(data['appMagMean_r'] <= 25) & (data['appMagMean_r'] > 15.8)].reset_index()
-				print('   file length', len(data))
+				print('   file length, N in mag limits', Nall, len(data.index))
 				if (len(data) > 0):
 					if (data['m1'][0] != -1): #these are files that were not even run
 
