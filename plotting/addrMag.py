@@ -1,3 +1,5 @@
+#NOTE: this is WAY too slow to do for all stars in my samples
+
 import pandas as pd
 import numpy as np
 import os

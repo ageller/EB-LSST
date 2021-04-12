@@ -25,6 +25,7 @@ from SED import SED
 from dust_extinction.parameter_averages import F04
 
 def getrMagBinary(L1, T1, g1, r1, L2, T2, g2, r2, M_H, dist, AV, RV=3.1):
+#very slow
 
 	filterFilesRoot = '/Users/ageller/WORK/LSST/onGitHub/EBLSST/input/filters/'
 	wavelength = (552. + 691.)/2.
@@ -73,6 +74,7 @@ def getrMagBinary(L1, T1, g1, r1, L2, T2, g2, r2, M_H, dist, AV, RV=3.1):
 
 
 def getrMagSingle(L1, T1, g1, r1, M_H, dist, AV, RV=3.1):
+#very slow
 
 	filterFilesRoot = '/Users/ageller/WORK/LSST/onGitHub/EBLSST/input/filters/'
 	wavelength = (552. + 691.)/2.
@@ -108,6 +110,7 @@ class EBLSSTanalyzer(object):
 				plotsDirectory ='plots',
 				doIndividualPlots = True,
 				cluster = False,
+				clusterType = None,
 				mMean = 0.5,
 				filters = ['u_', 'g_', 'r_', 'i_', 'z_', 'y_', 'all'],
 				Pcut = 0.1,
@@ -121,6 +124,7 @@ class EBLSSTanalyzer(object):
 		self.plotsDirectory = plotsDirectory
 		self.doIndividualPlots = doIndividualPlots
 		self.cluster = cluster
+		self.clusterType = clusterType
 		self.mMean = mMean #assumed mean stellar mass (for cluster analysis)
 		self.filters = filters
 		self.Pcut = Pcut #cutoff in percent error for "recovered"
@@ -1298,7 +1302,6 @@ class EBLSSTanalyzer(object):
 
 		#Read in all the data and make the histograms
 		files = os.listdir(self.directory)
-		IDs = []
 		for i, f in enumerate(files):
 			print(round(i/len(files),4), f)
 			fl = self.file_len(os.path.join(self.directory,f))
@@ -1310,6 +1313,7 @@ class EBLSSTanalyzer(object):
 		#####################
 				if (self.cluster):
 					Nmult = header['clusterMass'][0]/self.mMean
+					clusterID = f.substr(0,'__output_file.csv')
 				else:
 					Nmult = header['NstarsTRILEGAL'][0]
 				NstarsReal = Nmult
@@ -1373,15 +1377,23 @@ class EBLSSTanalyzer(object):
 				data['logg1'] = logg1
 				data['logg2'] = logg2
 
-				#get the magnitudes if needed
-				print(data['appMagMean_r'])
-				rMag = data['appMagMean_r'].values
-				for index, row in data.iterrows():
-					if (row['appMagMean_r'] == -999.):
-						print(index)
-						rMag[index] = getrMagSingle(row['L1'], row['Teff1'], row['logg1'], row['r1'], row['[M/H]'], row['d'], row['Av'])
-				data['appMagMean_r'] = rMag
-				print(data['appMagMean_r'])
+				#get the approximate magnitudes for the primary stars from the isochrone for clusters, so that I can limit the sample
+				if (self.cluster):
+					print(clusterID, data['appMagMean_r'])
+					#read in the isochrone file that I have already downloaded
+					isoFile = '/Users/ageller/WORK/LSST/onGitHub/EBLSST/input/isochrones/'+self.clusterType+'/'+clusterID+'.csv'
+					isodf = pd.read_csv(isoFile, comment='#')
+					#get the reddening
+					ext = F04(Rv=3.1)
+					wavelength = (552. + 691.)/2.
+					Ared = ext(wavelength*units.nm)*isodf['Av'][0] #these will all have the same Av value
+					rMag = data['appMagMean_r'].values
+					for index, row in data.iterrows():
+						if (row['appMagMean_r'] == -999.):
+							Mag = np.interp(row['m1'],isodf['Mass'], isodf['rmag'])
+							rMag[index] = Mag + 5*np.log10(row['d']*100) + Ared #d is in kpc, and I need d(pc)/10pc = d(kpc)*1000/10 = d(kpd)*100
+					data['appMagMean_r'] = rMag
+					print(data['appMagMean_r'])
 
 				Nall = len(data.index)/intNorm  #saving this in case we want to limit the entire analysis to DWDs, but still want the full sample size for the cumulative numbers
 
