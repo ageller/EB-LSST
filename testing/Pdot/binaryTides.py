@@ -276,7 +276,21 @@ class TidesIntegrator():
 
 
 
-def initBinary(m1 = 1*units.solMass, m2 = 1*units.solMass, p = 8*units.day, e = 0.8, omega1 = None, omega2 = None, units_holder = None):
+def initBinary(m1 = 1*units.solMass, 
+			   m2 = 1*units.solMass, 
+			   p = 8*units.day, 
+			   e = 0.8,
+			   m1e = None,
+			   m2e = None,
+			   r1e = None,
+			   r2e = None,
+			   m1c = None,
+			   m2c = None,
+			   r1c = None,
+			   r2c = None,
+			   omega1 = None, 
+			   omega2 = None, 
+			   units_holder = None):
 
 	if (units_holder is None):
 		units_holder = unitsHolder()
