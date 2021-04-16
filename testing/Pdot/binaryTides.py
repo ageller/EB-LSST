@@ -148,7 +148,22 @@ class Binary():
 		# &         ((mass(1)*mass(2)*twopi)**2*aursun**3*(1.d0-ecc*ecc))
 		return Jorb**2.*(self.star1.mass + self.star2.mass)/(self.units_holder.Gconst*(self.star1.mass*self.star2.mass)**2.*(1. - self.eccentricity**2.))
 
+	def Eggleton_RL(self):
+	#Eggleton (1983) Roche Lobe
+	#assuming synchronous rotation
+	#but taking the separation at pericenter
+		a = self.semi_major_axis*(1. - self.eccentricity)
+
+		q1 = self.star1.mass/self.star2.mass
+		rl1 = a*0.49*q1**(2./3.)/(0.6*q1**(2./3.) + np.log(1. + q1**(1./3.))) 
+
+		q2 = self.star2.mass/self.star1.mass
+		rl2 = a*0.49*q2**(2./3.)/(0.6*q2**(2./3.) + np.log(1. + q2**(1./3.))) 
+
+		return rl1, rl2
+
 	def evolve(self, time):
+		#this only advances the stars in stellar evolution
 		if (self.bcm is not None):
 			self.star1.evolve(time)
 			self.star2.evolve(time)
@@ -177,6 +192,13 @@ class TidesIntegrator():
 
 		self.diffo10 = 1.
 		self.diffo10 = 2.
+
+
+		self.dadt = 0.
+		self.dpdt = 0.
+		self.dedt = 0.
+		self.do1dt = 0.
+		self.do2dt = 0.
 
 
 	def KT_equilibrium(self, m, r, me, re, L, omega, a, q):
@@ -232,10 +254,11 @@ class TidesIntegrator():
 	#Note Hurley gives equation for Jdot and J = I*omega so omegadot = Jdot/I
 		return self.MBfac*(me/m)*(r*omega)**3./mI
 
-	def integrateTidesStep(self):
+	def integrateTidesStep(self, dt=None):
 		#binary is a class containing star1 and star2 (also classes) containing information about each stars and without units
 
-		dt = self.end_time - self.current_time
+		if (dt is None):
+			dt = self.end_time - self.current_time
 
 		if (self.binary.semi_major_axis > 0):
 
@@ -271,28 +294,37 @@ class TidesIntegrator():
 			#print(self.current_time, self.diffo10, diffo1, oeq, o1)
 			#print(start_time, dt, (edot1 + edot2)*dt, (adot1 + adot2)*dt)
 
+			o10 = self.binary.star1.omega
+			o20 = self.binary.star2.omega
 			self.binary.star1.omega = o1
 			self.binary.star2.omega = o2
+			self.do1dt = (o10 - self.binary.star1.omega)/dt
+			self.do2dt = (o20 - self.binary.star1.omega)/dt
 
 			Jb = self.binary.Jorb()
 
+			e0 = self.binary.eccentricity
 			self.binary.eccentricity += (edot1 + edot2)*dt
 			self.binary.eccentricity = np.clip(self.binary.eccentricity, 0., 1.)
+			self.dedt = (e0 - self.binary.eccentricity)/dt
 
+			#self.binary.semi_major_axis += (adot1 + adot2)*dt
 			#define the semi-major axis based on angular momentum?
 			Jdotspin = self.binary.star1.moment_of_inertia*(omegadot1 + omegadotmb1) + self.binary.star2.moment_of_inertia*(omegadot2 + omegadotmb2)
 			Jb -= Jdotspin*dt
+			a0 = self.binary.semi_major_axis
 			self.binary.semi_major_axis = self.binary.aFromJorb(Jb)
-
-			#self.binary.semi_major_axis += (adot1 + adot2)*dt
 			self.binary.semi_major_axis = np.max([0., self.binary.semi_major_axis])
+			self.dadt = (a0 - self.binary.semi_major_axis)/dt
 
+			p0 = self.binary.period
 			self.binary.period = 2.*np.pi*(self.binary.semi_major_axis**3./(self.units_holder.Gconst*self.binary.star1.mass*(1. + self.binary.star2.mass/self.binary.star1.mass)))**0.5
+			self.dpdt = (p0 - self.binary.period)/dt
 
-			self.current_time += dt
+		self.current_time += dt
 
 
-	def evolve(self, end_time):
+	def evolve(self, end_time, dt = None):
 		#check
 		# Jorb = JorbBinary(binary)
 		# print("check", binary.semi_major_axis, aFromJorb(binary, Jorb))#, Jorb, 
@@ -300,7 +332,10 @@ class TidesIntegrator():
 		# 	binary.star1.mass*binary.star2.mass/(binary.star1.mass + binary.star2.mass)**0.5*(1. - binary.eccentricity**2.)**0.5*binary.semi_major_axis**0.5*Gconst**0.5
 		# 	)
 
+
 		self.end_time = end_time.to(self.units_holder.time_unit).value
+		if (dt is not None):
+			dt = dt.to(self.units_holder.time_unit).value
 
 		self.current_time = 0.
 
@@ -310,6 +345,11 @@ class TidesIntegrator():
 		p_out = [self.binary.period]
 		o1_out = [self.binary.star1.omega]
 		o2_out = [self.binary.star2.omega]
+		dadt_out = [self.dadt]
+		dedt_out = [self.dedt]
+		dpdt_out = [self.dpdt]
+		do1dt_out = [self.do1dt]
+		do2dt_out = [self.do2dt]
 
 		oeq = self.omega_eq(self.binary.eccentricity, self.binary.period)
 		self.diffo10 = np.sign(self.binary.star1.omega - oeq)
@@ -318,7 +358,16 @@ class TidesIntegrator():
 		while self.current_time < self.end_time:
 
 			self.binary.evolve(self.current_time*self.units_holder.time_unit)
-			self.integrateTidesStep()
+			self.integrateTidesStep(dt = dt)
+
+			#check for a merger
+			if (self.binary.semi_major_axis > 0):
+				rl1, rl2 = self.binary.Eggleton_RL()
+				if (self.binary.star1.radius/rl1 > 1 or self.binary.star2.radius/rl2 > 1):
+					self.binary.semi_major_axis = 0
+					self.binary.period = 0
+					self.binary.eccentricity = 0
+
 
 			if (self.integrateSuccess):
 
@@ -328,7 +377,11 @@ class TidesIntegrator():
 				p_out.append(self.binary.period)
 				o1_out.append(self.binary.star1.omega)
 				o2_out.append(self.binary.star2.omega)
-
+				dadt_out.append(self.dadt)
+				dedt_out.append(self.dedt)
+				dpdt_out.append(self.dpdt)
+				do1dt_out.append(self.do1dt)
+				do2dt_out.append(self.do2dt)
 			else:
 				print('**INTEGRATION FAILED', self.current_time*self.units_holder.time_unit.to(units.Myr))
 				break
@@ -340,7 +393,11 @@ class TidesIntegrator():
 		self.result['porb'] = np.array(p_out)*self.units_holder.time_unit
 		self.result['omega1'] = np.array(o1_out)/self.units_holder.time_unit
 		self.result['omega2'] = np.array(o2_out)/self.units_holder.time_unit
-
+		self.result['dadt'] = np.array(dadt_out)*self.units_holder.length_unit/self.units_holder.time_unit
+		self.result['dedt'] = np.array(dedt_out)/self.units_holder.time_unit
+		self.result['dpdt'] = np.array(dpdt_out)*self.units_holder.time_unit/self.units_holder.time_unit
+		self.result['do1dt'] = np.array(do1dt_out)/self.units_holder.time_unit**2.
+		self.result['do2dt'] = np.array(do2dt_out)/self.units_holder.time_unit**2.
 
 
 def initBinary(m1 = 1*units.solMass, 
