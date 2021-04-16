@@ -25,8 +25,8 @@ class Star():
 		convective_envelope_mass, 
 		convective_envelope_radius,
 		omega, #rad/time
-		gyration_radius,
-		units_holder):
+		units_holder,
+		sev = None):
 
 		self.mass = mass.to(units_holder.mass_unit).value
 		self.radius = radius.to(units_holder.length_unit).value
@@ -34,23 +34,53 @@ class Star():
 		self.convective_envelope_mass = convective_envelope_mass.to(units_holder.mass_unit).value
 		self.convective_envelope_radius = convective_envelope_radius.to(units_holder.length_unit).value
 		self.omega = omega.to(1./units_holder.time_unit).value
-		self.gyration_radius = gyration_radius
 
-		self.core_radius = 0.
+		self.rzams = self.radius 
 		self.core_mass = 0.
-		self.moment_of_inertia = self.calcMI()
-		
+		self.core_radius = 0.
+		self.gyration_radius = self.calcRg()
+		self.moment_of_inertia = self.calcI()
+
 		self.units_holder = units_holder
 
-	def calcMI(self):
-	#found in eq 35 of Hurley et al 2002.  (previously I had used rg for this.  Maybe I should here too?)
+		self.sev = sev
+
+	def calcI(self):
+	#eq 35 of Hurley et al 2002. 
 	#mc and rc are core mass and radius
 	#with mc=rc=0, this reduces to the usual formula for moment of inertia
-		k2p = 0.1
+		#k2p = 0.1
+		k2p = self.gyration_radius**2.
 		k3p = 0.21
 		# return rg**2.*(m - mc)*r**2. + k3p*mc*rc**2.
 		return k2p*(self.mass - self.core_mass)*self.radius**2. + k3p*self.core_mass*self.core_radius**2.
 
+	def calcRg(self):
+	#from BSE
+		logm = np.log10(self.mass)
+		A = np.max([0.81, np.max([0.68, 0.68 + 0.4*logm])])
+		C = np.max([-2.5, np.min([-1.5, -2.5 + 5.0*logm])])
+		D = -0.1
+		E = 0.025
+
+		k2z = np.min([0.21, np.max([0.09 - 0.27*logm, 0.037 + 0.033*logm])])
+		k2e = (k2z - E)*(self.radius/self.rzams)**C + E*(self.radius/self.rzams)**D #=rg**2.
+
+		#print("gyration radius", k2e**0.5, k2e)
+		return k2e**0.5
+
+	def evolve(self, time):
+		if (self.sev is not None):
+			t = time.to(self.units_holder.time_unit).value
+			self.mass = np.interp(t, (self.sev['tphys']).to(self.units_holder.time_unit).value, self.sev['mass'].to(self.units_holder.mass_unit).value)
+			self.radius = np.interp(t, (self.sev['tphys']).to(self.units_holder.time_unit).value, self.sev['rad'].to(self.units_holder.length_unit).value)
+			self.luminosity = np.interp(t, (self.sev['tphys']).to(self.units_holder.time_unit).value, self.sev['lum'].to(self.units_holder.mass_unit*self.units_holder.length_unit**2*self.units_holder.time_unit**-3).value)
+			self.convective_envelope_mass = np.interp(t, (self.sev['tphys']).to(self.units_holder.time_unit).value, self.sev['menv'].to(self.units_holder.mass_unit).value)
+			self.convective_envelope_radius = np.interp(t, (self.sev['tphys']).to(self.units_holder.time_unit).value, self.sev['renv'].to(self.units_holder.length_unit).value)
+			self.core_mass = np.interp(t, (self.sev['tphys']).to(self.units_holder.time_unit).value, self.sev['massc'].to(self.units_holder.mass_unit).value)
+			self.core_radius = np.interp(t, (self.sev['tphys']).to(self.units_holder.time_unit).value, self.sev['radc'].to(self.units_holder.length_unit).value)
+			self.gyration_radius = self.calcRg()
+			self.moment_of_inertia = self.calcI()
 
 class Binary():
 	#this should be sent values with units, and will return unitless values in the units from above
@@ -60,7 +90,8 @@ class Binary():
 		star2,
 		semi_major_axis,
 		eccentricity,
-		units_holder
+		units_holder,
+		bcm = None #astropy table, e.g., from cosmic : bcm = Table.from_pandas(bcmIn),
 		):
 
 		self.star1 = star1
@@ -71,6 +102,31 @@ class Binary():
 
 		self.units_holder = units_holder
 
+		self.bcm = bcm
+
+		#define the sev terms for the stars 
+		if (bcm is not None):
+			t1 = Table()
+			t1['tphys'] = bcm['tphys']*units.Myr
+			t1['mass'] = bcm['mass_1']*units.solMass
+			t1['menv'] = bcm['menv_1']*units.solMass
+			t1['massc'] = bcm['massc_1']*units.solMass
+			t1['rad'] = bcm['rad_1']*units.solRad
+			t1['renv'] = bcm['renv_1']*units.solRad
+			t1['radc'] = bcm['radc_1']*units.solRad
+			t1['lum'] = bcm['lum_1']*units.solLum
+			self.star1.sev = t1
+
+			t2 = Table()
+			t2['tphys'] = bcm['tphys']*units.Myr
+			t2['mass'] = bcm['mass_2']*units.solMass
+			t2['menv'] = bcm['menv_2']*units.solMass
+			t2['massc'] = bcm['massc_2']*units.solMass
+			t2['rad'] = bcm['rad_2']*units.solRad
+			t2['renv'] = bcm['renv_2']*units.solRad
+			t2['radc'] = bcm['radc_2']*units.solRad
+			t2['lum'] = bcm['lum_2']*units.solLum
+			self.star2.sev = t2
 
 
 	def angularMomentum(self):
@@ -91,6 +147,11 @@ class Binary():
 		#     sep = (mass(1) + mass(2))*jorb*jorb/
 		# &         ((mass(1)*mass(2)*twopi)**2*aursun**3*(1.d0-ecc*ecc))
 		return Jorb**2.*(self.star1.mass + self.star2.mass)/(self.units_holder.Gconst*(self.star1.mass*self.star2.mass)**2.*(1. - self.eccentricity**2.))
+
+	def evolve(self, time):
+		if (self.bcm is not None):
+			self.star1.evolve(time)
+			self.star2.evolve(time)
 
 
 class TidesIntegrator():
@@ -113,6 +174,9 @@ class TidesIntegrator():
 		self.units_holder = units_holder
 
 		self.MBfac = (-5.83*10**(-16)*units.solMass*units.yr/units.solRad).to(units_holder.mass_unit*units_holder.time_unit/units_holder.length_unit).value
+
+		self.diffo10 = 1.
+		self.diffo10 = 2.
 
 
 	def KT_equilibrium(self, m, r, me, re, L, omega, a, q):
@@ -193,23 +257,20 @@ class TidesIntegrator():
 			#ensure that the spin doesn't cross the equilibrium spin (as in BSE)
 			#check which side of the equilibrium spin we are on
 			oeq = self.omega_eq(self.binary.eccentricity, self.binary.period)
-			diffo10 = np.sign(self.binary.star1.omega - oeq)
-			diffo20 = np.sign(self.binary.star2.omega - oeq)
 			o1 = self.binary.star1.omega + (omegadot1 + omegadotmb1)*dt
 			o2 = self.binary.star2.omega + (omegadot2 + omegadotmb2)*dt
 			diffo1 = np.sign(o1 - oeq)
-			if (diffo10 != diffo1):
-				#print('omega1 hitting eq limit', start_time, o1, oeq, diffo10, diffo1)
+			if (self.diffo10 != diffo1):
+				#print('omega1 hitting eq limit', self.current_time, o1, oeq, self.diffo10, diffo1)
 				o1 = oeq
 			diffo2 = np.sign(o2 - oeq)
-			if (diffo20 != diffo2):
-				#print('omega2 hitting eq limit', start_time, o2, seq, diffo20, diffo2)
+			if (self.diffo20 != diffo2):
+				#print('omega2 hitting eq limit', self.current_time, o2, seq, self.diffo20, diffo2)
 				o2 = oeq
 
+			#print(self.current_time, self.diffo10, diffo1, oeq, o1)
 			#print(start_time, dt, (edot1 + edot2)*dt, (adot1 + adot2)*dt)
 
-			do1 = self.binary.star1.omega - o1
-			do2 = self.binary.star1.omega - o2
 			self.binary.star1.omega = o1
 			self.binary.star2.omega = o2
 
@@ -249,8 +310,14 @@ class TidesIntegrator():
 		p_out = [self.binary.period]
 		o1_out = [self.binary.star1.omega]
 		o2_out = [self.binary.star2.omega]
+
+		oeq = self.omega_eq(self.binary.eccentricity, self.binary.period)
+		self.diffo10 = np.sign(self.binary.star1.omega - oeq)
+		self.diffo20 = np.sign(self.binary.star2.omega - oeq)
+
 		while self.current_time < self.end_time:
 
+			self.binary.evolve(self.current_time*self.units_holder.time_unit)
 			self.integrateTidesStep()
 
 			if (self.integrateSuccess):
@@ -278,6 +345,10 @@ class TidesIntegrator():
 
 def initBinary(m1 = 1*units.solMass, 
 			   m2 = 1*units.solMass, 
+			   r1 = 1*units.solRad,
+			   r2 = 1*units.solRad,
+			   L1 = 1*units.solLum,
+			   L2 = 1*units.solLum,
 			   p = 8*units.day, 
 			   e = 0.8,
 			   m1e = None,
@@ -290,7 +361,8 @@ def initBinary(m1 = 1*units.solMass,
 			   r2c = None,
 			   omega1 = None, 
 			   omega2 = None, 
-			   units_holder = None):
+			   units_holder = None,
+			   bcm = None):
 
 	if (units_holder is None):
 		units_holder = unitsHolder()
@@ -306,6 +378,24 @@ def initBinary(m1 = 1*units.solMass,
 	#but start synchronized here
 
 
+	if (bcm is not None):
+		m1 = bcm['mass_1'].data[0]*units.solMass
+		m2 = bcm['mass_2'].data[0]*units.solMass
+		m1e = bcm['menv_1'].data[0]*units.solMass
+		m2e = bcm['menv_2'].data[0]*units.solMass
+		m1c = bcm['massc_1'].data[0]*units.solMass
+		m2c = bcm['massc_2'].data[0]*units.solMass
+		r1 = bcm['rad_1'].data[0]*units.solRad
+		r2 = bcm['rad_2'].data[0]*units.solRad
+		r1e = bcm['renv_1'].data[0]*units.solRad
+		r2e = bcm['renv_2'].data[0]*units.solRad
+		r1c = bcm['radc_1'].data[0]*units.solRad
+		r2c = bcm['radc_2'].data[0]*units.solRad
+		omega1 = bcm['omega_spin_1'].data[0]*units.yr**-1
+		omega2 = bcm['omega_spin_2'].data[0]*units.yr**-1
+		L1 = bcm['lum_1'].data[0]*units.solLum
+		L2 = bcm['lum_2'].data[0]*units.solLum
+
 	a = ((((p/(2.*np.pi))**2.*constants.G*(m1 + m2)))**(1./3.)).decompose().to(units.AU)
 	print('binary semi-major axis = ',a)
 
@@ -320,23 +410,21 @@ def initBinary(m1 = 1*units.solMass,
 
 	star1 = Star(
 		mass = m1,
-		radius = 1.*units.solRad,
-		luminosity = 1.*units.solLum,
-		convective_envelope_radius = 0.230702*units.solRad, #from BSE
-		convective_envelope_mass = 0.032890*units.solMass, #from BSE
+		radius = r1,
+		luminosity = L1,
+		convective_envelope_mass = m1e, 
+		convective_envelope_radius = r1e, 
 		omega = omega1,
-		gyration_radius = 0.07**0.5,
 		units_holder = units_holder
 		)
 
 	star2 = Star(
 		mass = m2,
-		radius = 1.*units.solRad,
-		luminosity = 1.*units.solLum,
-		convective_envelope_radius = 0.230702*units.solRad, #from BSE
-		convective_envelope_mass = 0.032890*units.solMass, #from BSE
+		radius = r2,
+		luminosity = L2,
+		convective_envelope_mass = m2e, 
+		convective_envelope_radius = r2e,
 		omega = omega2,
-		gyration_radius = 0.07**0.5,
 		units_holder = units_holder
 		)
 
@@ -345,7 +433,8 @@ def initBinary(m1 = 1*units.solMass,
 		star2 = star2,
 		eccentricity = e,
 		semi_major_axis = a,
-		units_holder = units_holder
+		units_holder = units_holder,
+		bcm = bcm
 	)
 
 
