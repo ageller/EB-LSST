@@ -147,6 +147,7 @@ class EBLSSTanalyzer(object):
 		self.outputNumbers['rawN'] = []
 		self.outputNumbers['obsN'] = []
 		self.outputNumbers['fileN'] = []
+		self.outputNumbers['fileMagN'] = []
 		self.outputNumbers['fileObsN'] = []
 		self.outputNumbers['fileRecN'] = []
 		self.outputNumbers['allNPrsa'] = []
@@ -1337,6 +1338,7 @@ class EBLSSTanalyzer(object):
 				raN = 0.
 				obN = 0.
 				fiN = 0.
+				fiNMag = 0.
 				fioN = 0.
 				firN = 0.
 				Nall = 0.
@@ -1348,6 +1350,7 @@ class EBLSSTanalyzer(object):
 				NallDWD = 0.
 				NobsDWD = 0.
 				NrecDWD = 0.
+				fb = 0.
 
 				#read in rest of the file
 				data = pd.read_csv(os.path.join(self.directory,f), header = 2).fillna(-999)
@@ -1777,6 +1780,7 @@ class EBLSSTanalyzer(object):
 					raN = NallMag/Nall*Nmult
 					obN = Nobs/Nall*Nmult
 					fiN = Nall
+					fiNMag = NallMag
 					fioN = Nobs
 					firN = Nrec
 
@@ -1802,6 +1806,7 @@ class EBLSSTanalyzer(object):
 				self.outputNumbers['obsN'].append(obN)
 
 				self.outputNumbers['fileN'].append(fiN)
+				self.outputNumbers['fileMagN'].append(fiNMag)
 				self.outputNumbers['fileObsN'].append(fioN)
 				self.outputNumbers['fileRecN'].append(firN)
 
@@ -2102,25 +2107,25 @@ class EBLSSTanalyzer(object):
 
 		#print summary stats
 		print("###################")
-		print("number of binaries in input files (raw, log):",np.sum(self.outputNumbers['fileN']), np.log10(np.sum(self.outputNumbers['fileN'])))
-		print("number of binaries in tested with gatspy (raw, log):",np.sum(self.outputNumbers['fileObsN']), np.log10(np.sum(self.outputNumbers['fileObsN'])))
-		print("number of binaries in recovered with gatspy (raw, log):",np.sum(self.outputNumbers['fileRecN']), np.log10(np.sum(self.outputNumbers['fileRecN'])))
-		print("recovered/observable*100 with gatspy:",np.sum(self.outputNumbers['fileRecN'])/np.sum(self.outputNumbers['fileObsN'])*100.)
+		print("number of binaries in input files (raw, log):",np.nansum(self.outputNumbers['fileN']), np.log10(np.nansum(self.outputNumbers['fileN'])))
+		print("number of binaries in tested with gatspy (raw, log):",np.nansum(self.outputNumbers['fileObsN']), np.log10(np.nansum(self.outputNumbers['fileObsN'])))
+		print("number of binaries in recovered with gatspy (raw, log):",np.nansum(self.outputNumbers['fileRecN']), np.log10(np.nansum(self.outputNumbers['fileRecN'])))
+		print("recovered/observable*100 with gatspy:",np.nansum(self.outputNumbers['fileRecN'])/np.nansum(self.outputNumbers['fileObsN'])*100.)
 		print("###################")
-		print("total in sample (raw, log):",np.sum(self.outputNumbers['rawN']), np.log10(np.sum(self.outputNumbers['rawN'])))
-		print("total observable (raw, log):",np.sum(self.outputNumbers['obsN']), np.log10(np.sum(self.outputNumbers['obsN'])))
-		print("total recovered (raw, log):",np.sum(self.outputNumbers['recN']), np.log10(np.sum(self.outputNumbers['recN'])))
-		print("recovered/observable*100:",np.sum(self.outputNumbers['recN'])/np.sum(self.outputNumbers['obsN'])*100.)
+		print("total in sample (raw, log):",np.nansum(self.outputNumbers['rawN']), np.log10(np.nansum(self.outputNumbers['rawN'])))
+		print("total observable (raw, log):",np.nansum(self.outputNumbers['obsN']), np.log10(np.nansum(self.outputNumbers['obsN'])))
+		print("total recovered (raw, log):",np.nansum(self.outputNumbers['recN']), np.log10(np.nansum(self.outputNumbers['recN'])))
+		print("recovered/observable*100:",np.nansum(self.outputNumbers['recN'])/np.nansum(self.outputNumbers['obsN'])*100.)
 		print("###################")
-		print("total in Prsa 15.8<r<19.5 P<1000d sample (raw, log):",np.sum(self.outputNumbers['allNPrsa']), np.log10(np.sum(self.outputNumbers['allNPrsa'])))
-		print("total observable in Prsa 15.8<r<19.5 P<1000d sample (raw, log):",np.sum(self.outputNumbers['obsNPrsa']), np.log10(np.sum(self.outputNumbers['obsNPrsa'])))
-		print("total recovered in Prsa 15.8<r<19.5 P<1000d sample (raw, log):",np.sum(self.outputNumbers['recNPrsa']), np.log10(np.sum(self.outputNumbers['recNPrsa'])))
-		print("Prsa 15.8<r<19.5 P<1000d rec/obs*100:",np.sum(self.outputNumbers['recNPrsa'])/np.sum(self.outputNumbers['obsNPrsa'])*100.)
+		print("total in Prsa 15.8<r<19.5 P<1000d sample (raw, log):",np.nansum(self.outputNumbers['allNPrsa']), np.log10(np.nansum(self.outputNumbers['allNPrsa'])))
+		print("total observable in Prsa 15.8<r<19.5 P<1000d sample (raw, log):",np.nansum(self.outputNumbers['obsNPrsa']), np.log10(np.nansum(self.outputNumbers['obsNPrsa'])))
+		print("total recovered in Prsa 15.8<r<19.5 P<1000d sample (raw, log):",np.nansum(self.outputNumbers['recNPrsa']), np.log10(np.nansum(self.outputNumbers['recNPrsa'])))
+		print("Prsa 15.8<r<19.5 P<1000d rec/obs*100:",np.nansum(self.outputNumbers['recNPrsa'])/np.nansum(self.outputNumbers['obsNPrsa'])*100.)
 		print("###################")
-		print("total in DWD sample (raw, log):",np.sum(self.outputNumbers['allNDWD']), np.log10(np.sum(self.outputNumbers['allNDWD'])))
-		print("total observable in DWD sample (raw, log):",np.sum(self.outputNumbers['obsNDWD']), np.log10(np.sum(self.outputNumbers['obsNDWD'])))
-		print("total recovered in DWD sample (raw, log):",np.sum(self.outputNumbers['recNDWD']), np.log10(np.sum(self.outputNumbers['recNDWD'])))
-		print("DWD rec/obs*100:",np.sum(self.outputNumbers['recNDWD'])/np.sum(self.outputNumbers['obsNDWD'])*100.)
+		print("total in DWD sample (raw, log):",np.nansum(self.outputNumbers['allNDWD']), np.log10(np.nansum(self.outputNumbers['allNDWD'])))
+		print("total observable in DWD sample (raw, log):",np.nansum(self.outputNumbers['obsNDWD']), np.log10(np.nansum(self.outputNumbers['obsNDWD'])))
+		print("total recovered in DWD sample (raw, log):",np.nansum(self.outputNumbers['recNDWD']), np.log10(np.nansum(self.outputNumbers['recNDWD'])))
+		print("DWD rec/obs*100:",np.nansum(self.outputNumbers['recNDWD'])/np.nansum(self.outputNumbers['obsNDWD'])*100.)
 
 		#save the numbers to a file
 		df = pd.DataFrame(self.outputNumbers)
