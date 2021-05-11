@@ -1354,443 +1354,444 @@ class EBLSSTanalyzer(object):
 
 				#read in rest of the file
 				data = pd.read_csv(os.path.join(self.directory,f), header = 2).fillna(-999)
-
-				#swap locations so that m1 is always > m2
-				check = data.loc[(data['m2'] > data['m1'])]
-				if (len(check.index) > 0):
-					for index, row in check.iterrows():
-						m1tmp = row['m1']
-						data.at[index, 'm1'] = row['m2']
-						data.at[index, 'm2'] = m1tmp
-						r1tmp = row['r1']
-						data.at[index, 'r1'] = row['r2']
-						data.at[index, 'r2'] = r1tmp
-						# g1tmp = row['logg1']
-						# data.at[index, 'logg1'] = row['logg2']
-						# data.at[index, 'logg2'] = g1tmp							
-						# #will want to swap L1 and T1 too if using newer files
-
-
-				#calculate logg values
-				data['r1'].replace(0., 1e-10, inplace = True)
-				data['r2'].replace(0., 1e-10, inplace = True)
-				data['m1'].replace(0., 1e-10, inplace = True)
-				data['m2'].replace(0., 1e-10, inplace = True)
-				logg1 = np.log10((constants.G*data['m1'].values*units.solMass/(data['r1'].values*units.solRad)**2.).decompose().to(units.cm/units.s**2.).value)
-				logg2 = np.log10((constants.G*data['m2'].values*units.solMass/(data['r2'].values*units.solRad)**2.).decompose().to(units.cm/units.s**2.).value)
-				data['logg1'] = logg1
-				data['logg2'] = logg2
-
-				#get the approximate magnitudes for binary from the isochrone for clusters, so that I can limit the sample
-				if (self.cluster):
-					#print(clusterID, data['appMagMean_r'])
-					#read in the isochrone file that I have already downloaded
-					isoFile = '/Users/ageller/WORK/LSST/onGitHub/EBLSST/input/isochrones/'+self.clusterType+'s/'+clusterID+'.csv'
-					isodf = pd.read_csv(isoFile, comment='#')
-					isodf.sort_values('logL', inplace=True)
-					#get the reddening
-					ext = F04(Rv=3.1)
-					wavelength = (552. + 691.)/2.
-					Ared = ext(wavelength*units.nm)*data['Av'][0] #all stars in the cluster will have same Av value
-					rMag = data['appMagMean_r'].values
-					for index, row in data.iterrows():
-						if (row['appMagMean_r'] == -999.):
-							Mag = np.interp(np.log10(row['L1'] + row['L2']), isodf['logL'], isodf['rmag'])
-							rMag[index] = Mag + 5*np.log10(row['d']*100) + Ared #d is in kpc, and I need d(pc)/10pc = d(kpc)*1000/10 = d(kpd)*100
-					data['appMagMean_r'] = rMag
-					#print(data['appMagMean_r'])
-
 				Nall = len(data.index)/intNorm  #saving this in case we want to limit the entire analysis to DWDs, but still want the full sample size for the cumulative numbers
 
-##        self.magLims = np.array([15.8, 25.]) #lower and upper limits on the magnitude detection assumed for LSST: 15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
-
-				#limit to the magnitude range of LSST
-				data = data.loc[(data['appMagMean_r'] <= 25) & (data['appMagMean_r'] > 15.8)].reset_index()
-				print('   file length, N in mag limits', Nall, len(data.index))
-				if (len(data) > 0):
-					if (data['m1'][0] != -1): #these are files that were not even run
-
-						#I will use this for the total number of objects in the sample (as printed near the bottom)
-						NallMag = len(data.index)
-
-
-
-
-
-
-						if (self.onlyDWD):
-							data = data.loc[(data['logg1'] > 6) & (data['logg1'] < 12) & (data['logg2'] > 6) & (data['logg2'] < 12)]
-
-						if (self.oneGiant):
-							data = data.loc[((data['Teff1'] < 5500) & (data['L1'] > 10)) | (data['Teff2'] < 5500) & (data['L2'] > 10)]
-						
-						if (self.twoGiants):
-							data = data.loc[((data['Teff1'] < 5500) & (data['L1'] > 10)) & (data['Teff2'] < 5500) & (data['L2'] > 10)]
-
-						if (self.noGiants):
-							data = data.loc[((data['Teff1'] > 5500) | (data['L1'] < 10)) & (data['Teff2'] > 5500) | (data['L2'] < 10)]
+				if (Nall > 0):
+					#swap locations so that m1 is always > m2
+					check = data.loc[(data['m2'] > data['m1'])]
+					if (len(check.index) > 0):
+						for index, row in check.iterrows():
+							m1tmp = row['m1']
+							data.at[index, 'm1'] = row['m2']
+							data.at[index, 'm2'] = m1tmp
+							r1tmp = row['r1']
+							data.at[index, 'r1'] = row['r2']
+							data.at[index, 'r2'] = r1tmp
+							# g1tmp = row['logg1']
+							# data.at[index, 'logg1'] = row['logg2']
+							# data.at[index, 'logg2'] = g1tmp							
+							# #will want to swap L1 and T1 too if using newer files
 
 
+					#calculate logg values
+					data['r1'].replace(0., 1e-10, inplace = True)
+					data['r2'].replace(0., 1e-10, inplace = True)
+					data['m1'].replace(0., 1e-10, inplace = True)
+					data['m2'].replace(0., 1e-10, inplace = True)
+					logg1 = np.log10((constants.G*data['m1'].values*units.solMass/(data['r1'].values*units.solRad)**2.).decompose().to(units.cm/units.s**2.).value)
+					logg2 = np.log10((constants.G*data['m2'].values*units.solMass/(data['r2'].values*units.solRad)**2.).decompose().to(units.cm/units.s**2.).value)
+					data['logg1'] = logg1
+					data['logg2'] = logg2
+
+					#get the approximate magnitudes for binary from the isochrone for clusters, so that I can limit the sample
+					if (self.cluster):
+						#print(clusterID, data['appMagMean_r'])
+						#read in the isochrone file that I have already downloaded
+						isoFile = '/Users/ageller/WORK/LSST/onGitHub/EBLSST/input/isochrones/'+self.clusterType+'s/'+clusterID+'.csv'
+						isodf = pd.read_csv(isoFile, comment='#')
+						isodf.sort_values('logL', inplace=True)
+						#get the reddening
+						ext = F04(Rv=3.1)
+						wavelength = (552. + 691.)/2.
+						Ared = ext(wavelength*units.nm)*data['Av'][0] #all stars in the cluster will have same Av value
+						rMag = data['appMagMean_r'].values
+						for index, row in data.iterrows():
+							if (row['appMagMean_r'] == -999.):
+								Mag = np.interp(np.log10(row['L1'] + row['L2']), isodf['logL'], isodf['rmag'])
+								rMag[index] = Mag + 5*np.log10(row['d']*100) + Ared #d is in kpc, and I need d(pc)/10pc = d(kpc)*1000/10 = d(kpd)*100
+						data['appMagMean_r'] = rMag
+						#print(data['appMagMean_r'])
 
 
-						prsa = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] > 15.8) & (data['p'] < 1000) & (data['p'] > 0.5)]
-						DWD = data.loc[(data['logg1'] > 6) & (data['logg1'] < 12) & (data['logg2'] > 6) & (data['logg2'] < 12)]
+	##        self.magLims = np.array([15.8, 25.]) #lower and upper limits on the magnitude detection assumed for LSST: 15.8 = rband saturation from Science Book page 57, before Section 3.3; 24.5 is the desired detection limit
 
-	###is this correct? (and the only place I need to normalize?) -- I think yes (the observed binary distribution should be cut at a period of the survey duration)
-						NallPrsa = len(prsa.index)/intNorm
-						NallDWD = len(DWD.index)/intNorm
+					#limit to the magnitude range of LSST
+					data = data.loc[(data['appMagMean_r'] <= 25) & (data['appMagMean_r'] > 15.8)].reset_index()
+					print('   file length, N in mag limits', Nall, len(data.index))
+					if (len(data) > 0):
+						if (data['m1'][0] != -1): #these are files that were not even run
 
-
-	#should I limit this to the LSST magnitude limits?, but I don't think I can because I don't calculate the magnitude for each binary. 
-
-						if (len(data.index) >= self.Nlim):
-							#create histograms
-							#All
-							m1hAll0, m1b = np.histogram(data["m1"], bins=mbins)
-							m1hAll0Small, m1bSmall = np.histogram(data["m1"], bins=mbinsSmall)
-							qhAll0, qb = np.histogram(data["m2"]/data["m1"], bins=qbins)
-							ehAll0, eb = np.histogram(data["e"], bins=ebins)
-							lphAll0, lpb = np.histogram(np.ma.log10(data["p"].values).filled(-999), bins=lpbins)
-							dhAll0, db = np.histogram(data["d"], bins=dbins)
-							maghAll0, magb = np.histogram(data["appMagMean_r"], bins=magbins)
-							rhAll0, rb = np.histogram(data["r2"]/data["r1"], bins=rbins)
-
-							m1hAll0CDF, m1bCDF = np.histogram(data["m1"], bins=mbinsCDF)
-							m1hAll0CDFSmall, m1bCDFSmall = np.histogram(data["m1"], bins=mbinsCDFSmall)
-							qhAll0CDF, qbCDF = np.histogram(data["m2"]/data["m1"], bins=qbinsCDF)
-							ehAll0CDF, ebCDF = np.histogram(data["e"], bins=ebinsCDF)
-							lphAll0CDF, lpbCDF = np.histogram(np.ma.log10(data["p"].values).filled(-999), bins=lpbinsCDF)
-							dhAll0CDF, dbCDF = np.histogram(data["d"], bins=dbinsCDF)
-							maghAll0CDF, magbCDF = np.histogram(data["appMagMean_r"], bins=magbinsCDF)
-							rhAll0CDF, rbCDF = np.histogram(data["r2"]/data["r1"], bins=rbinsCDF)
-
-							if (self.doIndividualPlots):
-								axmass.step(m1b[0:-1], m1hAll0/np.sum(m1hAll0), color='black', alpha=0.1)
-								axqrat.step(qb[0:-1], qhAll0/np.sum(qhAll0), color='black', alpha=0.1)
-								axecc.step(eb[0:-1], ehAll0/np.sum(ehAll0), color='black', alpha=0.1)
-								axlper.step(lpb[0:-1], lphAll0/np.sum(lphAll0), color='black', alpha=0.1)
-								axdist.step(db[0:-1], dhAll0/np.sum(dhAll0), color='black', alpha=0.1)
-								axmag.step(magb[0:-1], maghAll0/np.sum(maghAll0), color='black', alpha=0.1)
-								axrad.step(rb[0:-1], rhAll0/np.sum(rhAll0), color='black', alpha=0.1)
-
-							#account for the binary fraction, as a function of mass
-							dm1 = np.diff(m1bSmall)
-							m1val = m1bSmall[:-1] + dm1/2.
-							fb = np.sum(m1hAll0Small/np.sum(m1hAll0Small)*fbFit(m1val))
-							Pcut = 3650.
-							if (self.cluster):
-								#account for the hard-soft boundary
-								Pcut = min(3650., self.getPhs(header['clusterVdisp'].iloc[0]*units.km/units.s).to(units.day).value)
-							fb *= self.RagNormal(np.log10(Pcut), cdf = True)
-							print("   fb, Nbins, log10(Pcut) = ", fb, len(data.index), np.log10(Pcut))
-
-							Nmult *= fb
-
-										
-							m1hAll += m1hAll0/Nall*Nmult
-							m1hAllSmall += m1hAll0Small/Nall*Nmult
-							qhAll += qhAll0/Nall*Nmult
-							ehAll += ehAll0/Nall*Nmult
-							lphAll += lphAll0/Nall*Nmult
-							dhAll += dhAll0/Nall*Nmult
-							maghAll += maghAll0/Nall*Nmult
-							rhAll += rhAll0/Nall*Nmult
-
-							m1hAllCDF += m1hAll0CDF/Nall*Nmult
-							m1hAllCDFSmall += m1hAll0CDFSmall/Nall*Nmult
-							qhAllCDF += qhAll0CDF/Nall*Nmult
-							ehAllCDF += ehAll0CDF/Nall*Nmult
-							lphAllCDF += lphAll0CDF/Nall*Nmult
-							dhAllCDF += dhAll0CDF/Nall*Nmult
-							maghAllCDF += maghAll0CDF/Nall*Nmult
-							rhAllCDF += rhAll0CDF/Nall*Nmult
+							#I will use this for the total number of objects in the sample (as printed near the bottom)
+							NallMag = len(data.index)
 
 
-							# #save the individual histograms and CDFs
-							# OpSimID = header['OpSimID'][0]
-							# self.outputHists['eachField'][OpSimID] = dict()
-							# #Histograms
-							# #x
-							# # self.outputHists['eachField'][OpSimID]['m1b'] = np.append(m1b, m1b[-1] + mbSize)
-							# # self.outputHists['eachField'][OpSimID]['m1Smallb'] = np.append(m1bSmall, m1bSmall[-1] + mbSizeSmall)
-							# # self.outputHists['eachField'][OpSimID]['qb'] = np.append(qb, qb[-1] + qbSize)
-							# # self.outputHists['eachField'][OpSimID]['eb'] = np.append(eb, eb[-1] + ebSize)
-							# # self.outputHists['eachField'][OpSimID]['lpb'] = np.append(lpb, lpb[-1] + lpbSize)
-							# # self.outputHists['eachField'][OpSimID]['db'] = np.append(db, db[-1] + dbSize)
-							# # self.outputHists['eachField'][OpSimID]['magb'] = np.append(magb, magb[-1] + magbSize)
-							# # self.outputHists['eachField'][OpSimID]['rb'] = np.append(rb, rb[-1] + rbSize)
-							# #y
-							# self.outputHists['eachField'][OpSimID]['m1hAll'] = np.append(np.insert(m1hAll0/Nall*Nmult,0,0),0)
-							# self.outputHists['eachField'][OpSimID]['m1SmallhAll'] = np.append(np.insert(m1hAll0Small/Nall,0,0),0)
-							# self.outputHists['eachField'][OpSimID]['qhAll'] = np.append(np.insert(qhAll0/Nall*Nmult,0,0),0)
-							# self.outputHists['eachField'][OpSimID]['ehAll'] = np.append(np.insert(ehAll0/Nall*Nmult,0,0),0)
-							# self.outputHists['eachField'][OpSimID]['lphAll'] = np.append(np.insert(lphAll0/Nall*Nmult,0,0),0)
-							# self.outputHists['eachField'][OpSimID]['dhAll'] = np.append(np.insert(dhAll0/Nall*Nmult,0,0),0)
-							# self.outputHists['eachField'][OpSimID]['maghAll'] = np.append(np.insert(maghAll0/Nall*Nmult,0,0),0)
-							# self.outputHists['eachField'][OpSimID]['rhAll'] = np.append(np.insert(rhAll0/Nall*Nmult,0,0),0)
-							# #CDFs
-							# #x
-							# # self.outputHists['eachField'][OpSimID]['m1bCDF'] = m1bCDF
-							# # self.outputHists['eachField'][OpSimID]['m1SmallbCDF'] = m1bCDFSmall
-							# # self.outputHists['eachField'][OpSimID]['qbCDF'] = qbCDF
-							# # self.outputHists['eachField'][OpSimID]['ebCDF'] = ebCDF
-							# # self.outputHists['eachField'][OpSimID]['lpbCDF'] = lpbCDF
-							# # self.outputHists['eachField'][OpSimID]['dbCDF'] = dbCDF
-							# # self.outputHists['eachField'][OpSimID]['magbCDF'] = magbCDF
-							# # self.outputHists['eachField'][OpSimID]['rbCDF'] = rbCDF
-							# #y
-							# self.outputHists['eachField'][OpSimID]['m1hAllCDF'] = np.insert(m1hAll0CDF/Nall*Nmult,0,0)
-							# self.outputHists['eachField'][OpSimID]['m1SmallhAllCDF'] = np.insert(m1hAll0CDFSmall/Nall*Nmult,0,0)
-							# self.outputHists['eachField'][OpSimID]['qhAllCDF'] = np.insert(qhAll0CDF/Nall*Nmult,0,0)
-							# self.outputHists['eachField'][OpSimID]['ehAllCDF'] = np.insert(ehAll0CDF/Nall*Nmult,0,0)
-							# self.outputHists['eachField'][OpSimID]['lphAllCDF'] = np.insert(lphAll0CDF/Nall*Nmult,0,0)
-							# self.outputHists['eachField'][OpSimID]['dhAllCDF'] = np.insert(dhAll0CDF/Nall*Nmult,0,0)
-							# self.outputHists['eachField'][OpSimID]['maghAllCDF'] = np.insert(maghAll0CDF/Nall*Nmult,0,0)
-							# self.outputHists['eachField'][OpSimID]['rhAllCDF'] = np.insert(rhAll0CDF/Nall*Nmult,0,0)
 
-							#Obs
-							#I want to account for all filters here too (maybe not necessary; if LSM is != -999 then they are all filled in, I think)...
-							obs = data.loc[(data['u_LSS_PERIOD'] != -999) | (data['g_LSS_PERIOD'] != -999) | (data['r_LSS_PERIOD'] != -999) | (data['i_LSS_PERIOD'] != -999) | (data['z_LSS_PERIOD'] != -999) | (data['y_LSS_PERIOD'] != -999) | (data['LSM_PERIOD'] != -999)]
-							prsaObs = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] > 15.8) & (data['p'] < 1000) & (data['p'] >0.5) & ((data['u_LSS_PERIOD'] != -999) | (data['g_LSS_PERIOD'] != -999) | (data['r_LSS_PERIOD'] != -999) | (data['i_LSS_PERIOD'] != -999) | (data['z_LSS_PERIOD'] != -999) | (data['y_LSS_PERIOD'] != -999) | (data['LSM_PERIOD'] != -999))]
-							DWDObs = data.loc[(data['logg1'] > 6) & (data['logg1'] < 12) & (data['logg2'] > 6) & (data['logg2'] < 12) & ((data['u_LSS_PERIOD'] != -999) | (data['g_LSS_PERIOD'] != -999) | (data['r_LSS_PERIOD'] != -999) | (data['i_LSS_PERIOD'] != -999) | (data['z_LSS_PERIOD'] != -999) | (data['y_LSS_PERIOD'] != -999) | (data['LSM_PERIOD'] != -999))]
 
-							Nobs = len(obs.index)
-							NobsPrsa = len(prsaObs.index)
-							NobsDWD = len(DWDObs.index)
-							if (Nobs >= self.Nlim):
-								m1hObs0, m1b = np.histogram(obs["m1"], bins=mbins)
-								m1hObs0Small, m1bSmall = np.histogram(obs["m1"], bins=mbinsSmall)
-								qhObs0, qb = np.histogram(obs["m2"]/obs["m1"], bins=qbins)
-								ehObs0, eb = np.histogram(obs["e"], bins=ebins)
-								lphObs0, lpb = np.histogram(np.ma.log10(obs["p"].values).filled(-999), bins=lpbins)
-								dhObs0, db = np.histogram(obs["d"], bins=dbins)
-								maghObs0, magb = np.histogram(obs["appMagMean_r"], bins=magbins)
-								rhObs0, rb = np.histogram(obs["r2"]/obs["r1"], bins=rbins)
-								m1hObs += m1hObs0/Nall*Nmult
-								m1hObsSmall += m1hObs0Small/Nall*Nmult
-								qhObs += qhObs0/Nall*Nmult
-								ehObs += ehObs0/Nall*Nmult
-								lphObs += lphObs0/Nall*Nmult
-								dhObs += dhObs0/Nall*Nmult
-								maghObs += maghObs0/Nall*Nmult
-								rhObs += rhObs0/Nall*Nmult
 
-								m1hObs0CDF, m1bCDF = np.histogram(obs["m1"], bins=mbinsCDF)
-								m1hObs0CDFSmall, m1bCDFSmall = np.histogram(obs["m1"], bins=mbinsCDFSmall)
-								qhObs0CDF, qbCDF = np.histogram(obs["m2"]/obs["m1"], bins=qbinsCDF)
-								ehObs0CDF, ebCDF = np.histogram(obs["e"], bins=ebinsCDF)
-								lphObs0CDF, lpbCDF = np.histogram(np.ma.log10(obs["p"].values).filled(-999), bins=lpbinsCDF)
-								dhObs0CDF, dbCDF = np.histogram(obs["d"], bins=dbinsCDF)
-								maghObs0CDF, magbCDF = np.histogram(obs["appMagMean_r"], bins=magbinsCDF)
-								rhObs0CDF, rbCDF = np.histogram(obs["r2"]/obs["r1"], bins=rbinsCDF)
-								m1hObsCDF += m1hObs0CDF/Nall*Nmult
-								m1hObsCDFSmall += m1hObs0CDFSmall/Nall*Nmult
-								qhObsCDF += qhObs0CDF/Nall*Nmult
-								ehObsCDF += ehObs0CDF/Nall*Nmult
-								lphObsCDF += lphObs0CDF/Nall*Nmult
-								dhObsCDF += dhObs0CDF/Nall*Nmult
-								maghObsCDF += maghObs0CDF/Nall*Nmult
-								rhObsCDF += rhObs0CDF/Nall*Nmult
+
+							if (self.onlyDWD):
+								data = data.loc[(data['logg1'] > 6) & (data['logg1'] < 12) & (data['logg2'] > 6) & (data['logg2'] < 12)]
+
+							if (self.oneGiant):
+								data = data.loc[((data['Teff1'] < 5500) & (data['L1'] > 10)) | (data['Teff2'] < 5500) & (data['L2'] > 10)]
+							
+							if (self.twoGiants):
+								data = data.loc[((data['Teff1'] < 5500) & (data['L1'] > 10)) & (data['Teff2'] < 5500) & (data['L2'] > 10)]
+
+							if (self.noGiants):
+								data = data.loc[((data['Teff1'] > 5500) | (data['L1'] < 10)) & (data['Teff2'] > 5500) | (data['L2'] < 10)]
+
+
+
+
+							prsa = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] > 15.8) & (data['p'] < 1000) & (data['p'] > 0.5)]
+							DWD = data.loc[(data['logg1'] > 6) & (data['logg1'] < 12) & (data['logg2'] > 6) & (data['logg2'] < 12)]
+
+		###is this correct? (and the only place I need to normalize?) -- I think yes (the observed binary distribution should be cut at a period of the survey duration)
+							NallPrsa = len(prsa.index)/intNorm
+							NallDWD = len(DWD.index)/intNorm
+
+
+		#should I limit this to the LSST magnitude limits?, but I don't think I can because I don't calculate the magnitude for each binary. 
+
+							if (len(data.index) >= self.Nlim):
+								#create histograms
+								#All
+								m1hAll0, m1b = np.histogram(data["m1"], bins=mbins)
+								m1hAll0Small, m1bSmall = np.histogram(data["m1"], bins=mbinsSmall)
+								qhAll0, qb = np.histogram(data["m2"]/data["m1"], bins=qbins)
+								ehAll0, eb = np.histogram(data["e"], bins=ebins)
+								lphAll0, lpb = np.histogram(np.ma.log10(data["p"].values).filled(-999), bins=lpbins)
+								dhAll0, db = np.histogram(data["d"], bins=dbins)
+								maghAll0, magb = np.histogram(data["appMagMean_r"], bins=magbins)
+								rhAll0, rb = np.histogram(data["r2"]/data["r1"], bins=rbins)
+
+								m1hAll0CDF, m1bCDF = np.histogram(data["m1"], bins=mbinsCDF)
+								m1hAll0CDFSmall, m1bCDFSmall = np.histogram(data["m1"], bins=mbinsCDFSmall)
+								qhAll0CDF, qbCDF = np.histogram(data["m2"]/data["m1"], bins=qbinsCDF)
+								ehAll0CDF, ebCDF = np.histogram(data["e"], bins=ebinsCDF)
+								lphAll0CDF, lpbCDF = np.histogram(np.ma.log10(data["p"].values).filled(-999), bins=lpbinsCDF)
+								dhAll0CDF, dbCDF = np.histogram(data["d"], bins=dbinsCDF)
+								maghAll0CDF, magbCDF = np.histogram(data["appMagMean_r"], bins=magbinsCDF)
+								rhAll0CDF, rbCDF = np.histogram(data["r2"]/data["r1"], bins=rbinsCDF)
+
+								if (self.doIndividualPlots):
+									axmass.step(m1b[0:-1], m1hAll0/np.sum(m1hAll0), color='black', alpha=0.1)
+									axqrat.step(qb[0:-1], qhAll0/np.sum(qhAll0), color='black', alpha=0.1)
+									axecc.step(eb[0:-1], ehAll0/np.sum(ehAll0), color='black', alpha=0.1)
+									axlper.step(lpb[0:-1], lphAll0/np.sum(lphAll0), color='black', alpha=0.1)
+									axdist.step(db[0:-1], dhAll0/np.sum(dhAll0), color='black', alpha=0.1)
+									axmag.step(magb[0:-1], maghAll0/np.sum(maghAll0), color='black', alpha=0.1)
+									axrad.step(rb[0:-1], rhAll0/np.sum(rhAll0), color='black', alpha=0.1)
+
+								#account for the binary fraction, as a function of mass
+								dm1 = np.diff(m1bSmall)
+								m1val = m1bSmall[:-1] + dm1/2.
+								fb = np.sum(m1hAll0Small/np.sum(m1hAll0Small)*fbFit(m1val))
+								Pcut = 3650.
+								if (self.cluster):
+									#account for the hard-soft boundary
+									Pcut = min(3650., self.getPhs(header['clusterVdisp'].iloc[0]*units.km/units.s).to(units.day).value)
+								fb *= self.RagNormal(np.log10(Pcut), cdf = True)
+								print("   fb, Nbins, log10(Pcut) = ", fb, len(data.index), np.log10(Pcut))
+
+								Nmult *= fb
+
+											
+								m1hAll += np.nan_to_num(m1hAll0/Nall*Nmult)
+								m1hAllSmall += np.nan_to_num(m1hAll0Small/Nall*Nmult)
+								qhAll += np.nan_to_num(qhAll0/Nall*Nmult)
+								ehAll += np.nan_to_num(ehAll0/Nall*Nmult)
+								lphAll += np.nan_to_num(lphAll0/Nall*Nmult)
+								dhAll += np.nan_to_num(dhAll0/Nall*Nmult)
+								maghAll += np.nan_to_num(maghAll0/Nall*Nmult)
+								rhAll += np.nan_to_num(rhAll0/Nall*Nmult)
+
+								m1hAllCDF += np.nan_to_num(m1hAll0CDF/Nall*Nmult)
+								m1hAllCDFSmall += np.nan_to_num(m1hAll0CDFSmall/Nall*Nmult)
+								qhAllCDF += np.nan_to_num(qhAll0CDF/Nall*Nmult)
+								ehAllCDF += np.nan_to_num(ehAll0CDF/Nall*Nmult)
+								lphAllCDF += np.nan_to_num(lphAll0CDF/Nall*Nmult)
+								dhAllCDF += np.nan_to_num(dhAll0CDF/Nall*Nmult)
+								maghAllCDF += np.nan_to_num(maghAll0CDF/Nall*Nmult)
+								rhAllCDF += np.nan_to_num(rhAll0CDF/Nall*Nmult)
+
 
 								# #save the individual histograms and CDFs
+								# OpSimID = header['OpSimID'][0]
+								# self.outputHists['eachField'][OpSimID] = dict()
 								# #Histograms
+								# #x
+								# # self.outputHists['eachField'][OpSimID]['m1b'] = np.append(m1b, m1b[-1] + mbSize)
+								# # self.outputHists['eachField'][OpSimID]['m1Smallb'] = np.append(m1bSmall, m1bSmall[-1] + mbSizeSmall)
+								# # self.outputHists['eachField'][OpSimID]['qb'] = np.append(qb, qb[-1] + qbSize)
+								# # self.outputHists['eachField'][OpSimID]['eb'] = np.append(eb, eb[-1] + ebSize)
+								# # self.outputHists['eachField'][OpSimID]['lpb'] = np.append(lpb, lpb[-1] + lpbSize)
+								# # self.outputHists['eachField'][OpSimID]['db'] = np.append(db, db[-1] + dbSize)
+								# # self.outputHists['eachField'][OpSimID]['magb'] = np.append(magb, magb[-1] + magbSize)
+								# # self.outputHists['eachField'][OpSimID]['rb'] = np.append(rb, rb[-1] + rbSize)
 								# #y
-								# self.outputHists['eachField'][OpSimID]['m1hObs'] = np.append(np.insert(m1hObs0/Nall*Nmult,0,0),0)
-								# self.outputHists['eachField'][OpSimID]['m1SmallhObs'] = np.append(np.insert(m1hObs0Small/Nall,0,0),0)
-								# self.outputHists['eachField'][OpSimID]['qhObs'] = np.append(np.insert(qhObs0/Nall*Nmult,0,0),0)
-								# self.outputHists['eachField'][OpSimID]['ehObs'] = np.append(np.insert(ehObs0/Nall*Nmult,0,0),0)
-								# self.outputHists['eachField'][OpSimID]['lphObs'] = np.append(np.insert(lphObs0/Nall*Nmult,0,0),0)
-								# self.outputHists['eachField'][OpSimID]['dhObs'] = np.append(np.insert(dhObs0/Nall*Nmult,0,0),0)
-								# self.outputHists['eachField'][OpSimID]['maghObs'] = np.append(np.insert(maghObs0/Nall*Nmult,0,0),0)
-								# self.outputHists['eachField'][OpSimID]['rhObs'] = np.append(np.insert(rhObs0/Nall*Nmult,0,0),0)
+								# self.outputHists['eachField'][OpSimID]['m1hAll'] = np.append(np.insert(m1hAll0/Nall*Nmult,0,0),0)
+								# self.outputHists['eachField'][OpSimID]['m1SmallhAll'] = np.append(np.insert(m1hAll0Small/Nall,0,0),0)
+								# self.outputHists['eachField'][OpSimID]['qhAll'] = np.append(np.insert(qhAll0/Nall*Nmult,0,0),0)
+								# self.outputHists['eachField'][OpSimID]['ehAll'] = np.append(np.insert(ehAll0/Nall*Nmult,0,0),0)
+								# self.outputHists['eachField'][OpSimID]['lphAll'] = np.append(np.insert(lphAll0/Nall*Nmult,0,0),0)
+								# self.outputHists['eachField'][OpSimID]['dhAll'] = np.append(np.insert(dhAll0/Nall*Nmult,0,0),0)
+								# self.outputHists['eachField'][OpSimID]['maghAll'] = np.append(np.insert(maghAll0/Nall*Nmult,0,0),0)
+								# self.outputHists['eachField'][OpSimID]['rhAll'] = np.append(np.insert(rhAll0/Nall*Nmult,0,0),0)
 								# #CDFs
+								# #x
+								# # self.outputHists['eachField'][OpSimID]['m1bCDF'] = m1bCDF
+								# # self.outputHists['eachField'][OpSimID]['m1SmallbCDF'] = m1bCDFSmall
+								# # self.outputHists['eachField'][OpSimID]['qbCDF'] = qbCDF
+								# # self.outputHists['eachField'][OpSimID]['ebCDF'] = ebCDF
+								# # self.outputHists['eachField'][OpSimID]['lpbCDF'] = lpbCDF
+								# # self.outputHists['eachField'][OpSimID]['dbCDF'] = dbCDF
+								# # self.outputHists['eachField'][OpSimID]['magbCDF'] = magbCDF
+								# # self.outputHists['eachField'][OpSimID]['rbCDF'] = rbCDF
 								# #y
-								# self.outputHists['eachField'][OpSimID]['m1hObsCDF'] = np.insert(m1hObs0CDF/Nall*Nmult,0,0)
-								# self.outputHists['eachField'][OpSimID]['m1SmallhObsCDF'] = np.insert(m1hObs0CDFSmall/Nall*Nmult,0,0)
-								# self.outputHists['eachField'][OpSimID]['qhObsCDF'] = np.insert(qhObs0CDF/Nall*Nmult,0,0)
-								# self.outputHists['eachField'][OpSimID]['ehObsCDF'] = np.insert(ehObs0CDF/Nall*Nmult,0,0)
-								# self.outputHists['eachField'][OpSimID]['lphObsCDF'] = np.insert(lphObs0CDF/Nall*Nmult,0,0)
-								# self.outputHists['eachField'][OpSimID]['dhObsCDF'] = np.insert(dhObs0CDF/Nall*Nmult,0,0)
-								# self.outputHists['eachField'][OpSimID]['maghObsCDF'] = np.insert(maghObs0CDF/Nall*Nmult,0,0)
-								# self.outputHists['eachField'][OpSimID]['rhObsCDF'] = np.insert(rhObs0CDF/Nall*Nmult,0,0)
+								# self.outputHists['eachField'][OpSimID]['m1hAllCDF'] = np.insert(m1hAll0CDF/Nall*Nmult,0,0)
+								# self.outputHists['eachField'][OpSimID]['m1SmallhAllCDF'] = np.insert(m1hAll0CDFSmall/Nall*Nmult,0,0)
+								# self.outputHists['eachField'][OpSimID]['qhAllCDF'] = np.insert(qhAll0CDF/Nall*Nmult,0,0)
+								# self.outputHists['eachField'][OpSimID]['ehAllCDF'] = np.insert(ehAll0CDF/Nall*Nmult,0,0)
+								# self.outputHists['eachField'][OpSimID]['lphAllCDF'] = np.insert(lphAll0CDF/Nall*Nmult,0,0)
+								# self.outputHists['eachField'][OpSimID]['dhAllCDF'] = np.insert(dhAll0CDF/Nall*Nmult,0,0)
+								# self.outputHists['eachField'][OpSimID]['maghAllCDF'] = np.insert(maghAll0CDF/Nall*Nmult,0,0)
+								# self.outputHists['eachField'][OpSimID]['rhAllCDF'] = np.insert(rhAll0CDF/Nall*Nmult,0,0)
 
-								#Rec
-								recCombined = pd.DataFrame()
-								prsaRecCombined = pd.DataFrame()
-								DWDRecCombined = pd.DataFrame()
+								#Obs
+								#I want to account for all filters here too (maybe not necessary; if LSM is != -999 then they are all filled in, I think)...
+								obs = data.loc[(data['u_LSS_PERIOD'] != -999) | (data['g_LSS_PERIOD'] != -999) | (data['r_LSS_PERIOD'] != -999) | (data['i_LSS_PERIOD'] != -999) | (data['z_LSS_PERIOD'] != -999) | (data['y_LSS_PERIOD'] != -999) | (data['LSM_PERIOD'] != -999)]
+								prsaObs = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] > 15.8) & (data['p'] < 1000) & (data['p'] >0.5) & ((data['u_LSS_PERIOD'] != -999) | (data['g_LSS_PERIOD'] != -999) | (data['r_LSS_PERIOD'] != -999) | (data['i_LSS_PERIOD'] != -999) | (data['z_LSS_PERIOD'] != -999) | (data['y_LSS_PERIOD'] != -999) | (data['LSM_PERIOD'] != -999))]
+								DWDObs = data.loc[(data['logg1'] > 6) & (data['logg1'] < 12) & (data['logg2'] > 6) & (data['logg2'] < 12) & ((data['u_LSS_PERIOD'] != -999) | (data['g_LSS_PERIOD'] != -999) | (data['r_LSS_PERIOD'] != -999) | (data['i_LSS_PERIOD'] != -999) | (data['z_LSS_PERIOD'] != -999) | (data['y_LSS_PERIOD'] != -999) | (data['LSM_PERIOD'] != -999))]
 
-								# #histograms
-								# self.outputHists['eachField'][OpSimID]['m1hRec'] = dict()
-								# self.outputHists['eachField'][OpSimID]['m1SmallhRec'] = dict()
-								# self.outputHists['eachField'][OpSimID]['qhRec'] = dict()
-								# self.outputHists['eachField'][OpSimID]['ehRec'] = dict()
-								# self.outputHists['eachField'][OpSimID]['lphRec'] = dict()
-								# self.outputHists['eachField'][OpSimID]['dhRec'] = dict()
-								# self.outputHists['eachField'][OpSimID]['maghRec'] = dict()
-								# self.outputHists['eachField'][OpSimID]['rhRec'] = dict()
-								# #CDFs
-								# self.outputHists['eachField'][OpSimID]['m1hRecCDF'] = dict()
-								# self.outputHists['eachField'][OpSimID]['m1SmallhRecCDF'] = dict()
-								# self.outputHists['eachField'][OpSimID]['qhRecCDF'] = dict()
-								# self.outputHists['eachField'][OpSimID]['ehRecCDF'] = dict()
-								# self.outputHists['eachField'][OpSimID]['lphRecCDF'] = dict()
-								# self.outputHists['eachField'][OpSimID]['dhRecCDF'] = dict()
-								# self.outputHists['eachField'][OpSimID]['maghRecCDF'] = dict()
-								# self.outputHists['eachField'][OpSimID]['rhRecCDF'] = dict()
+								Nobs = len(obs.index)
+								NobsPrsa = len(prsaObs.index)
+								NobsDWD = len(DWDObs.index)
+								if (Nobs >= self.Nlim):
+									m1hObs0, m1b = np.histogram(obs["m1"], bins=mbins)
+									m1hObs0Small, m1bSmall = np.histogram(obs["m1"], bins=mbinsSmall)
+									qhObs0, qb = np.histogram(obs["m2"]/obs["m1"], bins=qbins)
+									ehObs0, eb = np.histogram(obs["e"], bins=ebins)
+									lphObs0, lpb = np.histogram(np.ma.log10(obs["p"].values).filled(-999), bins=lpbins)
+									dhObs0, db = np.histogram(obs["d"], bins=dbins)
+									maghObs0, magb = np.histogram(obs["appMagMean_r"], bins=magbins)
+									rhObs0, rb = np.histogram(obs["r2"]/obs["r1"], bins=rbins)
+									m1hObs += np.nan_to_num(m1hObs0/Nall*Nmult)
+									m1hObsSmall += np.nan_to_num(m1hObs0Small/Nall*Nmult)
+									qhObs += np.nan_to_num(qhObs0/Nall*Nmult)
+									ehObs += np.nan_to_num(ehObs0/Nall*Nmult)
+									lphObs += np.nan_to_num(lphObs0/Nall*Nmult)
+									dhObs += np.nan_to_num(dhObs0/Nall*Nmult)
+									maghObs += np.nan_to_num(maghObs0/Nall*Nmult)
+									rhObs += np.nan_to_num(rhObs0/Nall*Nmult)
 
-								for filt in self.filters:
-									key = filt+'LSS_PERIOD'
-									if (filt == 'all'):
-										key = 'LSM_PERIOD'
-									fullP = abs(data[key] - data['p'])/data['p']
-									halfP = abs(data[key] - 0.5*data['p'])/(0.5*data['p'])
-									twiceP = abs(data[key] - 2.*data['p'])/(2.*data['p'])
-									rec = data.loc[(data[key] != -999) & ( (fullP < self.Pcut) | (halfP < self.Pcut) | (twiceP < self.Pcut))]
-									prsaRec = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] >15.8) & (data['p'] < 1000) & (data['p'] >0.5) & (data['LSM_PERIOD'] != -999) & ( (fullP < self.Pcut) | (halfP < self.Pcut) | (twiceP < self.Pcut))]
-									DWDRec = data.loc[(data['logg1'] > 6) & (data['logg1'] < 12) & (data['logg2'] > 6) & (data['logg2'] < 12) & (data['LSM_PERIOD'] != -999) & ( (fullP < self.Pcut) | (halfP < self.Pcut) | (twiceP < self.Pcut))]
+									m1hObs0CDF, m1bCDF = np.histogram(obs["m1"], bins=mbinsCDF)
+									m1hObs0CDFSmall, m1bCDFSmall = np.histogram(obs["m1"], bins=mbinsCDFSmall)
+									qhObs0CDF, qbCDF = np.histogram(obs["m2"]/obs["m1"], bins=qbinsCDF)
+									ehObs0CDF, ebCDF = np.histogram(obs["e"], bins=ebinsCDF)
+									lphObs0CDF, lpbCDF = np.histogram(np.ma.log10(obs["p"].values).filled(-999), bins=lpbinsCDF)
+									dhObs0CDF, dbCDF = np.histogram(obs["d"], bins=dbinsCDF)
+									maghObs0CDF, magbCDF = np.histogram(obs["appMagMean_r"], bins=magbinsCDF)
+									rhObs0CDF, rbCDF = np.histogram(obs["r2"]/obs["r1"], bins=rbinsCDF)
+									m1hObsCDF += np.nan_to_num(m1hObs0CDF/Nall*Nmult)
+									m1hObsCDFSmall += np.nan_to_num(m1hObs0CDFSmall/Nall*Nmult)
+									qhObsCDF += np.nan_to_num(qhObs0CDF/Nall*Nmult)
+									ehObsCDF += np.nan_to_num(ehObs0CDF/Nall*Nmult)
+									lphObsCDF += np.nan_to_num(lphObs0CDF/Nall*Nmult)
+									dhObsCDF += np.nan_to_num(dhObs0CDF/Nall*Nmult)
+									maghObsCDF += np.nan_to_num(maghObs0CDF/Nall*Nmult)
+									rhObsCDF += np.nan_to_num(rhObs0CDF/Nall*Nmult)
 
-									if (len(rec) >= self.Nlim and filt != 'all'):
-										m1hRec0, m1b = np.histogram(rec["m1"], bins=mbins)
-										m1hRec0Small, m1bSmall = np.histogram(rec["m1"], bins=mbinsSmall)
-										qhRec0, qb = np.histogram(rec["m2"]/rec["m1"], bins=qbins)
-										ehRec0, eb = np.histogram(rec["e"], bins=ebins)
-										lphRec0, lpb = np.histogram(np.ma.log10(rec["p"].values).filled(-999), bins=lpbins)
-										dhRec0, db = np.histogram(rec["d"], bins=dbins)
-										maghRec0, magb = np.histogram(rec["appMagMean_r"], bins=magbins)
-										rhRec0, rb = np.histogram(rec["r2"]/rec["r1"], bins=rbins)
-										m1hRec[filt] += m1hRec0/Nall*Nmult
-										m1hRecSmall[filt] += m1hRec0Small/Nall*Nmult
-										qhRec[filt] += qhRec0/Nall*Nmult
-										ehRec[filt] += ehRec0/Nall*Nmult
-										lphRec[filt] += lphRec0/Nall*Nmult
-										dhRec[filt] += dhRec0/Nall*Nmult
-										maghRec[filt] += maghRec0/Nall*Nmult
-										rhRec[filt] += rhRec0/Nall*Nmult
+									# #save the individual histograms and CDFs
+									# #Histograms
+									# #y
+									# self.outputHists['eachField'][OpSimID]['m1hObs'] = np.append(np.insert(m1hObs0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['m1SmallhObs'] = np.append(np.insert(m1hObs0Small/Nall,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['qhObs'] = np.append(np.insert(qhObs0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['ehObs'] = np.append(np.insert(ehObs0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['lphObs'] = np.append(np.insert(lphObs0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['dhObs'] = np.append(np.insert(dhObs0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['maghObs'] = np.append(np.insert(maghObs0/Nall*Nmult,0,0),0)
+									# self.outputHists['eachField'][OpSimID]['rhObs'] = np.append(np.insert(rhObs0/Nall*Nmult,0,0),0)
+									# #CDFs
+									# #y
+									# self.outputHists['eachField'][OpSimID]['m1hObsCDF'] = np.insert(m1hObs0CDF/Nall*Nmult,0,0)
+									# self.outputHists['eachField'][OpSimID]['m1SmallhObsCDF'] = np.insert(m1hObs0CDFSmall/Nall*Nmult,0,0)
+									# self.outputHists['eachField'][OpSimID]['qhObsCDF'] = np.insert(qhObs0CDF/Nall*Nmult,0,0)
+									# self.outputHists['eachField'][OpSimID]['ehObsCDF'] = np.insert(ehObs0CDF/Nall*Nmult,0,0)
+									# self.outputHists['eachField'][OpSimID]['lphObsCDF'] = np.insert(lphObs0CDF/Nall*Nmult,0,0)
+									# self.outputHists['eachField'][OpSimID]['dhObsCDF'] = np.insert(dhObs0CDF/Nall*Nmult,0,0)
+									# self.outputHists['eachField'][OpSimID]['maghObsCDF'] = np.insert(maghObs0CDF/Nall*Nmult,0,0)
+									# self.outputHists['eachField'][OpSimID]['rhObsCDF'] = np.insert(rhObs0CDF/Nall*Nmult,0,0)
 
-										m1hRec0CDF, m1bCDF = np.histogram(rec["m1"], bins=mbinsCDF)
-										m1hRec0CDFSmall, m1bCDFSmall = np.histogram(rec["m1"], bins=mbinsCDFSmall)
-										qhRec0CDF, qbCDF = np.histogram(rec["m2"]/rec["m1"], bins=qbinsCDF)
-										ehRec0CDF, ebCDF = np.histogram(rec["e"], bins=ebinsCDF)
-										lphRec0CDF, lpbCDF = np.histogram(np.ma.log10(rec["p"].values).filled(-999), bins=lpbinsCDF)
-										dhRec0CDF, dbCDF = np.histogram(rec["d"], bins=dbinsCDF)
-										maghRec0CDF, magbCDF = np.histogram(rec["appMagMean_r"], bins=magbinsCDF)
-										rhRec0CDF, rbCDF = np.histogram(rec["r2"]/rec["r1"], bins=rbinsCDF)
-										m1hRecCDF[filt] += m1hRec0CDF/Nall*Nmult
-										m1hRecCDFSmall[filt] += m1hRec0CDFSmall/Nall*Nmult
-										qhRecCDF[filt] += qhRec0CDF/Nall*Nmult
-										ehRecCDF[filt] += ehRec0CDF/Nall*Nmult
-										lphRecCDF[filt] += lphRec0CDF/Nall*Nmult
-										dhRecCDF[filt] += dhRec0CDF/Nall*Nmult
-										maghRecCDF[filt] += maghRec0CDF/Nall*Nmult
-										rhRecCDF[filt] += rhRec0CDF/Nall*Nmult
+									#Rec
+									recCombined = pd.DataFrame()
+									prsaRecCombined = pd.DataFrame()
+									DWDRecCombined = pd.DataFrame()
 
-										# #Histograms
-										# #y
-										# self.outputHists['eachField'][OpSimID]['m1hRec'][filt] = np.append(np.insert(m1hRec0/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['m1SmallhRec'][filt] = np.append(np.insert(m1hRec0Small/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['qhRec'][filt] = np.append(np.insert(qhRec0/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['ehRec'][filt] = np.append(np.insert(ehRec0/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['lphRec'][filt] = np.append(np.insert(lphRec0/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['dhRec'][filt] = np.append(np.insert(dhRec0/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['maghRec'][filt] = np.append(np.insert(maghRec0/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['rhRec'][filt] = np.append(np.insert(rhRec0/Nall*Nmult,0,0),0)
-										# #CDFs
-										# #y
-										# self.outputHists['eachField'][OpSimID]['m1hRecCDF'][filt] = np.append(np.insert(m1hRec0CDF/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['m1SmallhRecCDF'][filt] = np.append(np.insert(m1hRec0CDFSmall/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['qhRecCDF'][filt] = np.append(np.insert(qhRec0CDF/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['ehRecCDF'][filt] = np.append(np.insert(ehRec0CDF/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['lphRecCDF'][filt] = np.append(np.insert(lphRec0CDF/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['dhRecCDF'][filt] = np.append(np.insert(dhRec0CDF/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['maghRecCDF'][filt] = np.append(np.insert(maghRec0CDF/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['rhRecCDF'][filt] = np.append(np.insert(rhRec0CDF/Nall*Nmult,0,0),0)
+									# #histograms
+									# self.outputHists['eachField'][OpSimID]['m1hRec'] = dict()
+									# self.outputHists['eachField'][OpSimID]['m1SmallhRec'] = dict()
+									# self.outputHists['eachField'][OpSimID]['qhRec'] = dict()
+									# self.outputHists['eachField'][OpSimID]['ehRec'] = dict()
+									# self.outputHists['eachField'][OpSimID]['lphRec'] = dict()
+									# self.outputHists['eachField'][OpSimID]['dhRec'] = dict()
+									# self.outputHists['eachField'][OpSimID]['maghRec'] = dict()
+									# self.outputHists['eachField'][OpSimID]['rhRec'] = dict()
+									# #CDFs
+									# self.outputHists['eachField'][OpSimID]['m1hRecCDF'] = dict()
+									# self.outputHists['eachField'][OpSimID]['m1SmallhRecCDF'] = dict()
+									# self.outputHists['eachField'][OpSimID]['qhRecCDF'] = dict()
+									# self.outputHists['eachField'][OpSimID]['ehRecCDF'] = dict()
+									# self.outputHists['eachField'][OpSimID]['lphRecCDF'] = dict()
+									# self.outputHists['eachField'][OpSimID]['dhRecCDF'] = dict()
+									# self.outputHists['eachField'][OpSimID]['maghRecCDF'] = dict()
+									# self.outputHists['eachField'][OpSimID]['rhRecCDF'] = dict()
 
-									#I'd like to account for all filters here to have more accurate numbers
-									recCombined = recCombined.append(rec)
-									prsaRecCombined = prsaRecCombined.append(prsaRec)
-									DWDRecCombined = DWDRecCombined.append(DWDRec)
-									recCombined.drop_duplicates(inplace=True)
-									prsaRecCombined.drop_duplicates(inplace=True)
-									DWDRecCombined.drop_duplicates(inplace=True)
-									if (len(recCombined) >= self.Nlim and filt == 'all'):
-										Nrec = len(recCombined.index)
-										NrecPrsa = len(prsaRecCombined.index)
-										NrecDWD = len(DWDRecCombined.index)
+									for filt in self.filters:
+										key = filt+'LSS_PERIOD'
+										if (filt == 'all'):
+											key = 'LSM_PERIOD'
+										fullP = abs(data[key] - data['p'])/data['p']
+										halfP = abs(data[key] - 0.5*data['p'])/(0.5*data['p'])
+										twiceP = abs(data[key] - 2.*data['p'])/(2.*data['p'])
+										rec = data.loc[(data[key] != -999) & ( (fullP < self.Pcut) | (halfP < self.Pcut) | (twiceP < self.Pcut))]
+										prsaRec = data.loc[(data['appMagMean_r'] <= 19.5) & (data['appMagMean_r'] >15.8) & (data['p'] < 1000) & (data['p'] >0.5) & (data['LSM_PERIOD'] != -999) & ( (fullP < self.Pcut) | (halfP < self.Pcut) | (twiceP < self.Pcut))]
+										DWDRec = data.loc[(data['logg1'] > 6) & (data['logg1'] < 12) & (data['logg2'] > 6) & (data['logg2'] < 12) & (data['LSM_PERIOD'] != -999) & ( (fullP < self.Pcut) | (halfP < self.Pcut) | (twiceP < self.Pcut))]
 
-										m1hRec0, m1b = np.histogram(recCombined["m1"], bins=mbins)
-										m1hRec0Small, m1bSmall = np.histogram(recCombined["m1"], bins=mbinsSmall)
-										qhRec0, qb = np.histogram(recCombined["m2"]/rec["m1"], bins=qbins)
-										ehRec0, eb = np.histogram(recCombined["e"], bins=ebins)
-										lphRec0, lpb = np.histogram(np.ma.log10(recCombined["p"].values).filled(-999), bins=lpbins)
-										dhRec0, db = np.histogram(recCombined["d"], bins=dbins)
-										maghRec0, magb = np.histogram(recCombined["appMagMean_r"], bins=magbins)
-										rhRec0, rb = np.histogram(recCombined["r2"]/recCombined["r1"], bins=rbins)
-										m1hRec[filt] += m1hRec0/Nall*Nmult
-										m1hRecSmall[filt] += m1hRec0Small/Nall*Nmult
-										qhRec[filt] += qhRec0/Nall*Nmult
-										ehRec[filt] += ehRec0/Nall*Nmult
-										lphRec[filt] += lphRec0/Nall*Nmult
-										dhRec[filt] += dhRec0/Nall*Nmult
-										maghRec[filt] += maghRec0/Nall*Nmult
-										rhRec[filt] += rhRec0/Nall*Nmult
+										if (len(rec) >= self.Nlim and filt != 'all'):
+											m1hRec0, m1b = np.histogram(rec["m1"], bins=mbins)
+											m1hRec0Small, m1bSmall = np.histogram(rec["m1"], bins=mbinsSmall)
+											qhRec0, qb = np.histogram(rec["m2"]/rec["m1"], bins=qbins)
+											ehRec0, eb = np.histogram(rec["e"], bins=ebins)
+											lphRec0, lpb = np.histogram(np.ma.log10(rec["p"].values).filled(-999), bins=lpbins)
+											dhRec0, db = np.histogram(rec["d"], bins=dbins)
+											maghRec0, magb = np.histogram(rec["appMagMean_r"], bins=magbins)
+											rhRec0, rb = np.histogram(rec["r2"]/rec["r1"], bins=rbins)
+											m1hRec[filt] += np.nan_to_num(m1hRec0/Nall*Nmult)
+											m1hRecSmall[filt] += np.nan_to_num(m1hRec0Small/Nall*Nmult)
+											qhRec[filt] += np.nan_to_num(qhRec0/Nall*Nmult)
+											ehRec[filt] += np.nan_to_num(ehRec0/Nall*Nmult)
+											lphRec[filt] += np.nan_to_num(lphRec0/Nall*Nmult)
+											dhRec[filt] += np.nan_to_num(dhRec0/Nall*Nmult)
+											maghRec[filt] += np.nan_to_num(maghRec0/Nall*Nmult)
+											rhRec[filt] += np.nan_to_num(rhRec0/Nall*Nmult)
 
-										m1hRec0CDF, m1bCDF = np.histogram(recCombined["m1"], bins=mbinsCDF)
-										m1hRec0CDFSmall, m1bCDFSmall = np.histogram(recCombined["m1"], bins=mbinsCDFSmall)
-										qhRec0CDF, qbCDF = np.histogram(recCombined["m2"]/rec["m1"], bins=qbinsCDF)
-										ehRec0CDF, ebCDF = np.histogram(recCombined["e"], bins=ebinsCDF)
-										lphRec0CDF, lpbCDF = np.histogram(np.ma.log10(recCombined["p"].values).filled(-999), bins=lpbinsCDF)
-										dhRec0CDF, dbCDF = np.histogram(recCombined["d"], bins=dbinsCDF)
-										maghRec0CDF, magbCDF = np.histogram(recCombined["appMagMean_r"], bins=magbinsCDF)
-										rhRec0CDF, rbCDF = np.histogram(recCombined["r2"]/recCombined["r1"], bins=rbinsCDF)
-										m1hRecCDF[filt] += m1hRec0CDF/Nall*Nmult
-										m1hRecCDFSmall[filt] += m1hRec0CDFSmall/Nall*Nmult
-										qhRecCDF[filt] += qhRec0CDF/Nall*Nmult
-										ehRecCDF[filt] += ehRec0CDF/Nall*Nmult
-										lphRecCDF[filt] += lphRec0CDF/Nall*Nmult
-										dhRecCDF[filt] += dhRec0CDF/Nall*Nmult
-										maghRecCDF[filt] += maghRec0CDF/Nall*Nmult
-										rhRecCDF[filt] += rhRec0CDF/Nall*Nmult
+											m1hRec0CDF, m1bCDF = np.histogram(rec["m1"], bins=mbinsCDF)
+											m1hRec0CDFSmall, m1bCDFSmall = np.histogram(rec["m1"], bins=mbinsCDFSmall)
+											qhRec0CDF, qbCDF = np.histogram(rec["m2"]/rec["m1"], bins=qbinsCDF)
+											ehRec0CDF, ebCDF = np.histogram(rec["e"], bins=ebinsCDF)
+											lphRec0CDF, lpbCDF = np.histogram(np.ma.log10(rec["p"].values).filled(-999), bins=lpbinsCDF)
+											dhRec0CDF, dbCDF = np.histogram(rec["d"], bins=dbinsCDF)
+											maghRec0CDF, magbCDF = np.histogram(rec["appMagMean_r"], bins=magbinsCDF)
+											rhRec0CDF, rbCDF = np.histogram(rec["r2"]/rec["r1"], bins=rbinsCDF)
+											m1hRecCDF[filt] += np.nan_to_num(m1hRec0CDF/Nall*Nmult)
+											m1hRecCDFSmall[filt] += np.nan_to_num(m1hRec0CDFSmall/Nall*Nmult)
+											qhRecCDF[filt] += np.nan_to_num(qhRec0CDF/Nall*Nmult)
+											ehRecCDF[filt] += np.nan_to_num(ehRec0CDF/Nall*Nmult)
+											lphRecCDF[filt] += np.nan_to_num(lphRec0CDF/Nall*Nmult)
+											dhRecCDF[filt] += np.nan_to_num(dhRec0CDF/Nall*Nmult)
+											maghRecCDF[filt] += np.nan_to_num(maghRec0CDF/Nall*Nmult)
+											rhRecCDF[filt] += np.nan_to_num(rhRec0CDF/Nall*Nmult)
 
-										# #Histograms
-										# #y
-										# self.outputHists['eachField'][OpSimID]['m1hRec'][filt] = np.append(np.insert(m1hRec0/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['m1SmallhRec'][filt] = np.append(np.insert(m1hRec0Small/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['qhRec'][filt] = np.append(np.insert(qhRec0/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['ehRec'][filt] = np.append(np.insert(ehRec0/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['lphRec'][filt] = np.append(np.insert(lphRec0/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['dhRec'][filt] = np.append(np.insert(dhRec0/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['maghRec'][filt] = np.append(np.insert(maghRec0/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['rhRec'][filt] = np.append(np.insert(rhRec0/Nall*Nmult,0,0),0)
-										# #CDFs
-										# #y
-										# self.outputHists['eachField'][OpSimID]['m1hRecCDF'][filt] = np.append(np.insert(m1hRec0CDF/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['m1SmallhRecCDF'][filt] = np.append(np.insert(m1hRec0CDFSmall/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['qhRecCDF'][filt] = np.append(np.insert(qhRec0CDF/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['ehRecCDF'][filt] = np.append(np.insert(ehRec0CDF/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['lphRecCDF'][filt] = np.append(np.insert(lphRec0CDF/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['dhRecCDF'][filt] = np.append(np.insert(dhRec0CDF/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['maghRecCDF'][filt] = np.append(np.insert(maghRec0CDF/Nall*Nmult,0,0),0)
-										# self.outputHists['eachField'][OpSimID]['rhRecCDF'][filt] = np.append(np.insert(rhRec0CDF/Nall*Nmult,0,0),0)
+											# #Histograms
+											# #y
+											# self.outputHists['eachField'][OpSimID]['m1hRec'][filt] = np.append(np.insert(m1hRec0/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['m1SmallhRec'][filt] = np.append(np.insert(m1hRec0Small/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['qhRec'][filt] = np.append(np.insert(qhRec0/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['ehRec'][filt] = np.append(np.insert(ehRec0/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['lphRec'][filt] = np.append(np.insert(lphRec0/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['dhRec'][filt] = np.append(np.insert(dhRec0/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['maghRec'][filt] = np.append(np.insert(maghRec0/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['rhRec'][filt] = np.append(np.insert(rhRec0/Nall*Nmult,0,0),0)
+											# #CDFs
+											# #y
+											# self.outputHists['eachField'][OpSimID]['m1hRecCDF'][filt] = np.append(np.insert(m1hRec0CDF/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['m1SmallhRecCDF'][filt] = np.append(np.insert(m1hRec0CDFSmall/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['qhRecCDF'][filt] = np.append(np.insert(qhRec0CDF/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['ehRecCDF'][filt] = np.append(np.insert(ehRec0CDF/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['lphRecCDF'][filt] = np.append(np.insert(lphRec0CDF/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['dhRecCDF'][filt] = np.append(np.insert(dhRec0CDF/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['maghRecCDF'][filt] = np.append(np.insert(maghRec0CDF/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['rhRecCDF'][filt] = np.append(np.insert(rhRec0CDF/Nall*Nmult,0,0),0)
+
+										#I'd like to account for all filters here to have more accurate numbers
+										recCombined = recCombined.append(rec)
+										prsaRecCombined = prsaRecCombined.append(prsaRec)
+										DWDRecCombined = DWDRecCombined.append(DWDRec)
+										recCombined.drop_duplicates(inplace=True)
+										prsaRecCombined.drop_duplicates(inplace=True)
+										DWDRecCombined.drop_duplicates(inplace=True)
+										if (len(recCombined) >= self.Nlim and filt == 'all'):
+											Nrec = len(recCombined.index)
+											NrecPrsa = len(prsaRecCombined.index)
+											NrecDWD = len(DWDRecCombined.index)
+
+											m1hRec0, m1b = np.histogram(recCombined["m1"], bins=mbins)
+											m1hRec0Small, m1bSmall = np.histogram(recCombined["m1"], bins=mbinsSmall)
+											qhRec0, qb = np.histogram(recCombined["m2"]/rec["m1"], bins=qbins)
+											ehRec0, eb = np.histogram(recCombined["e"], bins=ebins)
+											lphRec0, lpb = np.histogram(np.ma.log10(recCombined["p"].values).filled(-999), bins=lpbins)
+											dhRec0, db = np.histogram(recCombined["d"], bins=dbins)
+											maghRec0, magb = np.histogram(recCombined["appMagMean_r"], bins=magbins)
+											rhRec0, rb = np.histogram(recCombined["r2"]/recCombined["r1"], bins=rbins)
+											m1hRec[filt] += np.nan_to_num(m1hRec0/Nall*Nmult)
+											m1hRecSmall[filt] += np.nan_to_num(m1hRec0Small/Nall*Nmult)
+											qhRec[filt] += np.nan_to_num(qhRec0/Nall*Nmult)
+											ehRec[filt] += np.nan_to_num(ehRec0/Nall*Nmult)
+											lphRec[filt] += np.nan_to_num(lphRec0/Nall*Nmult)
+											dhRec[filt] += np.nan_to_num(dhRec0/Nall*Nmult)
+											maghRec[filt] += np.nan_to_num(maghRec0/Nall*Nmult)
+											rhRec[filt] += np.nan_to_num(rhRec0/Nall*Nmult)
+
+											m1hRec0CDF, m1bCDF = np.histogram(recCombined["m1"], bins=mbinsCDF)
+											m1hRec0CDFSmall, m1bCDFSmall = np.histogram(recCombined["m1"], bins=mbinsCDFSmall)
+											qhRec0CDF, qbCDF = np.histogram(recCombined["m2"]/rec["m1"], bins=qbinsCDF)
+											ehRec0CDF, ebCDF = np.histogram(recCombined["e"], bins=ebinsCDF)
+											lphRec0CDF, lpbCDF = np.histogram(np.ma.log10(recCombined["p"].values).filled(-999), bins=lpbinsCDF)
+											dhRec0CDF, dbCDF = np.histogram(recCombined["d"], bins=dbinsCDF)
+											maghRec0CDF, magbCDF = np.histogram(recCombined["appMagMean_r"], bins=magbinsCDF)
+											rhRec0CDF, rbCDF = np.histogram(recCombined["r2"]/recCombined["r1"], bins=rbinsCDF)
+											m1hRecCDF[filt] += np.nan_to_num(m1hRec0CDF/Nall*Nmult)
+											m1hRecCDFSmall[filt] += np.nan_to_num(m1hRec0CDFSmall/Nall*Nmult)
+											qhRecCDF[filt] += np.nan_to_num(qhRec0CDF/Nall*Nmult)
+											ehRecCDF[filt] += np.nan_to_num(ehRec0CDF/Nall*Nmult)
+											lphRecCDF[filt] += np.nan_to_num(lphRec0CDF/Nall*Nmult)
+											dhRecCDF[filt] += np.nan_to_num(dhRec0CDF/Nall*Nmult)
+											maghRecCDF[filt] += np.nan_to_num(maghRec0CDF/Nall*Nmult)
+											rhRecCDF[filt] += np.nan_to_num(rhRec0CDF/Nall*Nmult)
+
+											# #Histograms
+											# #y
+											# self.outputHists['eachField'][OpSimID]['m1hRec'][filt] = np.append(np.insert(m1hRec0/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['m1SmallhRec'][filt] = np.append(np.insert(m1hRec0Small/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['qhRec'][filt] = np.append(np.insert(qhRec0/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['ehRec'][filt] = np.append(np.insert(ehRec0/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['lphRec'][filt] = np.append(np.insert(lphRec0/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['dhRec'][filt] = np.append(np.insert(dhRec0/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['maghRec'][filt] = np.append(np.insert(maghRec0/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['rhRec'][filt] = np.append(np.insert(rhRec0/Nall*Nmult,0,0),0)
+											# #CDFs
+											# #y
+											# self.outputHists['eachField'][OpSimID]['m1hRecCDF'][filt] = np.append(np.insert(m1hRec0CDF/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['m1SmallhRecCDF'][filt] = np.append(np.insert(m1hRec0CDFSmall/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['qhRecCDF'][filt] = np.append(np.insert(qhRec0CDF/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['ehRecCDF'][filt] = np.append(np.insert(ehRec0CDF/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['lphRecCDF'][filt] = np.append(np.insert(lphRec0CDF/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['dhRecCDF'][filt] = np.append(np.insert(dhRec0CDF/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['maghRecCDF'][filt] = np.append(np.insert(maghRec0CDF/Nall*Nmult,0,0),0)
+											# self.outputHists['eachField'][OpSimID]['rhRecCDF'][filt] = np.append(np.insert(rhRec0CDF/Nall*Nmult,0,0),0)
 
 
-								self.allRec = self.allRec.append(recCombined)
+									self.allRec = self.allRec.append(recCombined)
 
-					rF = Nrec/Nall
-					rN = Nrec/Nall*Nmult
-					raN = NallMag/Nall*Nmult
-					obN = Nobs/Nall*Nmult
-					fiN = Nall
-					fiNMag = NallMag
-					fioN = Nobs
-					firN = Nrec
+						rF = Nrec/Nall
+						rN = Nrec/Nall*Nmult
+						raN = NallMag/Nall*Nmult
+						obN = Nobs/Nall*Nmult
+						fiN = Nall
+						fiNMag = NallMag
+						fioN = Nobs
+						firN = Nrec
 
-					NrecPrsa = NrecPrsa/Nall*Nmult
-					NobsPrsa = NobsPrsa/Nall*Nmult
-					NallPrsa = NallPrsa/Nall*Nmult		
+						NrecPrsa = NrecPrsa/Nall*Nmult
+						NobsPrsa = NobsPrsa/Nall*Nmult
+						NallPrsa = NallPrsa/Nall*Nmult		
 
-					NrecDWD = NrecDWD/Nall*Nmult
-					NobsDWD = NobsDWD/Nall*Nmult
-					NallDWD = NallDWD/Nall*Nmult	
+						NrecDWD = NrecDWD/Nall*Nmult
+						NobsDWD = NobsDWD/Nall*Nmult
+						NallDWD = NallDWD/Nall*Nmult	
 
 
 
@@ -1942,10 +1943,14 @@ class EBLSSTanalyzer(object):
 			#labels
 			plt.gcf().text(0.51, 0.15, 'RA', fontsize=16, horizontalalignment='center')
 			plt.gcf().text(0.045, 0.5, 'Dec', fontsize=16, rotation=90, verticalalignment='center')
-			for x in xlocs[1:-1]:
-				l = r'$'+str(int(x))+'^\degree$'
-				#plt.gcf().text(x/360. + 0.04 , 0.51, l, fontsize=12, horizontalalignment='center')
-				ax.text(x, 1, l, fontsize=12, horizontalalignment='center', transform=data_proj)
+			for x in xlocs:
+				xx = x
+				if (xx < 0):
+					xx = 360 + x
+				if (xx != 0):
+					l = r'$'+str(int(xx))+'^\degree$'
+					#plt.gcf().text(x/360. + 0.04 , 0.51, l, fontsize=12, horizontalalignment='center')
+					ax.text(x, 1, l, fontsize=12, horizontalalignment='center', transform=data_proj)
 
 			#it seems like there should be a better way to do this!
 			bbox = ax.dataLim
@@ -1954,8 +1959,8 @@ class EBLSSTanalyzer(object):
 				xval = (loc[0]*0.75 - bbox.x0)/(bbox.x1 - bbox.x0)   
 				yval = (loc[1]*0.65 - bbox.y0)/(bbox.y1 - bbox.y0)   
 				tval = y
-				if (tval < 0):
-					tval += 360 
+				# if (tval < 0):
+				# 	tval += 360 
 				l = r'$'+str(int(tval))+'^\degree$'
 				xoff = -0.015
 				if (y < 0):
@@ -1973,13 +1978,13 @@ class EBLSSTanalyzer(object):
 
 		f, ax, data_proj = makeMollweideAxes()
 
-		mlw = ax.scatter(np.array(RAwrap).ravel(), np.array(Decwrap).ravel(), c=np.array(use['recN']/use['obsN']), cmap='magma_r', s = 10, vmin=0.3, vmax=0.7, transform=data_proj)
+		mlw = ax.scatter(np.array(RAwrap).ravel(), np.array(Decwrap).ravel(), c=np.array(use['recN']/use['obsN']), cmap='magma_r', s = 10, vmin=0.25, vmax=0.55, transform=data_proj)
 		if (showCbar):
 			#cbar = f.colorbar(mlw, shrink=0.7)
 			# Now adding the colorbar
 			cbaxes = f.add_axes([0.1, 0.9, 0.8, 0.03]) 
 			cbar = plt.colorbar(mlw, cax = cbaxes, orientation="horizontal") 
-			cbar.set_label(r'$N_\mathrm{Rec.}/N_\mathrm{Obs.}$',fontsize=16)
+			cbar.set_label(r'$N_\mathrm{Rec.}/N_\mathrm{Obs.}$',fontsize=16, labelpad=10)
 			cbaxes.xaxis.set_ticks_position('top')
 			cbaxes.xaxis.set_label_position('top')
 
@@ -1996,7 +2001,7 @@ class EBLSSTanalyzer(object):
 			#cbar = f.colorbar(mlw, shrink=0.7)
 			cbaxes = f.add_axes([0.1, 0.9, 0.8, 0.03]) 
 			cbar = plt.colorbar(mlw, cax = cbaxes, orientation="horizontal") 
-			cbar.set_label(r'$\log_{10}(N_\mathrm{Rec.})$',fontsize=16)
+			cbar.set_label(r'$\log_{10}(N_\mathrm{Rec.})$',fontsize=16, labelpad=10)
 			cbaxes.xaxis.set_ticks_position('top')
 			cbaxes.xaxis.set_label_position('top')
 		f.savefig(os.path.join(self.plotsDirectory,'mollweide_N'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
@@ -2025,10 +2030,14 @@ class EBLSSTanalyzer(object):
 			#labels
 			plt.gcf().text(0.51, 0.15, 'RA', fontsize=16, horizontalalignment='center')
 			plt.gcf().text(0.045, 0.5, 'Dec', fontsize=16, rotation=90, verticalalignment='center')
-			for x in xlocs[1:-1]:
-				l = r'$'+str(int(x))+'^\degree$'
-				#plt.gcf().text(x/360. + 0.04 , 0.51, l, fontsize=12, horizontalalignment='center')
-				ax.text(x, 1, l, fontsize=12, horizontalalignment='center', transform=data_proj)
+			for x in xlocs:
+				xx = x
+				if (xx < 0):
+					xx = 360 + x
+				if (xx != 0):
+					l = r'$'+str(int(xx))+'^\degree$'
+					#plt.gcf().text(x/360. + 0.04 , 0.51, l, fontsize=12, horizontalalignment='center')
+					ax.text(x, 1, l, fontsize=12, horizontalalignment='center', transform=data_proj)
 
 			#it seems like there should be a better way to do this!
 			bbox = ax.dataLim
@@ -2037,8 +2046,8 @@ class EBLSSTanalyzer(object):
 				xval = (loc[0]*0.75 - bbox.x0)/(bbox.x1 - bbox.x0)   
 				yval = (loc[1]*0.65 - bbox.y0)/(bbox.y1 - bbox.y0)   
 				tval = y
-				if (tval < 0):
-					tval += 360 
+				# if (tval < 0):
+				# 	tval += 360 
 				l = r'$'+str(int(tval))+'^\degree$'
 				xoff = -0.015
 				if (y < 0):
@@ -2060,13 +2069,13 @@ class EBLSSTanalyzer(object):
 		r2 = np.array(d2['recN']/d2['obsN'])
 		check = np.isnan(r2)
 		r2[check] = 0.
-		mlw = ax.scatter(np.array(RAwrap).ravel(), np.array(Decwrap).ravel(), c=r1-r2, cmap='seismic_r', s = 10, vmin=-1, vmax=1, transform=data_proj)
+		mlw = ax.scatter(np.array(RAwrap).ravel(), np.array(Decwrap).ravel(), c=r1-r2, cmap='seismic_r', s = 10, vmin=-0.25, vmax=0.25, transform=data_proj)
 		if (showCbar):
 			#cbar = f.colorbar(mlw, shrink=0.7)
 			# Now adding the colorbar
 			cbaxes = f.add_axes([0.1, 0.9, 0.8, 0.03]) 
-			cbar = plt.colorbar(mlw, cax = cbaxes, orientation="horizontal") 
-			cbar.set_label(r'$\left(N_\mathrm{Rec.}/N_\mathrm{Obs.}\right)_\mathrm{colossus} - \left(N_\mathrm{Rec.}/N_\mathrm{Obs.}\right)_\mathrm{baseline}$',fontsize=16)
+			cbar = plt.colorbar(mlw, cax = cbaxes, orientation="horizontal", extend='both') 
+			cbar.set_label(r'$\left(N_\mathrm{Rec.}/N_\mathrm{Obs.}\right)_\mathrm{colossus} - \left(N_\mathrm{Rec.}/N_\mathrm{Obs.}\right)_\mathrm{baseline}$',fontsize=16, labelpad=10)
 			cbaxes.xaxis.set_ticks_position('top')
 			cbaxes.xaxis.set_label_position('top')
 
@@ -2078,12 +2087,12 @@ class EBLSSTanalyzer(object):
 		Decwrap = coords.dec.wrap_at(90.*units.degree).degree
 
 		f, ax, data_proj = makeMollweideAxes()
-		mlw = ax.scatter(np.array(RAwrap).ravel(), np.array(Decwrap).ravel(), c=(np.array(d1['recN']) - np.array(d2['recN'])), cmap='seismic_r', s = 10, vmin=-2000, vmax=2000, transform=data_proj)
+		mlw = ax.scatter(np.array(RAwrap).ravel(), np.array(Decwrap).ravel(), c=(np.array(d1['recN']) - np.array(d2['recN'])), cmap='seismic_r', s = 10, vmin=-100, vmax=100, transform=data_proj)
 		if (showCbar):
 			#cbar = f.colorbar(mlw, shrink=0.7)
 			cbaxes = f.add_axes([0.1, 0.9, 0.8, 0.03]) 
 			cbar = plt.colorbar(mlw, cax = cbaxes, orientation="horizontal", extend='both') 
-			cbar.set_label(r'$N_\mathrm{Rec.,colossus} - N_\mathrm{Rec.,baseline}$',fontsize=16)
+			cbar.set_label(r'$N_\mathrm{Rec.,colossus} - N_\mathrm{Rec.,baseline}$',fontsize=16, labelpad=10)
 			cbaxes.xaxis.set_ticks_position('top')
 			cbaxes.xaxis.set_label_position('top')
 		f.savefig(os.path.join(self.plotsDirectory,'mollweide_N'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
@@ -2281,12 +2290,12 @@ class EBLSSTanalyzer(object):
 
 		self.plotObsRecOther_new(dF1, dF2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax=ax[0,0],showLegend=True)
 		self.plotObsRecOther_new(dF1, dF2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax=ax[0,1], showLegend=False)
-		self.plotObsRecOther_new(dF1, dF2, 'm1', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,10], ax=ax[0,2], showLegend=False)
+		self.plotObsRecOther_new(dF1, dF2, 'm1', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,6], ax=ax[0,2], showLegend=False)
 		self.plotObsRecOther_new(dF1, dF2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax=ax[0,3],showLegend=False)
 
 		self.plotObsRecOther_new(dGC1, dGC2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax=ax[1,0],showLegend=False)
 		self.plotObsRecOther_new(dGC1, dGC2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax=ax[1,1], showLegend=False)
-		self.plotObsRecOther_new(dGC1, dGC2, 'm1Small', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,3], ax=ax[1,2], showLegend=False)
+		self.plotObsRecOther_new(dGC1, dGC2, 'm1Small', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,2], ax=ax[1,2], showLegend=False)
 		self.plotObsRecOther_new(dGC1, dGC2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax=ax[1,3],showLegend=False)
 
 		self.plotObsRecOther_new(dOC1, dOC2, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax=ax[2,0],showLegend=False)
@@ -2327,12 +2336,12 @@ class EBLSSTanalyzer(object):
 
 		self.plotObsRecCDF_new(dF1, dF2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphistCDF_new'+suffix), xlim=[-2,4], ax=ax1[0,0],showLegend=True)
 		self.plotObsRecCDF_new(dF1, dF2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehistCDF_new'+suffix), xlim=[0,1],  ax=ax1[0,1], showLegend=False)
-		self.plotObsRecCDF_new(dF1, dF2, 'm1', '', os.path.join(self.plotsDirectory,'EBLSST_m1histCDF_new'+suffix), xlim=[0,10], ax=ax1[0,2], showLegend=False)
+		self.plotObsRecCDF_new(dF1, dF2, 'm1', '', os.path.join(self.plotsDirectory,'EBLSST_m1histCDF_new'+suffix), xlim=[0,6], ax=ax1[0,2], showLegend=False)
 		self.plotObsRecCDF_new(dF1, dF2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhistCDF_new'+suffix), xlim=[0,1], ax=ax1[0,3],showLegend=False)
 
 		self.plotObsRecCDF_new(dGC1, dGC2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphistCDF_new'+suffix), xlim=[-2,4], ax=ax1[1,0],showLegend=False)
 		self.plotObsRecCDF_new(dGC1, dGC2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehistCDF_new'+suffix), xlim=[0,1],  ax=ax1[1,1], showLegend=False)
-		self.plotObsRecCDF_new(dGC1, dGC2, 'm1Small', '', os.path.join(self.plotsDirectory,'EBLSST_m1histCDF_new'+suffix), xlim=[0,3], ax=ax1[1,2], showLegend=False)
+		self.plotObsRecCDF_new(dGC1, dGC2, 'm1Small', '', os.path.join(self.plotsDirectory,'EBLSST_m1histCDF_new'+suffix), xlim=[0,2], ax=ax1[1,2], showLegend=False)
 		self.plotObsRecCDF_new(dGC1, dGC2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhistCDF_new'+suffix), xlim=[0,1], ax=ax1[1,3],showLegend=False)
 
 		self.plotObsRecCDF_new(dOC1, dOC2, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphistCDF_new'+suffix), xlim=[-2,4], ax=ax1[2,0],showLegend=False)
@@ -2360,12 +2369,12 @@ class EBLSSTanalyzer(object):
 		f2,ax2 = plt.subplots(3,4,figsize=(20, 12))
 		self.plotObsRecOtherRatio_new(dF1, dF2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax2=ax2[0,0],showLegend=True, legendLoc = 'upper right')
 		self.plotObsRecOtherRatio_new(dF1, dF2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax2=ax2[0,1], showLegend=False)
-		self.plotObsRecOtherRatio_new(dF1, dF2, 'm1', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,10], ax2=ax2[0,2], showLegend=False)
+		self.plotObsRecOtherRatio_new(dF1, dF2, 'm1', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,6], ax2=ax2[0,2], showLegend=False)
 		self.plotObsRecOtherRatio_new(dF1, dF2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax2=ax2[0,3],showLegend=False)
 
 		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax2=ax2[1,0],showLegend=False)
 		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax2=ax2[1,1], showLegend=False)
-		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'm1Small', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,3], ax2=ax2[1,2], showLegend=False)
+		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'm1Small', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,2], ax2=ax2[1,2], showLegend=False)
 		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax2=ax2[1,3],showLegend=False)
 
 		self.plotObsRecOtherRatio_new(dOC1, dOC2, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax2=ax2[2,0],showLegend=False)
