@@ -451,7 +451,7 @@ class EBLSSTanalyzer(object):
 			plt.close(f)
 
 
-	def plotObsRecOther_new(self, d1, d2, key, xtitle, fname,  xlim = None, ax = None, showLegend = True):
+	def plotObsRecOther_new(self, d1, d2, key, xtitle, fname,  xlim = None, ax = None, showLegend = True, showXticks = True):
 		#http://jfly.iam.u-tokyo.ac.jp/color/image/pallete.jpg
 		#https://thenode.biologists.com/data-visualization-with-flying-colors/research/
 		#https://medium.com/cafe-pixo/inclusive-color-palettes-for-the-web-bbfe8cf2410e
@@ -513,12 +513,18 @@ class EBLSSTanalyzer(object):
 			ax.legend(handles=[lAll, lObs, lRec, lASN], fontsize=10.5, ncol = 4, bbox_to_anchor=(0.15, 1.1, 1, 0.1))
 
 
+		if (not showXticks):
+			ax.axes.xaxis.set_ticklabels([])
+
+		if (key == 'm1Log'):
+			ax.xaxis.set_ticks(np.arange(min(bin_edges), max(bin_edges), 0.5))
+
 		if (saveit):
 			f.subplots_adjust(hspace=0)
 			f.savefig(fname+'_ObsRecOther_new.pdf',format='pdf', bbox_inches = 'tight')
 			plt.close(f)
 
-	def plotObsRecCDF_new(self, d1, d2, key, xtitle, fname,  xlim = None, ax = None, showLegend = True):
+	def plotObsRecCDF_new(self, d1, d2, key, xtitle, fname,  xlim = None, ax = None, showLegend = True, showXticks = True):
 		#http://jfly.iam.u-tokyo.ac.jp/color/image/pallete.jpg
 		#https://thenode.biologists.com/data-visualization-with-flying-colors/research/
 		#https://medium.com/cafe-pixo/inclusive-color-palettes-for-the-web-bbfe8cf2410e
@@ -594,6 +600,12 @@ class EBLSSTanalyzer(object):
 			lASN = mlines.Line2D([], [], color='#5FC8D0', linewidth=1, label='ASAS-SN')
 			ax.legend(handles=[lAll, lObs, lRec, lASN], fontsize=10.5, ncol = 4, bbox_to_anchor=(0.15, 1.1, 1, 0.1))
 
+
+		if (not showXticks):
+			ax.axes.xaxis.set_ticklabels([])
+
+		if (key == 'm1Log'):
+			ax.xaxis.set_ticks(np.arange(min(bin_edges), max(bin_edges), 0.5))
 
 		if (saveit):
 			f.subplots_adjust(hspace=0)
@@ -714,7 +726,7 @@ class EBLSSTanalyzer(object):
 			f.savefig(fname+'_ObsRecOther_new.pdf',format='pdf', bbox_inches = 'tight')
 			plt.close(f)
 
-	def plotObsRecOtherRatio_new(self, d1, d2, key, xtitle, fname,  xlim = None, ax2 = None, showLegend = True, legendLoc = 'lower right'):
+	def plotObsRecOtherRatio_new(self, d1, d2, key, xtitle, fname,  xlim = None, ax2 = None, showLegend = True, legendLoc = 'lower right', showXticks = True):
 		#http://jfly.iam.u-tokyo.ac.jp/color/image/pallete.jpg
 		#https://thenode.biologists.com/data-visualization-with-flying-colors/research/
 		#https://medium.com/cafe-pixo/inclusive-color-palettes-for-the-web-bbfe8cf2410e
@@ -803,6 +815,11 @@ class EBLSSTanalyzer(object):
 			lRecAll = mlines.Line2D([], [], color=c3, linewidth=w3, label='Rec./All')
 			ax2.legend(handles=[lRecObs, lObsAll, lRecAll], loc=legendLoc, fontsize=10.5)
 
+		if (not showXticks):
+			ax2.axes.xaxis.set_ticklabels([])
+
+		if (key == 'm1Log'):
+			ax2.xaxis.set_ticks(np.arange(min(bin_edges), max(bin_edges), 0.5))
 
 		if (saveit):
 			f2.subplots_adjust(hspace=0)
@@ -1192,6 +1209,7 @@ class EBLSSTanalyzer(object):
 		#bins for all the histograms
 		mbSize = 0.4
 		mbSizeSmall = 0.1
+		mbSizeLog = 0.1
 		qbSize = 0.05
 		ebSize = 0.05
 		lpbSize = 0.25
@@ -1200,6 +1218,7 @@ class EBLSSTanalyzer(object):
 		rbSize = 0.2
 		mbins = np.arange(0,10+mbSize, mbSize, dtype='float')
 		mbinsSmall = np.arange(0,10+mbSizeSmall, mbSizeSmall, dtype='float')
+		mbinsLog = np.arange(-1,1+mbSizeLog, mbSizeLog, dtype='float')
 		qbins = np.arange(0,1+qbSize, qbSize, dtype='float')
 		ebins = np.arange(0, 1+ebSize, ebSize, dtype='float')
 		lpbins = np.arange(-3, 10+lpbSize, lpbSize, dtype='float')
@@ -1210,6 +1229,7 @@ class EBLSSTanalyzer(object):
 		CDFfac = 1000.
 		mbinsCDF = np.arange(0,10+mbSize/CDFfac, mbSize/CDFfac, dtype='float')
 		mbinsCDFSmall = np.arange(0,10+mbSizeSmall/CDFfac, mbSizeSmall/CDFfac, dtype='float')
+		mbinsCDFLog= np.arange(-1,1+mbSizeLog/CDFfac, mbSizeLog/CDFfac, dtype='float')
 		qbinsCDF = np.arange(0,1+qbSize/CDFfac, qbSize/CDFfac, dtype='float')
 		ebinsCDF = np.arange(0, 1+ebSize/CDFfac, ebSize/CDFfac, dtype='float')
 		lpbinsCDF = np.arange(-3, 10+lpbSize/CDFfac, lpbSize/CDFfac, dtype='float')
@@ -1229,6 +1249,7 @@ class EBLSSTanalyzer(object):
 		#All
 		m1hAll = np.zeros_like(mbins)[1:]
 		m1hAllSmall = np.zeros_like(mbinsSmall)[1:]
+		m1hAllLog = np.zeros_like(mbinsLog)[1:]
 		qhAll = np.zeros_like(qbins)[1:]
 		ehAll = np.zeros_like(ebins)[1:]
 		lphAll = np.zeros_like(lpbins)[1:]
@@ -1238,6 +1259,7 @@ class EBLSSTanalyzer(object):
 		#Observable
 		m1hObs = np.zeros_like(mbins)[1:]
 		m1hObsSmall = np.zeros_like(mbinsSmall)[1:]
+		m1hObsLog = np.zeros_like(mbinsLog)[1:]
 		qhObs = np.zeros_like(qbins)[1:]
 		ehObs = np.zeros_like(ebins)[1:]
 		lphObs = np.zeros_like(lpbins)[1:]
@@ -1247,6 +1269,7 @@ class EBLSSTanalyzer(object):
 		#Recovered
 		m1hRec = dict()
 		m1hRecSmall = dict()
+		m1hRecLog = dict()
 		qhRec = dict()
 		ehRec = dict()
 		lphRec = dict()
@@ -1256,6 +1279,7 @@ class EBLSSTanalyzer(object):
 		for f in self.filters:
 			m1hRec[f] = np.zeros_like(mbins)[1:]
 			m1hRecSmall[f] = np.zeros_like(mbinsSmall)[1:]
+			m1hRecLog[f] = np.zeros_like(mbinsLog)[1:]
 			qhRec[f] = np.zeros_like(qbins)[1:]
 			ehRec[f] = np.zeros_like(ebins)[1:]
 			lphRec[f] = np.zeros_like(lpbins)[1:]
@@ -1267,6 +1291,7 @@ class EBLSSTanalyzer(object):
 		#All
 		m1hAllCDF = np.zeros_like(mbinsCDF)[1:]
 		m1hAllCDFSmall = np.zeros_like(mbinsCDFSmall)[1:]
+		m1hAllCDFLog= np.zeros_like(mbinsCDFLog)[1:]
 		qhAllCDF = np.zeros_like(qbinsCDF)[1:]
 		ehAllCDF = np.zeros_like(ebinsCDF)[1:]
 		lphAllCDF = np.zeros_like(lpbinsCDF)[1:]
@@ -1276,6 +1301,7 @@ class EBLSSTanalyzer(object):
 		#Observable
 		m1hObsCDF = np.zeros_like(mbinsCDF)[1:]
 		m1hObsCDFSmall = np.zeros_like(mbinsCDFSmall)[1:]
+		m1hObsCDFLog = np.zeros_like(mbinsCDFLog)[1:]
 		qhObsCDF = np.zeros_like(qbinsCDF)[1:]
 		ehObsCDF = np.zeros_like(ebinsCDF)[1:]
 		lphObsCDF = np.zeros_like(lpbinsCDF)[1:]
@@ -1285,6 +1311,7 @@ class EBLSSTanalyzer(object):
 		#Recovered
 		m1hRecCDF = dict()
 		m1hRecCDFSmall = dict()
+		m1hRecCDFLog = dict()
 		qhRecCDF = dict()
 		ehRecCDF = dict()
 		lphRecCDF = dict()
@@ -1294,6 +1321,7 @@ class EBLSSTanalyzer(object):
 		for f in self.filters:
 			m1hRecCDF[f] = np.zeros_like(mbinsCDF)[1:]
 			m1hRecCDFSmall[f] = np.zeros_like(mbinsCDFSmall)[1:]
+			m1hRecCDFLog[f] = np.zeros_like(mbinsCDFLog)[1:]
 			qhRecCDF[f] = np.zeros_like(qbinsCDF)[1:]
 			ehRecCDF[f] = np.zeros_like(ebinsCDF)[1:]
 			lphRecCDF[f] = np.zeros_like(lpbinsCDF)[1:]
@@ -1449,6 +1477,7 @@ class EBLSSTanalyzer(object):
 								#All
 								m1hAll0, m1b = np.histogram(data["m1"], bins=mbins)
 								m1hAll0Small, m1bSmall = np.histogram(data["m1"], bins=mbinsSmall)
+								m1hAll0Log, m1bLog = np.histogram(np.ma.log10(data["m1"].values).filled(-999), bins=mbinsLog)
 								qhAll0, qb = np.histogram(data["m2"]/data["m1"], bins=qbins)
 								ehAll0, eb = np.histogram(data["e"], bins=ebins)
 								lphAll0, lpb = np.histogram(np.ma.log10(data["p"].values).filled(-999), bins=lpbins)
@@ -1458,6 +1487,7 @@ class EBLSSTanalyzer(object):
 
 								m1hAll0CDF, m1bCDF = np.histogram(data["m1"], bins=mbinsCDF)
 								m1hAll0CDFSmall, m1bCDFSmall = np.histogram(data["m1"], bins=mbinsCDFSmall)
+								m1hAll0CDFLog, m1bCDFLog = np.histogram(np.ma.log10(data["m1"].values).filled(-999), bins=mbinsCDFLog)
 								qhAll0CDF, qbCDF = np.histogram(data["m2"]/data["m1"], bins=qbinsCDF)
 								ehAll0CDF, ebCDF = np.histogram(data["e"], bins=ebinsCDF)
 								lphAll0CDF, lpbCDF = np.histogram(np.ma.log10(data["p"].values).filled(-999), bins=lpbinsCDF)
@@ -1490,6 +1520,7 @@ class EBLSSTanalyzer(object):
 											
 								m1hAll += np.nan_to_num(m1hAll0/Nall*Nmult)
 								m1hAllSmall += np.nan_to_num(m1hAll0Small/Nall*Nmult)
+								m1hAllLog += np.nan_to_num(m1hAll0Log/Nall*Nmult)
 								qhAll += np.nan_to_num(qhAll0/Nall*Nmult)
 								ehAll += np.nan_to_num(ehAll0/Nall*Nmult)
 								lphAll += np.nan_to_num(lphAll0/Nall*Nmult)
@@ -1499,6 +1530,7 @@ class EBLSSTanalyzer(object):
 
 								m1hAllCDF += np.nan_to_num(m1hAll0CDF/Nall*Nmult)
 								m1hAllCDFSmall += np.nan_to_num(m1hAll0CDFSmall/Nall*Nmult)
+								m1hAllCDFLog += np.nan_to_num(m1hAll0CDFLog/Nall*Nmult)
 								qhAllCDF += np.nan_to_num(qhAll0CDF/Nall*Nmult)
 								ehAllCDF += np.nan_to_num(ehAll0CDF/Nall*Nmult)
 								lphAllCDF += np.nan_to_num(lphAll0CDF/Nall*Nmult)
@@ -1561,6 +1593,7 @@ class EBLSSTanalyzer(object):
 								if (Nobs >= self.Nlim):
 									m1hObs0, m1b = np.histogram(obs["m1"], bins=mbins)
 									m1hObs0Small, m1bSmall = np.histogram(obs["m1"], bins=mbinsSmall)
+									m1hObs0Log, m1bLog = np.histogram(np.ma.log10(obs["m1"].values).filled(-999), bins=mbinsLog)
 									qhObs0, qb = np.histogram(obs["m2"]/obs["m1"], bins=qbins)
 									ehObs0, eb = np.histogram(obs["e"], bins=ebins)
 									lphObs0, lpb = np.histogram(np.ma.log10(obs["p"].values).filled(-999), bins=lpbins)
@@ -1569,6 +1602,7 @@ class EBLSSTanalyzer(object):
 									rhObs0, rb = np.histogram(obs["r2"]/obs["r1"], bins=rbins)
 									m1hObs += np.nan_to_num(m1hObs0/Nall*Nmult)
 									m1hObsSmall += np.nan_to_num(m1hObs0Small/Nall*Nmult)
+									m1hObsLog += np.nan_to_num(m1hObs0Log/Nall*Nmult)
 									qhObs += np.nan_to_num(qhObs0/Nall*Nmult)
 									ehObs += np.nan_to_num(ehObs0/Nall*Nmult)
 									lphObs += np.nan_to_num(lphObs0/Nall*Nmult)
@@ -1578,6 +1612,7 @@ class EBLSSTanalyzer(object):
 
 									m1hObs0CDF, m1bCDF = np.histogram(obs["m1"], bins=mbinsCDF)
 									m1hObs0CDFSmall, m1bCDFSmall = np.histogram(obs["m1"], bins=mbinsCDFSmall)
+									m1hObs0CDFLog, m1bCDFLog = np.histogram(np.ma.log10(obs["m1"].values).filled(-999), bins=mbinsCDFLog)
 									qhObs0CDF, qbCDF = np.histogram(obs["m2"]/obs["m1"], bins=qbinsCDF)
 									ehObs0CDF, ebCDF = np.histogram(obs["e"], bins=ebinsCDF)
 									lphObs0CDF, lpbCDF = np.histogram(np.ma.log10(obs["p"].values).filled(-999), bins=lpbinsCDF)
@@ -1586,6 +1621,7 @@ class EBLSSTanalyzer(object):
 									rhObs0CDF, rbCDF = np.histogram(obs["r2"]/obs["r1"], bins=rbinsCDF)
 									m1hObsCDF += np.nan_to_num(m1hObs0CDF/Nall*Nmult)
 									m1hObsCDFSmall += np.nan_to_num(m1hObs0CDFSmall/Nall*Nmult)
+									m1hObsCDFLog += np.nan_to_num(m1hObs0CDFLog/Nall*Nmult)
 									qhObsCDF += np.nan_to_num(qhObs0CDF/Nall*Nmult)
 									ehObsCDF += np.nan_to_num(ehObs0CDF/Nall*Nmult)
 									lphObsCDF += np.nan_to_num(lphObs0CDF/Nall*Nmult)
@@ -1653,6 +1689,7 @@ class EBLSSTanalyzer(object):
 										if (len(rec) >= self.Nlim and filt != 'all'):
 											m1hRec0, m1b = np.histogram(rec["m1"], bins=mbins)
 											m1hRec0Small, m1bSmall = np.histogram(rec["m1"], bins=mbinsSmall)
+											m1hRec0Log, m1bLog = np.histogram(np.ma.log10(rec["m1"].values).filled(-999), bins=mbinsLog)
 											qhRec0, qb = np.histogram(rec["m2"]/rec["m1"], bins=qbins)
 											ehRec0, eb = np.histogram(rec["e"], bins=ebins)
 											lphRec0, lpb = np.histogram(np.ma.log10(rec["p"].values).filled(-999), bins=lpbins)
@@ -1661,6 +1698,7 @@ class EBLSSTanalyzer(object):
 											rhRec0, rb = np.histogram(rec["r2"]/rec["r1"], bins=rbins)
 											m1hRec[filt] += np.nan_to_num(m1hRec0/Nall*Nmult)
 											m1hRecSmall[filt] += np.nan_to_num(m1hRec0Small/Nall*Nmult)
+											m1hRecLog[filt] += np.nan_to_num(m1hRec0Log/Nall*Nmult)
 											qhRec[filt] += np.nan_to_num(qhRec0/Nall*Nmult)
 											ehRec[filt] += np.nan_to_num(ehRec0/Nall*Nmult)
 											lphRec[filt] += np.nan_to_num(lphRec0/Nall*Nmult)
@@ -1670,6 +1708,7 @@ class EBLSSTanalyzer(object):
 
 											m1hRec0CDF, m1bCDF = np.histogram(rec["m1"], bins=mbinsCDF)
 											m1hRec0CDFSmall, m1bCDFSmall = np.histogram(rec["m1"], bins=mbinsCDFSmall)
+											m1hRec0CDFLog, m1bCDFLog = np.histogram(np.ma.log10(rec["m1"].values).filled(-999), bins=mbinsCDFLog)
 											qhRec0CDF, qbCDF = np.histogram(rec["m2"]/rec["m1"], bins=qbinsCDF)
 											ehRec0CDF, ebCDF = np.histogram(rec["e"], bins=ebinsCDF)
 											lphRec0CDF, lpbCDF = np.histogram(np.ma.log10(rec["p"].values).filled(-999), bins=lpbinsCDF)
@@ -1678,6 +1717,7 @@ class EBLSSTanalyzer(object):
 											rhRec0CDF, rbCDF = np.histogram(rec["r2"]/rec["r1"], bins=rbinsCDF)
 											m1hRecCDF[filt] += np.nan_to_num(m1hRec0CDF/Nall*Nmult)
 											m1hRecCDFSmall[filt] += np.nan_to_num(m1hRec0CDFSmall/Nall*Nmult)
+											m1hRecCDFLog[filt] += np.nan_to_num(m1hRec0CDFLog/Nall*Nmult)
 											qhRecCDF[filt] += np.nan_to_num(qhRec0CDF/Nall*Nmult)
 											ehRecCDF[filt] += np.nan_to_num(ehRec0CDF/Nall*Nmult)
 											lphRecCDF[filt] += np.nan_to_num(lphRec0CDF/Nall*Nmult)
@@ -1720,6 +1760,7 @@ class EBLSSTanalyzer(object):
 
 											m1hRec0, m1b = np.histogram(recCombined["m1"], bins=mbins)
 											m1hRec0Small, m1bSmall = np.histogram(recCombined["m1"], bins=mbinsSmall)
+											m1hRec0Log, m1bLog = np.histogram(np.ma.log10(recCombined["m1"].values).filled(-999), bins=mbinsLog)
 											qhRec0, qb = np.histogram(recCombined["m2"]/rec["m1"], bins=qbins)
 											ehRec0, eb = np.histogram(recCombined["e"], bins=ebins)
 											lphRec0, lpb = np.histogram(np.ma.log10(recCombined["p"].values).filled(-999), bins=lpbins)
@@ -1728,6 +1769,7 @@ class EBLSSTanalyzer(object):
 											rhRec0, rb = np.histogram(recCombined["r2"]/recCombined["r1"], bins=rbins)
 											m1hRec[filt] += np.nan_to_num(m1hRec0/Nall*Nmult)
 											m1hRecSmall[filt] += np.nan_to_num(m1hRec0Small/Nall*Nmult)
+											m1hRecLog[filt] += np.nan_to_num(m1hRec0Log/Nall*Nmult)
 											qhRec[filt] += np.nan_to_num(qhRec0/Nall*Nmult)
 											ehRec[filt] += np.nan_to_num(ehRec0/Nall*Nmult)
 											lphRec[filt] += np.nan_to_num(lphRec0/Nall*Nmult)
@@ -1737,6 +1779,7 @@ class EBLSSTanalyzer(object):
 
 											m1hRec0CDF, m1bCDF = np.histogram(recCombined["m1"], bins=mbinsCDF)
 											m1hRec0CDFSmall, m1bCDFSmall = np.histogram(recCombined["m1"], bins=mbinsCDFSmall)
+											m1hRec0CDFLog, m1bCDFLog = np.histogram(np.ma.log10(recCombined["m1"].values).filled(-999), bins=mbinsCDFLog)
 											qhRec0CDF, qbCDF = np.histogram(recCombined["m2"]/rec["m1"], bins=qbinsCDF)
 											ehRec0CDF, ebCDF = np.histogram(recCombined["e"], bins=ebinsCDF)
 											lphRec0CDF, lpbCDF = np.histogram(np.ma.log10(recCombined["p"].values).filled(-999), bins=lpbinsCDF)
@@ -1745,6 +1788,7 @@ class EBLSSTanalyzer(object):
 											rhRec0CDF, rbCDF = np.histogram(recCombined["r2"]/recCombined["r1"], bins=rbinsCDF)
 											m1hRecCDF[filt] += np.nan_to_num(m1hRec0CDF/Nall*Nmult)
 											m1hRecCDFSmall[filt] += np.nan_to_num(m1hRec0CDFSmall/Nall*Nmult)
+											m1hRecCDFLog[filt] += np.nan_to_num(m1hRec0CDFLog/Nall*Nmult)
 											qhRecCDF[filt] += np.nan_to_num(qhRec0CDF/Nall*Nmult)
 											ehRecCDF[filt] += np.nan_to_num(ehRec0CDF/Nall*Nmult)
 											lphRecCDF[filt] += np.nan_to_num(lphRec0CDF/Nall*Nmult)
@@ -1824,6 +1868,7 @@ class EBLSSTanalyzer(object):
 		#bins (inserting zeros at the start and end so that I can more easily plot these with the bin_edges)
 		self.outputHists['m1b'] = np.append(m1b, m1b[-1] + mbSize)
 		self.outputHists['m1Smallb'] = np.append(m1bSmall, m1bSmall[-1] + mbSizeSmall)
+		self.outputHists['m1Logb'] = np.append(m1bLog, m1bLog[-1] + mbSizeLog)
 		self.outputHists['qb'] = np.append(qb, qb[-1] + qbSize)
 		self.outputHists['eb'] = np.append(eb, eb[-1] + ebSize)
 		self.outputHists['lpb'] = np.append(lpb, lpb[-1] + lpbSize)
@@ -1833,6 +1878,7 @@ class EBLSSTanalyzer(object):
 		#All 
 		self.outputHists['m1hAll'] = np.append(np.insert(m1hAll,0,0),0)
 		self.outputHists['m1SmallhAll'] = np.append(np.insert(m1hAllSmall,0,0),0)
+		self.outputHists['m1LoghAll'] = np.append(np.insert(m1hAllLog,0,0),0)
 		self.outputHists['qhAll'] = np.append(np.insert(qhAll,0,0),0)
 		self.outputHists['ehAll'] = np.append(np.insert(ehAll,0,0),0)
 		self.outputHists['lphAll'] = np.append(np.insert(lphAll,0,0),0)
@@ -1842,6 +1888,7 @@ class EBLSSTanalyzer(object):
 		#Observable
 		self.outputHists['m1hObs'] = np.append(np.insert(m1hObs,0,0),0)
 		self.outputHists['m1SmallhObs'] = np.append(np.insert(m1hObsSmall,0,0),0)
+		self.outputHists['m1LoghObs'] = np.append(np.insert(m1hObsLog,0,0),0)
 		self.outputHists['qhObs'] = np.append(np.insert(qhObs,0,0),0)
 		self.outputHists['ehObs'] = np.append(np.insert(ehObs,0,0),0)
 		self.outputHists['lphObs'] = np.append(np.insert(lphObs,0,0),0)
@@ -1851,6 +1898,7 @@ class EBLSSTanalyzer(object):
 		#Recovered
 		self.outputHists['m1hRec'] = dict()
 		self.outputHists['m1SmallhRec'] = dict()
+		self.outputHists['m1LoghRec'] = dict()
 		self.outputHists['qhRec'] = dict()
 		self.outputHists['ehRec'] = dict()
 		self.outputHists['lphRec'] = dict()
@@ -1860,6 +1908,7 @@ class EBLSSTanalyzer(object):
 		for f in self.filters:
 			self.outputHists['m1hRec'][f] = np.append(np.insert(m1hRec[f],0,0),0)
 			self.outputHists['m1SmallhRec'][f] = np.append(np.insert(m1hRecSmall[f],0,0),0)
+			self.outputHists['m1LoghRec'][f] = np.append(np.insert(m1hRecLog[f],0,0),0)
 			self.outputHists['qhRec'][f] = np.append(np.insert(qhRec[f],0,0),0)
 			self.outputHists['ehRec'][f] = np.append(np.insert(ehRec[f],0,0),0)
 			self.outputHists['lphRec'][f] = np.append(np.insert(lphRec[f],0,0),0)
@@ -1869,6 +1918,7 @@ class EBLSSTanalyzer(object):
 
 		self.outputHists['m1bCDF'] = m1bCDF
 		self.outputHists['m1SmallbCDF'] = m1bCDFSmall
+		self.outputHists['m1LogbCDF'] = m1bCDFLog
 		self.outputHists['qbCDF'] = qbCDF
 		self.outputHists['ebCDF'] = ebCDF
 		self.outputHists['lpbCDF'] = lpbCDF
@@ -1878,6 +1928,7 @@ class EBLSSTanalyzer(object):
 		#All (inserting zeros at the start so that I can more easily plot these with the bin_edges)
 		self.outputHists['m1hAllCDF'] = np.insert(m1hAllCDF,0,0)
 		self.outputHists['m1SmallhAllCDF'] = np.insert(m1hAllCDFSmall,0,0)
+		self.outputHists['m1LoghAllCDF'] = np.insert(m1hAllCDFLog,0,0)
 		self.outputHists['qhAllCDF'] = np.insert(qhAllCDF,0,0)
 		self.outputHists['ehAllCDF'] = np.insert(ehAllCDF,0,0)
 		self.outputHists['lphAllCDF'] = np.insert(lphAllCDF,0,0)
@@ -1887,6 +1938,7 @@ class EBLSSTanalyzer(object):
 		#Observable
 		self.outputHists['m1hObsCDF'] = np.insert(m1hObsCDF,0,0)
 		self.outputHists['m1SmallhObsCDF'] = np.insert(m1hObsCDFSmall,0,0)
+		self.outputHists['m1LoghObsCDF'] = np.insert(m1hObsCDFLog,0,0)
 		self.outputHists['qhObsCDF'] = np.insert(qhObsCDF,0,0)
 		self.outputHists['ehObsCDF'] = np.insert(ehObsCDF,0,0)
 		self.outputHists['lphObsCDF'] = np.insert(lphObsCDF,0,0)
@@ -1896,6 +1948,7 @@ class EBLSSTanalyzer(object):
 		#Recovered
 		self.outputHists['m1hRecCDF'] = dict()
 		self.outputHists['m1SmallhRecCDF'] = dict()
+		self.outputHists['m1LoghRecCDF'] = dict()
 		self.outputHists['qhRecCDF'] = dict()
 		self.outputHists['ehRecCDF'] = dict()
 		self.outputHists['lphRecCDF'] = dict()
@@ -1905,6 +1958,7 @@ class EBLSSTanalyzer(object):
 		for f in self.filters:
 			self.outputHists['m1hRecCDF'][f] = np.insert(m1hRecCDF[f],0,0)
 			self.outputHists['m1SmallhRecCDF'][f] = np.insert(m1hRecCDFSmall[f],0,0)
+			self.outputHists['m1LoghRecCDF'][f] = np.insert(m1hRecCDFLog[f],0,0)
 			self.outputHists['qhRecCDF'][f] = np.insert(qhRecCDF[f],0,0)
 			self.outputHists['ehRecCDF'][f] = np.insert(ehRecCDF[f],0,0)
 			self.outputHists['lphRecCDF'][f] = np.insert(lphRecCDF[f],0,0)
@@ -2288,19 +2342,19 @@ class EBLSSTanalyzer(object):
 		h, b = np.histogram(np.log10(EB['period']), bins=lpbins)
 		ax[0][0].step(b[0:-1],h/np.sum(h), color='#5FC8D0', linewidth=1)
 
-		self.plotObsRecOther_new(dF1, dF2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax=ax[0,0],showLegend=True)
-		self.plotObsRecOther_new(dF1, dF2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax=ax[0,1], showLegend=False)
-		self.plotObsRecOther_new(dF1, dF2, 'm1', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,6], ax=ax[0,2], showLegend=False)
-		self.plotObsRecOther_new(dF1, dF2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax=ax[0,3],showLegend=False)
+		self.plotObsRecOther_new(dF1, dF2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax=ax[0,0],showLegend=True, showXticks=False)
+		self.plotObsRecOther_new(dF1, dF2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax=ax[0,1], showLegend=False, showXticks=False)
+		self.plotObsRecOther_new(dF1, dF2, 'm1Log', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new_Log'+suffix), xlim=[-1,1], ax=ax[0,2], showLegend=False, showXticks=False)
+		self.plotObsRecOther_new(dF1, dF2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax=ax[0,3],showLegend=False, showXticks=False)
 
-		self.plotObsRecOther_new(dGC1, dGC2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax=ax[1,0],showLegend=False)
-		self.plotObsRecOther_new(dGC1, dGC2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax=ax[1,1], showLegend=False)
-		self.plotObsRecOther_new(dGC1, dGC2, 'm1Small', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,2], ax=ax[1,2], showLegend=False)
-		self.plotObsRecOther_new(dGC1, dGC2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax=ax[1,3],showLegend=False)
+		self.plotObsRecOther_new(dGC1, dGC2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax=ax[1,0],showLegend=False, showXticks=False)
+		self.plotObsRecOther_new(dGC1, dGC2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax=ax[1,1], showLegend=False, showXticks=False)
+		self.plotObsRecOther_new(dGC1, dGC2, 'm1Log', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new_Log'+suffix), xlim=[-1,1], ax=ax[1,2], showLegend=False, showXticks=False)
+		self.plotObsRecOther_new(dGC1, dGC2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax=ax[1,3],showLegend=False, showXticks=False)
 
 		self.plotObsRecOther_new(dOC1, dOC2, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax=ax[2,0],showLegend=False)
 		self.plotObsRecOther_new(dOC1, dOC2, 'e', r'$e$', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax=ax[2,1], showLegend=False)
-		self.plotObsRecOther_new(dOC1, dOC2, 'm1', r'$m_1$ [M$_\odot$]', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,10], ax=ax[2,2], showLegend=False)
+		self.plotObsRecOther_new(dOC1, dOC2, 'm1Log', r'$\log_{10}(m_1$ [M$_\odot$]$)$', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new_log'+suffix), xlim=[-1,1], ax=ax[2,2], showLegend=False)
 		self.plotObsRecOther_new(dOC1, dOC2, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax=ax[2,3],showLegend=False)
 
 		# ax[0,0].set_ylabel(r'$N_\mathrm{field}/\sum N_\mathrm{baseline,field}$', fontsize=18)
@@ -2315,7 +2369,7 @@ class EBLSSTanalyzer(object):
 					ax[i,j].set_yticklabels([])
 
 
-		f.subplots_adjust(hspace=0.3, wspace=0.1)
+		f.subplots_adjust(hspace=0.1, wspace=0.1)
 		f.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecOtherCombined_new'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
 		plt.close(f)
 
@@ -2334,19 +2388,19 @@ class EBLSSTanalyzer(object):
 
 		#ax1[0][0].hist(np.log10(EB['period']), bins=lpbinsCDF, color='#5FC8D0', linewidth=2, cumulative=True, histtype='step',density=True)
 
-		self.plotObsRecCDF_new(dF1, dF2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphistCDF_new'+suffix), xlim=[-2,4], ax=ax1[0,0],showLegend=True)
-		self.plotObsRecCDF_new(dF1, dF2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehistCDF_new'+suffix), xlim=[0,1],  ax=ax1[0,1], showLegend=False)
-		self.plotObsRecCDF_new(dF1, dF2, 'm1', '', os.path.join(self.plotsDirectory,'EBLSST_m1histCDF_new'+suffix), xlim=[0,6], ax=ax1[0,2], showLegend=False)
-		self.plotObsRecCDF_new(dF1, dF2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhistCDF_new'+suffix), xlim=[0,1], ax=ax1[0,3],showLegend=False)
+		self.plotObsRecCDF_new(dF1, dF2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphistCDF_new'+suffix), xlim=[-2,4], ax=ax1[0,0],showLegend=True, showXticks=False)
+		self.plotObsRecCDF_new(dF1, dF2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehistCDF_new'+suffix), xlim=[0,1],  ax=ax1[0,1], showLegend=False, showXticks=False)
+		self.plotObsRecCDF_new(dF1, dF2, 'm1Log', '', os.path.join(self.plotsDirectory,'EBLSST_m1histCDF_new_Log'+suffix), xlim=[-1,1], ax=ax1[0,2], showLegend=False, showXticks=False)
+		self.plotObsRecCDF_new(dF1, dF2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhistCDF_new'+suffix), xlim=[0,1], ax=ax1[0,3],showLegend=False, showXticks=False)
 
-		self.plotObsRecCDF_new(dGC1, dGC2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphistCDF_new'+suffix), xlim=[-2,4], ax=ax1[1,0],showLegend=False)
-		self.plotObsRecCDF_new(dGC1, dGC2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehistCDF_new'+suffix), xlim=[0,1],  ax=ax1[1,1], showLegend=False)
-		self.plotObsRecCDF_new(dGC1, dGC2, 'm1Small', '', os.path.join(self.plotsDirectory,'EBLSST_m1histCDF_new'+suffix), xlim=[0,2], ax=ax1[1,2], showLegend=False)
-		self.plotObsRecCDF_new(dGC1, dGC2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhistCDF_new'+suffix), xlim=[0,1], ax=ax1[1,3],showLegend=False)
+		self.plotObsRecCDF_new(dGC1, dGC2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphistCDF_new'+suffix), xlim=[-2,4], ax=ax1[1,0],showLegend=False, showXticks=False)
+		self.plotObsRecCDF_new(dGC1, dGC2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehistCDF_new'+suffix), xlim=[0,1],  ax=ax1[1,1], showLegend=False, showXticks=False)
+		self.plotObsRecCDF_new(dGC1, dGC2, 'm1Log', '', os.path.join(self.plotsDirectory,'EBLSST_m1histCDF_new_Log'+suffix), xlim=[-1,1], ax=ax1[1,2], showLegend=False, showXticks=False)
+		self.plotObsRecCDF_new(dGC1, dGC2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhistCDF_new'+suffix), xlim=[0,1], ax=ax1[1,3],showLegend=False, showXticks=False)
 
 		self.plotObsRecCDF_new(dOC1, dOC2, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphistCDF_new'+suffix), xlim=[-2,4], ax=ax1[2,0],showLegend=False)
 		self.plotObsRecCDF_new(dOC1, dOC2, 'e', r'$e$', os.path.join(self.plotsDirectory,'EBLSST_ehistCDF_new'+suffix), xlim=[0,1],  ax=ax1[2,1], showLegend=False)
-		self.plotObsRecCDF_new(dOC1, dOC2, 'm1', r'$m_1$ [M$_\odot$]', os.path.join(self.plotsDirectory,'EBLSST_m1histCDF_new'+suffix), xlim=[0,10], ax=ax1[2,2], showLegend=False)
+		self.plotObsRecCDF_new(dOC1, dOC2, 'm1Log', r'$\log_{10}(m_1$ [M$_\odot$]$)$', os.path.join(self.plotsDirectory,'EBLSST_m1histCDF_new_Log'+suffix), xlim=[-1,1], ax=ax1[2,2], showLegend=False)
 		self.plotObsRecCDF_new(dOC1, dOC2, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhistCDF_new'+suffix), xlim=[0,1], ax=ax1[2,3],showLegend=False)
 
 		# ax[0,0].set_ylabel(r'$N_\mathrm{field}/\sum N_\mathrm{baseline,field}$', fontsize=18)
@@ -2361,25 +2415,25 @@ class EBLSSTanalyzer(object):
 					ax1[i,j].set_yticklabels([])
 
 
-		f1.subplots_adjust(hspace=0.3, wspace=0.1)
+		f1.subplots_adjust(hspace=0.1, wspace=0.1)
 		f1.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecCDFCombined_new'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
 		plt.close(f1)
 
 		#ratios
 		f2,ax2 = plt.subplots(3,4,figsize=(20, 12))
-		self.plotObsRecOtherRatio_new(dF1, dF2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax2=ax2[0,0],showLegend=True, legendLoc = 'upper right')
-		self.plotObsRecOtherRatio_new(dF1, dF2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax2=ax2[0,1], showLegend=False)
-		self.plotObsRecOtherRatio_new(dF1, dF2, 'm1', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,6], ax2=ax2[0,2], showLegend=False)
-		self.plotObsRecOtherRatio_new(dF1, dF2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax2=ax2[0,3],showLegend=False)
+		self.plotObsRecOtherRatio_new(dF1, dF2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax2=ax2[0,0],showLegend=True, legendLoc = 'upper right', showXticks=False)
+		self.plotObsRecOtherRatio_new(dF1, dF2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax2=ax2[0,1], showLegend=False, showXticks=False)
+		self.plotObsRecOtherRatio_new(dF1, dF2, 'm1Log', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new_Log'+suffix), xlim=[-1,1], ax2=ax2[0,2], showLegend=False, showXticks=False)
+		self.plotObsRecOtherRatio_new(dF1, dF2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax2=ax2[0,3],showLegend=False, showXticks=False)
 
-		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax2=ax2[1,0],showLegend=False)
-		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax2=ax2[1,1], showLegend=False)
-		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'm1Small', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,2], ax2=ax2[1,2], showLegend=False)
-		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax2=ax2[1,3],showLegend=False)
+		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'lp', '', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax2=ax2[1,0],showLegend=False, showXticks=False)
+		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'e', '', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax2=ax2[1,1], showLegend=False, showXticks=False)
+		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'm1Log', '', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new_Log'+suffix), xlim=[-1,1], ax2=ax2[1,2], showLegend=False, showXticks=False)
+		self.plotObsRecOtherRatio_new(dGC1, dGC2, 'q', '', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax2=ax2[1,3],showLegend=False, showXticks=False)
 
 		self.plotObsRecOtherRatio_new(dOC1, dOC2, 'lp', r'$\log_{10}(P$ [days]$)$', os.path.join(self.plotsDirectory,'EBLSST_lphist_new'+suffix), xlim=[-2,4], ax2=ax2[2,0],showLegend=False)
 		self.plotObsRecOtherRatio_new(dOC1, dOC2, 'e', r'$e$', os.path.join(self.plotsDirectory,'EBLSST_ehist_new'+suffix), xlim=[0,1],  ax2=ax2[2,1], showLegend=False)
-		self.plotObsRecOtherRatio_new(dOC1, dOC2, 'm1', r'$m_1$ [M$_\odot$]', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new'+suffix), xlim=[0,10], ax2=ax2[2,2], showLegend=False)
+		self.plotObsRecOtherRatio_new(dOC1, dOC2, 'm1Log', r'$\log_{10}(m_1$ [M$_\odot$]$)$', os.path.join(self.plotsDirectory,'EBLSST_m1hist_new_Log'+suffix), xlim=[-1,1], ax2=ax2[2,2], showLegend=False)
 		self.plotObsRecOtherRatio_new(dOC1, dOC2, 'q', r'$q$ $(m_2/m_1)$', os.path.join(self.plotsDirectory,'EBLSST_qhist_new'+suffix), xlim=[0,1], ax2=ax2[2,3],showLegend=False)
 
 		ax2[0,0].set_ylabel(r'Ratio$_\mathrm{field}$', fontsize=18)
@@ -2390,7 +2444,7 @@ class EBLSSTanalyzer(object):
 				if (j != 0):
 					ax2[i,j].set_yticklabels([])
 
-		f2.subplots_adjust(hspace=0.3, wspace=0.1)
+		f2.subplots_adjust(hspace=0.1, wspace=0.1)
 		f2.savefig(os.path.join(self.plotsDirectory,'EBLSST_ObsRecOtherRatioCombined_new'+suffix+'.pdf'),format='pdf', bbox_inches = 'tight')
 		plt.close(f2)
 
