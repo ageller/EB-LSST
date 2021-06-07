@@ -30,3 +30,5 @@ __pycache__
 
 lixo
 tmpfile
+
+worker_save.pickle
